@@ -1,0 +1,31 @@
+{
+	"schemaVersion": 1,
+	"id": "guesstheutils",
+	"version": "${version}",
+	"name": "GuessTheUtils",
+	"description": "A quality of life mod for Guess The Build.",
+	"authors": [
+		"aembr"
+	],
+	"contact": {
+		"homepage": "https://fabricmc.net/",
+		"sources": "https://github.com/FabricMC/fabric-example-mod"
+	},
+	"license": "MIT",
+	"icon": "assets/guesstheutils/icon.png",
+	"environment": "client",
+	"entrypoints": {
+		"client": [
+			"com.aembr.guesstheutils.GuessTheUtils"
+		]
+	},
+	"mixins": [
+		"guesstheutils.mixins.json"
+	],
+	"depends": {
+		"fabricloader": ">=0.16.0",
+		"minecraft": "~1.20.4",
+		"java": ">=17",
+		"fabric-api": "*"
+	}
+}
