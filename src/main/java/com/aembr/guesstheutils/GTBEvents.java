@@ -33,6 +33,10 @@ public class GTBEvents {
     public record UserLeaveEvent() implements BaseEvent {}
     /// Emitted when the user rejoins a game that's in progress.
     public record UserRejoinEvent() implements BaseEvent {}
+    /// Emitted when a new tick arrives.
+    public record TickEvent() implements BaseEvent {}
+    /// Emitted when a player sends any chat message.
+    public record PlayerChatEvent(String player, String message) implements BaseEvent {}
 
     private final Map<Class<? extends BaseEvent>, List<EventListener>> listeners = new HashMap<>();
 
@@ -41,9 +45,19 @@ public class GTBEvents {
     private final Utils.FixedSizeBuffer<List<Text>> scoreboardLineHistory = new Utils.FixedSizeBuffer<>(3);
     private final Utils.FixedSizeBuffer<List<Text>> playerListEntryHistory = new Utils.FixedSizeBuffer<>(3);
 
-    /// We only consider a true score entry valid if it remains the same for at least 3 ticks.
+    private final String[] validEmblems = new String[]{"≈", "α", "Ω", "$", "π", "ƒ"};
+    private final String[] validTitles = new String[]{"Rookie", "Untrained", "Amateur", "Prospect", "Apprentice",
+            "Experienced", "Seasoned", "Trained", "Skilled", "Talented", "Professional", "Artisan", "Expert",
+            "Master", "Legend", "Grandmaster", "Celestial", "Divine", "Ascended"};
+    private final String[] validLeaderboardTitles = new String[]{"#10", "#9", "#8", "#7", "#6", "#5", "#4", "#3", "#2",
+            "#1"};
+    private final String[] validRanks = new String[]{"[VIP]", "[VIP+]", "[MVP]", "[MVP+]", "[MVP++]", "[YOUTUBE]"};
+    private final String[] roundSkipMessages = new String[]{"The plot owner has left the game! Skipping...",
+            "The plot owner is AFK! Skipping...", "The plot owner hasn't placed any blocks! Skipping..."};
+
+    /// We only consider a true score entry valid if it remains the same for at least 2 ticks.
     /// Random corruption that only lasts a tick is surprisingly common, as is slight de-sync between server and tracker.
-    private final Utils.FixedSizeBuffer<List<Utils.Pair<String, Integer>>> trueScoreHistory = new Utils.FixedSizeBuffer<>(2);
+    private final Utils.FixedSizeBuffer<List<Utils.Pair<String, Integer>>> trueScoreHistory = new Utils.FixedSizeBuffer<>(1);
     private List<Utils.Pair<String, Integer>> trueScores = null;
 
     private Tick currentTick;
@@ -56,6 +70,7 @@ public class GTBEvents {
 
     public void processTick(Tick tick) {
         currentTick = tick;
+        emit(new TickEvent());
 
         if (tick.scoreboardLines != null) scoreboardLineHistory.add(tick.scoreboardLines);
         if (tick.playerListEntries != null) playerListEntryHistory.add(tick.playerListEntries);
@@ -181,6 +196,38 @@ public class GTBEvents {
         }
     }
 
+    private String getPlayerNameFromMessage(String message) {
+        if (!message.contains(": ")) return null;
+        String[] nameParts = message.split(": ")[0].split(" ");
+        if (message.startsWith("[GUESSER CHAT]")) {
+            return nameParts[nameParts.length - 1];
+        } else {
+            // check if first part is a valid emblem
+            if (Arrays.stream(validEmblems).anyMatch(e -> e.equals(nameParts[0]))) {
+                return nameParts[nameParts.length - 1];
+            }
+            // if not, let's check if it's a valid title
+            if (Arrays.stream(validTitles).anyMatch(e -> e.equals(nameParts[0]))) {
+                return nameParts[nameParts.length - 1];
+            }
+            // if not, maybe there's a multi-word title (leaderboard)
+            if (Arrays.stream(validLeaderboardTitles)
+                    .anyMatch(e -> e.equals(nameParts[0]) && nameParts[1].equals("Builder"))) {
+                return nameParts[nameParts.length - 1];
+            }
+            // if not, let's check if it's a valid rank (for when and titles don't appear at end of round)
+            if (Arrays.stream(validRanks).anyMatch(e -> e.equals(nameParts[0]))) {
+                return nameParts[nameParts.length - 1];
+            }
+            // if they don't even have a rank, then there should only be one name part - their name
+            // however, we have to manually exclude a few possibilities
+            if (nameParts.length == 1 && !nameParts[0].equals("Builder") && !nameParts[0].equals("Round")) {
+                return nameParts[0];
+            }
+        }
+        return null;
+    }
+
     private void onSubtitleSet(Text subtitle) {
     }
 
@@ -260,6 +307,14 @@ public class GTBEvents {
                 emit(new BuilderChangeEvent(currentBuilder, null));
             }
 
+            if (gameState.equals(GameState.ROUND_PRE) || gameState.equals(GameState.ROUND_BUILD)
+                    || gameState.equals(GameState.ROUND_END)) {
+                String playerName = getPlayerNameFromMessage(strMessage);
+                if (playerName != null) {
+                    String playerMessage = strMessage.split(": ", 2)[1];
+                    emit(new PlayerChatEvent(playerName, playerMessage));
+                }
+            }
         }
         if (!correctGuessers.isEmpty()) emit(new CorrectGuessEvent(correctGuessers));
     }

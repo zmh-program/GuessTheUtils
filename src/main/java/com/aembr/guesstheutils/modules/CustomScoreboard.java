@@ -5,11 +5,10 @@ import com.aembr.guesstheutils.GuessTheUtils;
 import com.aembr.guesstheutils.Utils;
 import net.minecraft.client.font.TextRenderer;
 import net.minecraft.client.gui.DrawContext;
+import net.minecraft.text.Text;
+import net.minecraft.util.Formatting;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 public class CustomScoreboard implements GTBEvents.EventListener {
     private GTBEvents events;
@@ -17,9 +16,14 @@ public class CustomScoreboard implements GTBEvents.EventListener {
     private GTBEvents.GameState state = GTBEvents.GameState.NONE;
     private final List<Player> players = new ArrayList<>();
     private int currentRound = 0;
+    private int skippedRounds = 0;
+    private int potentialLeaverAmount;
+
     private String currentTheme = "";
     private Player currentBuilder = null;
     private int correctGuessesThisRound = 0;
+
+    private List<Utils.Pair<Player, Integer>> latestTrueScore;
 
     // when the user leaves mid-game, we need to remember these things for when they join back
     // if while they were gone there was a possibility for anyone to get points, we can't guarantee accurate tracking
@@ -29,15 +33,6 @@ public class CustomScoreboard implements GTBEvents.EventListener {
     private int leaveRound = -1;
     private Player leaveBuilder;
 
-    public boolean drawTest = false;
-    private final List<Player> drawTestPlayers = List.of(
-            new Player("Yria", new int[]{0, 0, 0, 1}, 2),
-            new Player("Meow", new int[]{3, 1, 0, 1}, 0),
-            new Player("ReallyLongName44", new int[]{1, 1, 1, 1}, 1),
-            new Player("hello", new int[]{0, 3, 2, 1}, 0),
-            new Player("help_me", new int[]{1, 2, 3, 2}, 3)
-    );
-
     public CustomScoreboard(GTBEvents events) {
         this.events = events;
         events.subscribe(GTBEvents.GameStartEvent.class, this);
@@ -45,12 +40,15 @@ public class CustomScoreboard implements GTBEvents.EventListener {
         events.subscribe(GTBEvents.BuilderChangeEvent.class, this);
         events.subscribe(GTBEvents.RoundStartEvent.class, this);
         events.subscribe(GTBEvents.RoundEndEvent.class, this);
+        events.subscribe(GTBEvents.RoundSkipEvent.class, this);
         events.subscribe(GTBEvents.CorrectGuessEvent.class, this);
         events.subscribe(GTBEvents.ThemeUpdateEvent.class, this);
         events.subscribe(GTBEvents.GameEndEvent.class, this);
         events.subscribe(GTBEvents.TrueScoresUpdateEvent.class, this);
         events.subscribe(GTBEvents.UserLeaveEvent.class, this);
         events.subscribe(GTBEvents.UserRejoinEvent.class, this);
+        events.subscribe(GTBEvents.TickEvent.class, this);
+        events.subscribe(GTBEvents.PlayerChatEvent.class, this);
     }
 
     @Override
@@ -58,11 +56,11 @@ public class CustomScoreboard implements GTBEvents.EventListener {
         if (event instanceof GTBEvents.GameStartEvent) {
             players.clear();
             for (GTBEvents.InitialPlayerData playerData : ((GTBEvents.GameStartEvent) event).players()) {
-                players.add(new Player(playerData.name(), playerData.isUser()));
+                players.add(new Player(this, playerData.name(), playerData.isUser()));
             }
-            leaveState = null;
-            leaveRound = -1;
-            leaveBuilder = null;
+            potentialLeaverAmount = 0;
+            skippedRounds = 0;
+            clearLeaveState();
         }
 
         if (event instanceof GTBEvents.StateChangeEvent) {
@@ -111,8 +109,19 @@ public class CustomScoreboard implements GTBEvents.EventListener {
 
         if (players.isEmpty()) return;
 
+        if (event instanceof GTBEvents.TickEvent) {
+            players.forEach(player -> player.inactiveTicks++);
+        }
+
+        if (event instanceof GTBEvents.PlayerChatEvent) {
+            Player player = getPlayerFromName(((GTBEvents.PlayerChatEvent) event).player());
+            assert player != null;
+            player.onActivity();
+        }
+
         if (event instanceof GTBEvents.RoundSkipEvent) {
             currentBuilder.buildRound = -1;
+            skippedRounds++;
         }
 
         if (event instanceof GTBEvents.BuilderChangeEvent) {
@@ -121,6 +130,7 @@ public class CustomScoreboard implements GTBEvents.EventListener {
                 Player builder = getPlayerFromName(builderName);
                 assert builder != null : "Builder " + builderName + " not found in players list!";
                 currentBuilder = builder;
+                currentBuilder.onActivity();
                 return;
             }
             currentBuilder = null;
@@ -147,6 +157,12 @@ public class CustomScoreboard implements GTBEvents.EventListener {
             currentBuilder.buildRound = currentRound;
             currentTheme = "";
             correctGuessesThisRound = 0;
+
+            int missing = players.size() - skippedRounds - ((GTBEvents.RoundStartEvent) event).totalRounds();
+            if (missing != potentialLeaverAmount) {
+                potentialLeaverAmount = missing;
+                updatePotentialLeavers();
+            }
         }
 
         if (event instanceof GTBEvents.RoundEndEvent) {
@@ -158,6 +174,7 @@ public class CustomScoreboard implements GTBEvents.EventListener {
                 Player player = getPlayerFromName(playerName);
                 assert player != null : "Player " + playerName + " not found in players list!";
                 player.points[currentRound - 1] = Math.max(1, 3 - correctGuessesThisRound);
+                player.onActivity();
                 correctGuessesThisRound++;
             }
 
@@ -181,17 +198,22 @@ public class CustomScoreboard implements GTBEvents.EventListener {
         }
 
         if (event instanceof GTBEvents.TrueScoresUpdateEvent) {
+            List<Utils.Pair<Player, Integer>> converted = new ArrayList<>();
             for (Utils.Pair<String, Integer> trueScore : ((GTBEvents.TrueScoresUpdateEvent) event).scores()) {
                 // System.out.println("Checking true score: " + trueScore);
                 if (trueScore == null) continue;
+                Player player = getPlayerFromName(trueScore.a());
+                assert player != null;
+
                 if (!verifyPoints(trueScore.a(), trueScore.b())) {
-                    Player player = getPlayerFromName(trueScore.a());
                     if (player.buildRound == currentRound && player.points[currentRound - 1] == 0
                             && correctGuessesThisRound != 0) {
-                        currentBuilder.points[currentRound - 1] = trueScore.b() - player.getPointsSummed();
+                        currentBuilder.points[currentRound - 1] = trueScore.b() - player.getTotalPoints();
                     }
                 }
+                converted.add(new Utils.Pair<>(player, trueScore.b()));
             }
+            latestTrueScore = converted;
         }
 
         if (event instanceof GTBEvents.UserLeaveEvent) {
@@ -201,11 +223,32 @@ public class CustomScoreboard implements GTBEvents.EventListener {
         }
     }
 
+    void updatePotentialLeavers() {
+        players.stream().filter(player -> player.state.equals(Player.State.POTENTIAL_LEAVER))
+                .forEach(player -> player.state = Player.State.NORMAL);
+
+        players.stream()
+                .filter(p -> p.buildRound <= 0)
+                .filter(p -> !p.isUser)
+                .filter(p -> !Objects.equals(p, currentBuilder))
+                .filter(p -> {
+                    if (latestTrueScore == null) return true;
+                    else return latestTrueScore.stream().noneMatch(score -> score.a().equals(p));
+                    })
+                .sorted((p1, p2) ->
+                        Integer.compare(p2.inactiveTicks, p1.inactiveTicks))
+                .limit(potentialLeaverAmount)
+                .filter(player -> !player.state.equals(Player.State.CONFIRMED_LEAVER))
+                .forEach(player -> {
+                    player.state = Player.State.POTENTIAL_LEAVER;
+                });
+    }
+
     private boolean verifyPoints(String name, Integer expectedPoints) {
         Player player = getPlayerFromName(name);
         assert player != null : "Player " + name + " not found in players list!";
         // System.out.println(player.getPointsSummed() + " " + expectedPoints);
-        return player.getPointsSummed() == expectedPoints;
+        return player.getTotalPoints() == expectedPoints;
     }
 
     private Player getPlayerFromName(String name) {
@@ -217,36 +260,39 @@ public class CustomScoreboard implements GTBEvents.EventListener {
     }
 
     public void drawScoreboard(DrawContext ctx) {
-        if ((players.isEmpty() || state.equals(GTBEvents.GameState.NONE) || state.equals(GTBEvents.GameState.LOBBY)
-                || state.equals(GTBEvents.GameState.POST_GAME)) && !drawTest) return;
+        if (players.isEmpty() || state.equals(GTBEvents.GameState.NONE) || state.equals(GTBEvents.GameState.LOBBY)
+                || state.equals(GTBEvents.GameState.POST_GAME)) return;
 
         int round = state.equals(GTBEvents.GameState.ROUND_PRE) ? currentRound + 1 : currentRound;
 
         TextRenderer renderer = GuessTheUtils.CLIENT.textRenderer;
 
-        List<Player> playerList = drawTest ? drawTestPlayers : players;
-        List<Player> sortedByPoints = playerList.stream()
-                .sorted((p1, p2) -> Integer.compare(p2.getPointsSummed(), p1.getPointsSummed())).toList();
+        List<Player> sortedByPoints = players.stream()
+                .sorted((p1, p2) -> Integer.compare(p2.getTotalPoints(), p1.getTotalPoints())).toList();
 
-        List<String> lines = new ArrayList<>();
+        List<Text> lines = new ArrayList<>();
         int width = 0;
         for (int i = 0; i < sortedByPoints.size(); i++) {
             Player player = sortedByPoints.get(i);
             String line = String.format("%d %d %s: ", i + 1, player.buildRound, player.name);
             if (player.points[round - 1] == 0) {
-                line += player.getPointsSummed();
+                line += player.getTotalPoints();
             } else {
-                line += String.format("+%d %d", player.points[round - 1], player.getPointsSummed());
+                line += String.format("+%d %d", player.points[round - 1], player.getTotalPoints());
             }
+
+            Text textLine = player.state.equals(Player.State.NORMAL) ?
+                    Text.literal(line).formatted(Formatting.WHITE)
+                    : Text.literal(line).formatted(Formatting.GRAY);
 
             int lineWidth = renderer.getWidth(line);
             if (lineWidth > width) width = lineWidth;
-            lines.add(line);
+            lines.add(textLine);
         }
 
         int height = renderer.fontHeight * lines.size();
         int x = ctx.getScaledWindowWidth() - width - 4;
-        int startY = ctx.getScaledWindowHeight() - height - 50;
+        int startY = ctx.getScaledWindowHeight() - height - 20;
 
         for (int i = 0; i < lines.size(); i++) {
             int y = startY + i * renderer.fontHeight;
@@ -261,34 +307,47 @@ public class CustomScoreboard implements GTBEvents.EventListener {
     }
 
     private static class Player {
+        enum State { NORMAL, POTENTIAL_LEAVER, CONFIRMED_LEAVER }
+
+        CustomScoreboard customScoreboard;
         String name;
         int[] points;
         int buildRound;
         boolean isUser;
 
-        public Player(String name, boolean isUser) {
+        int inactiveTicks = 0;
+        State state = State.NORMAL;
+
+        public Player(CustomScoreboard customScoreboard, String name, boolean isUser) {
             this.name = name;
             this.points = new int[]{0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
             this.buildRound = 0;
             this.isUser = isUser;
+            this.customScoreboard = customScoreboard;
         }
 
-        public Player(String name, int[] points, int buildRound) {
-            this.name = name;
-            this.points = points;
-            this.buildRound = buildRound;
-        }
-
-        public int getPointsSummed() {
+        public int getTotalPoints() {
             return Arrays.stream(points).sum();
+        }
+
+        public void onActivity() {
+            inactiveTicks = 0;
+            if (state.equals(State.POTENTIAL_LEAVER)) {
+                System.out.println(name + ": I did stuff.");
+                customScoreboard.updatePotentialLeavers();
+            }
         }
 
         @Override
         public String toString() {
             return "Player{" +
-                    "name='" + name + '\'' +
+                    "customScoreboard=" + customScoreboard +
+                    ", name='" + name + '\'' +
                     ", points=" + Arrays.toString(points) +
                     ", buildRound=" + buildRound +
+                    ", isUser=" + isUser +
+                    ", inactiveTicks=" + inactiveTicks +
+                    ", state=" + state +
                     '}';
         }
     }
