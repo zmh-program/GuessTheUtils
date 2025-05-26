@@ -209,21 +209,7 @@ public class GTBEventsTest {
         assert listener.receivedEvents.size() == 1;
         GTBEvents.BaseEvent event = listener.receivedEvents.get(0);
         assert event instanceof GTBEvents.GameStartEvent;
-
-        Set<GTBEvents.InitialPlayerData> expected = new HashSet<>(List.of(
-                new GTBEvents.InitialPlayerData("Mstf", Text.literal("Amateur").formatted(Formatting.DARK_GRAY), null, Formatting.GOLD, false),
-                new GTBEvents.InitialPlayerData("Cazzeeee", Text.literal("Prospect").formatted(Formatting.GREEN), null, Formatting.GRAY, false),
-                new GTBEvents.InitialPlayerData("NotAcomy", Text.literal("Rookie").formatted(Formatting.WHITE), null, Formatting.AQUA, false),
-                new GTBEvents.InitialPlayerData("P4t_o", Text.literal("Rookie").formatted(Formatting.WHITE), null, Formatting.AQUA, false),
-                new GTBEvents.InitialPlayerData("Lanyingtears", Text.literal("Rookie").formatted(Formatting.WHITE), null, Formatting.AQUA, false),
-                new GTBEvents.InitialPlayerData("Yria", Text.literal("Expert").formatted(Formatting.DARK_RED), Text.literal("≈").formatted(Formatting.YELLOW), Formatting.AQUA, true),
-                new GTBEvents.InitialPlayerData("Ao0j", Text.literal("Trained").formatted(Formatting.BLUE), null, Formatting.GRAY, false),
-                new GTBEvents.InitialPlayerData("Rinkutako", Text.literal("Untrained").formatted(Formatting.GRAY), null, Formatting.GRAY, false),
-                new GTBEvents.InitialPlayerData("PepinoCL", Text.literal("Rookie").formatted(Formatting.WHITE), null, Formatting.GRAY, false)
-        ));
-        Set<GTBEvents.InitialPlayerData> actual = ((GTBEvents.GameStartEvent) event).players();
-        //System.out.println(actual);
-        assert actual.size() == 10;
+        assert ((GTBEvents.GameStartEvent) event).players().size() == 10;
     }
 
     @Test
@@ -497,6 +483,51 @@ public class GTBEventsTest {
         assert events.getStateFromScoreboard(List.of(
                 "GUESS THE BUILD"
         )) == GTBEvents.GameState.NONE;
+    }
+
+    @Test
+    void testGetTrueScoresFromScoreboard() {
+        List<Utils.Pair<String, Integer>> a1 = events.getTrueScoresFromScoreboard(List.of(
+                "GUESS THE BUILD",
+                "12/26/24  m94B",
+                "Builder:",
+                " Yria",
+                "GlowingYoshi: 0",
+                "_PolarBearz_: 0",
+                "Nescafe755: 0",
+                "...",
+                "Yria: 0",
+                "Starts In: 00:10",
+                "Theme:",
+                " ???",
+                "www.hypixel.net"
+        ));
+
+        List<Utils.Pair<String, Integer>> e1 = List.of(
+                new Utils.Pair<>("GlowingYoshi", 0),
+                new Utils.Pair<>("_PolarBearz_", 0),
+                new Utils.Pair<>("Nescafe755", 0),
+                new Utils.Pair<>("Yria", 0));
+
+       assert a1.equals(e1) : "Expected: " + e1 + "\nActual: " + a1;
+
+        assert events.getTrueScoresFromScoreboard(List.of(
+                "GUESS THE BUILD",
+                "12/26/24  m94B",
+                "Builder:",
+                " Yria",
+                "Nescafe755: 3",
+                "Yria: 3",
+                "DarkkBlue: 2",
+                "Next Round: 00:05",
+                "Theme:",
+                " Ice Cream Cone",
+                "www.hypixel.net"
+        )).equals(List.of(
+                new Utils.Pair<>("Nescafe755", 3),
+                new Utils.Pair<>("Yria", 3),
+                new Utils.Pair<>("DarkkBlue", 2)
+        ));
     }
 
     private static class TestEventListener implements GTBEvents.EventListener {

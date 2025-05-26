@@ -37,6 +37,8 @@ public class GTBEvents {
     public record TickEvent() implements BaseEvent {}
     /// Emitted when a player sends any chat message.
     public record PlayerChatEvent(String player, String message) implements BaseEvent {}
+    /// Emitted when the 1-second remaining in round alert is received.
+    public record OneSecondAlertEvent() implements BaseEvent {}
 
     private final Map<Class<? extends BaseEvent>, List<EventListener>> listeners = new HashMap<>();
 
@@ -54,6 +56,8 @@ public class GTBEvents {
     private final String[] validRanks = new String[]{"[VIP]", "[VIP+]", "[MVP]", "[MVP+]", "[MVP++]", "[YOUTUBE]"};
     private final String[] roundSkipMessages = new String[]{"The plot owner has left the game! Skipping...",
             "The plot owner is AFK! Skipping...", "The plot owner hasn't placed any blocks! Skipping..."};
+
+    private boolean roundSkipped = false;
 
     /// We only consider a true score entry valid if it remains the same for at least 2 ticks.
     /// Random corruption that only lasts a tick is surprisingly common, as is slight de-sync between server and tracker.
@@ -233,6 +237,10 @@ public class GTBEvents {
     }
 
     private void onSubtitleSet(Text subtitle) {
+        if (gameState.equals(GameState.ROUND_BUILD)
+                && Objects.equals(Formatting.strip(subtitle.getString()), "1 second remaining!")) {
+            emit(new OneSecondAlertEvent());
+        }
     }
 
     private void onTitleSet(Text title) {
@@ -281,13 +289,22 @@ public class GTBEvents {
                 correctGuessers.add(strMessage.replace(" correctly guessed the theme!", ""));
             }
 
+            if (Arrays.asList(roundSkipMessages).contains(strMessage)) {
+                roundSkipped = true;
+            }
+
             if (gameState.equals(GameState.ROUND_BUILD) && strMessage.startsWith("The theme was: ")) {
                 String theme = strMessage.replace("The theme was: ", "").replace("!", "");
                 if (!currentTheme.equals(theme)) {
                     emit(new ThemeUpdateEvent(theme));
                     currentTheme = theme;
                 }
-                emit(new RoundEndEvent(false));
+                if (!roundSkipped && chatMessages.stream().anyMatch(msg -> Arrays.stream(roundSkipMessages)
+                        .anyMatch(e -> e.equals(Formatting.strip(msg.getString()))))) {
+                    roundSkipped = true;
+                }
+                emit(new RoundEndEvent(roundSkipped));
+                roundSkipped = false;
             }
 
             if (strMessage.startsWith("Welcome back! You are building something relevant to the theme ")) {
@@ -359,11 +376,13 @@ public class GTBEvents {
         return null;
     }
 
-    private List<Utils.Pair<String, Integer>> getTrueScoresFromScoreboard(List<String> scoreboardLines) {
+    public List<Utils.Pair<String, Integer>> getTrueScoresFromScoreboard(List<String> scoreboardLines) {
         List<Utils.Pair<String, Integer>> trueScores = new ArrayList<>();
 
-        scoreboardLines.stream().map(line -> line.split(": "))
-                .filter(parts -> parts.length > 1)
+        scoreboardLines.stream()
+                .filter(line -> line.split(":").length == 2)
+                .map(line -> line.split(": "))
+                .filter(parts -> parts.length == 2)
                 .forEach(parts -> {
                     if (!parts[0].contains(" ") && parts[1].matches("\\d{1,2}")) {
                         trueScores.add(new Utils.Pair<>(parts[0], Integer.parseInt(parts[1])));

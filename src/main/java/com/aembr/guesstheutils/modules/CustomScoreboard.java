@@ -19,9 +19,13 @@ public class CustomScoreboard implements GTBEvents.EventListener {
     private int skippedRounds = 0;
     private int potentialLeaverAmount;
 
+    /// How long should a player be inactive for, until they're marked as such
+    private final int inactivePlayerTickThreshold = 100;
+
     private String currentTheme = "";
     private Player currentBuilder = null;
     private int correctGuessesThisRound = 0;
+    private boolean oneSecondAlertReached = false;
 
     private List<Utils.Pair<Player, Integer>> latestTrueScore;
 
@@ -49,6 +53,7 @@ public class CustomScoreboard implements GTBEvents.EventListener {
         events.subscribe(GTBEvents.UserRejoinEvent.class, this);
         events.subscribe(GTBEvents.TickEvent.class, this);
         events.subscribe(GTBEvents.PlayerChatEvent.class, this);
+        events.subscribe(GTBEvents.OneSecondAlertEvent.class, this);
     }
 
     @Override
@@ -110,7 +115,19 @@ public class CustomScoreboard implements GTBEvents.EventListener {
         if (players.isEmpty()) return;
 
         if (event instanceof GTBEvents.TickEvent) {
-            players.forEach(player -> player.inactiveTicks++);
+            players.forEach(player -> {
+                player.inactiveTicks++;
+                if (player.inactiveTicks > inactivePlayerTickThreshold && player.state == Player.State.NORMAL
+                        && !player.isUser && !Objects.equals(currentBuilder, player)
+                        && latestTrueScore != null
+                        && latestTrueScore.stream().noneMatch(entry -> entry.a() == player)) {
+                    player.state = Player.State.INACTIVE;
+                }
+            });
+        }
+
+        if (event instanceof GTBEvents.OneSecondAlertEvent) {
+            oneSecondAlertReached = true;
         }
 
         if (event instanceof GTBEvents.PlayerChatEvent) {
@@ -138,6 +155,7 @@ public class CustomScoreboard implements GTBEvents.EventListener {
 
         if (event instanceof GTBEvents.RoundStartEvent) {
             currentRound = ((GTBEvents.RoundStartEvent) event).currentRound();
+            oneSecondAlertReached = false;
 
             // this check will only be true if the user left during the end of one round,
             // and rejoined before the start of another. we just need to check if they haven't skipped any rounds
@@ -166,7 +184,10 @@ public class CustomScoreboard implements GTBEvents.EventListener {
         }
 
         if (event instanceof GTBEvents.RoundEndEvent) {
-            //System.out.println(players);
+            if (!((GTBEvents.RoundEndEvent) event).skipped() && !oneSecondAlertReached) {
+                players.stream().filter(p -> p.points[currentRound] == 0)
+                        .forEach(p -> p.state = Player.State.LEAVER);
+            }
         }
 
         if (event instanceof GTBEvents.CorrectGuessEvent) {
@@ -205,6 +226,10 @@ public class CustomScoreboard implements GTBEvents.EventListener {
                 Player player = getPlayerFromName(trueScore.a());
                 assert player != null;
 
+                if (player.state.equals(Player.State.LEAVER) || player.state.equals(Player.State.INACTIVE)) {
+                    player.state = Player.State.NORMAL;
+                }
+
                 if (!verifyPoints(trueScore.a(), trueScore.b())) {
                     if (player.buildRound == currentRound && player.points[currentRound - 1] == 0
                             && correctGuessesThisRound != 0) {
@@ -214,6 +239,40 @@ public class CustomScoreboard implements GTBEvents.EventListener {
                 converted.add(new Utils.Pair<>(player, trueScore.b()));
             }
             latestTrueScore = converted;
+
+            // Detect players who should appear in the top 3, but don't (confirmed leavers)
+            List<Player> playersSortedByPoints = players.stream()
+                    .filter(p -> !p.state.equals(Player.State.LEAVER))
+                    .sorted((p1, p2) -> Integer.compare(p2.getTotalPoints(), p1.getTotalPoints())).toList();
+
+            List<Utils.Pair<Player, Integer>> topNames = new ArrayList<>();
+            for (int i = 1; i < 4; i++) {
+                if (latestTrueScore.get(i) == null) continue;
+                topNames.add(latestTrueScore.get(i));
+            }
+
+            if (topNames.isEmpty()) return;
+            List<Player> guaranteedToAppearInScoreboard = new ArrayList<>();
+            Map<Integer, List<Player>> pointsMap = new HashMap<>();
+            for (Player player : playersSortedByPoints) {
+                pointsMap.computeIfAbsent(player.getTotalPoints(), k -> new ArrayList<>()).add(player);
+            }
+            List<List<Player>> sortedGroupedPlayers = new ArrayList<>();
+            pointsMap.entrySet()
+                    .stream()
+                    .sorted(Map.Entry.<Integer, List<Player>>comparingByKey().reversed())
+                    .forEach(entry -> sortedGroupedPlayers.add(entry.getValue()));
+
+            for (List<Player> pointsGroup : sortedGroupedPlayers) {
+                if (pointsGroup.size() > topNames.size() - guaranteedToAppearInScoreboard.size()) break;
+                guaranteedToAppearInScoreboard.addAll(pointsGroup);
+            }
+
+            for (Player player : guaranteedToAppearInScoreboard) {
+                if (topNames.stream().noneMatch(p -> p.a().equals(player))) {
+                    player.state = Player.State.LEAVER;
+                }
+            }
         }
 
         if (event instanceof GTBEvents.UserLeaveEvent) {
@@ -235,13 +294,11 @@ public class CustomScoreboard implements GTBEvents.EventListener {
                     if (latestTrueScore == null) return true;
                     else return latestTrueScore.stream().noneMatch(score -> score.a().equals(p));
                     })
-                .sorted((p1, p2) ->
-                        Integer.compare(p2.inactiveTicks, p1.inactiveTicks))
+                .sorted(Comparator.comparing((Player p) -> p.state == Player.State.LEAVER ? 0 : 1)
+                        .thenComparingInt(p -> p.inactiveTicks).reversed())
                 .limit(potentialLeaverAmount)
-                .filter(player -> !player.state.equals(Player.State.CONFIRMED_LEAVER))
-                .forEach(player -> {
-                    player.state = Player.State.POTENTIAL_LEAVER;
-                });
+                .filter(p -> !p.state.equals(Player.State.LEAVER))
+                .forEach(p -> p.state = Player.State.POTENTIAL_LEAVER);
     }
 
     private boolean verifyPoints(String name, Integer expectedPoints) {
@@ -264,6 +321,7 @@ public class CustomScoreboard implements GTBEvents.EventListener {
                 || state.equals(GTBEvents.GameState.POST_GAME)) return;
 
         int round = state.equals(GTBEvents.GameState.ROUND_PRE) ? currentRound + 1 : currentRound;
+        if (round == 0 || round > players.size()) return;
 
         TextRenderer renderer = GuessTheUtils.CLIENT.textRenderer;
 
@@ -307,7 +365,7 @@ public class CustomScoreboard implements GTBEvents.EventListener {
     }
 
     private static class Player {
-        enum State { NORMAL, POTENTIAL_LEAVER, CONFIRMED_LEAVER }
+        enum State { NORMAL, INACTIVE, POTENTIAL_LEAVER, LEAVER }
 
         CustomScoreboard customScoreboard;
         String name;
@@ -315,8 +373,8 @@ public class CustomScoreboard implements GTBEvents.EventListener {
         int buildRound;
         boolean isUser;
 
-        int inactiveTicks = 0;
-        State state = State.NORMAL;
+        public int inactiveTicks = 0;
+        public State state = State.NORMAL;
 
         public Player(CustomScoreboard customScoreboard, String name, boolean isUser) {
             this.name = name;
@@ -333,8 +391,9 @@ public class CustomScoreboard implements GTBEvents.EventListener {
         public void onActivity() {
             inactiveTicks = 0;
             if (state.equals(State.POTENTIAL_LEAVER)) {
-                System.out.println(name + ": I did stuff.");
                 customScoreboard.updatePotentialLeavers();
+            } else if (state.equals(State.LEAVER) || state.equals(State.INACTIVE)) {
+                state = State.NORMAL;
             }
         }
 
