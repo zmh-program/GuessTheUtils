@@ -33,8 +33,8 @@ public class GTBEvents {
     public record UserLeaveEvent() implements BaseEvent {}
     /// Emitted when the user rejoins a game that's in progress.
     public record UserRejoinEvent() implements BaseEvent {}
-    /// Emitted when a new tick arrives.
-    public record TickEvent() implements BaseEvent {}
+    /// Emitted when a new tick update arrives.
+    public record TickUpdateEvent() implements BaseEvent {}
     /// Emitted when a player sends any chat message.
     public record PlayerChatEvent(String player, String message) implements BaseEvent {}
     /// Emitted when the 1-second remaining in round alert is received.
@@ -72,9 +72,9 @@ public class GTBEvents {
     private String currentBuilder = "";
     private String currentTheme = "";
 
-    public void processTick(Tick tick) {
+    public void processTickUpdate(Tick tick) {
         currentTick = tick;
-        emit(new TickEvent());
+        emit(new TickUpdateEvent());
 
         if (tick.scoreboardLines != null) scoreboardLineHistory.add(tick.scoreboardLines);
         if (tick.playerListEntries != null) playerListEntryHistory.add(tick.playerListEntries);

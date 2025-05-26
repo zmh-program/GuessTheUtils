@@ -3,6 +3,8 @@ package com.aembr.guesstheutils.modules;
 import com.aembr.guesstheutils.GTBEvents;
 import com.aembr.guesstheutils.GuessTheUtils;
 import com.aembr.guesstheutils.Utils;
+import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents;
+import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.font.TextRenderer;
 import net.minecraft.client.gui.DrawContext;
 import net.minecraft.text.Text;
@@ -20,7 +22,7 @@ public class CustomScoreboard implements GTBEvents.EventListener {
     private int potentialLeaverAmount;
 
     /// How long should a player be inactive for, until they're marked as such
-    private final int inactivePlayerTickThreshold = 200;
+    private final int inactivePlayerThresholdSeconds = 240;
 
     private String currentTheme = "";
     private Player currentBuilder = null;
@@ -39,6 +41,9 @@ public class CustomScoreboard implements GTBEvents.EventListener {
 
     public CustomScoreboard(GTBEvents events) {
         this.events = events;
+
+        ClientTickEvents.START_CLIENT_TICK.register(this::onTick);
+
         events.subscribe(GTBEvents.GameStartEvent.class, this);
         events.subscribe(GTBEvents.StateChangeEvent.class, this);
         events.subscribe(GTBEvents.BuilderChangeEvent.class, this);
@@ -51,9 +56,27 @@ public class CustomScoreboard implements GTBEvents.EventListener {
         events.subscribe(GTBEvents.TrueScoresUpdateEvent.class, this);
         events.subscribe(GTBEvents.UserLeaveEvent.class, this);
         events.subscribe(GTBEvents.UserRejoinEvent.class, this);
-        events.subscribe(GTBEvents.TickEvent.class, this);
+        events.subscribe(GTBEvents.TickUpdateEvent.class, this);
         events.subscribe(GTBEvents.PlayerChatEvent.class, this);
         events.subscribe(GTBEvents.OneSecondAlertEvent.class, this);
+    }
+
+    private void onTick(MinecraftClient minecraftClient) {
+        if (!players.isEmpty() && (state.equals(GTBEvents.GameState.ROUND_PRE)
+                || state.equals(GTBEvents.GameState.ROUND_BUILD) || state.equals(GTBEvents.GameState.ROUND_END))) {
+            players.forEach(player -> {
+                player.inactiveTicks++;
+
+                if (player.inactiveTicks >= inactivePlayerThresholdSeconds * 20
+                        && player.state.equals(Player.State.NORMAL)
+                        && !player.isUser && !Objects.equals(currentBuilder, player)
+                        && latestTrueScore != null
+                        && latestTrueScore.stream().noneMatch(entry -> entry.a() == player)
+                ){
+                    player.state = Player.State.INACTIVE;
+                }
+            });
+        }
     }
 
     @Override
@@ -113,21 +136,6 @@ public class CustomScoreboard implements GTBEvents.EventListener {
         }
 
         if (players.isEmpty()) return;
-
-        if (event instanceof GTBEvents.TickEvent) {
-            players.forEach(player -> {
-                player.inactiveTicks++;
-
-                if (player.inactiveTicks >= inactivePlayerTickThreshold && player.state.equals(Player.State.NORMAL)
-                        && !player.isUser && !Objects.equals(currentBuilder, player)
-                        && latestTrueScore != null
-                        && latestTrueScore.stream().noneMatch(entry -> entry.a() == player)
-                    ){
-                    player.state = Player.State.INACTIVE;
-                    System.out.println("Setting " + player.name + " to inactive.");
-                }
-            });
-        }
 
         if (event instanceof GTBEvents.OneSecondAlertEvent) {
             oneSecondAlertReached = true;

@@ -72,7 +72,7 @@ public class GuessTheUtils implements ClientModInitializer {
         if (!currentTick.isEmpty()) {
             replay.addTick(currentTick);
             try {
-                events.processTick(currentTick);
+                events.processTickUpdate(currentTick);
             } catch (Exception e) {
                 StringWriter sw = new StringWriter();
                 PrintWriter pw = new PrintWriter(sw);

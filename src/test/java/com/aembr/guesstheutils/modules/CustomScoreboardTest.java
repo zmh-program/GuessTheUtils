@@ -63,7 +63,7 @@ public class CustomScoreboardTest {
             String line;
             while ((line = br.readLine()) != null) {
                 Tick tick = new Tick(line);
-                events.processTick(tick);
+                events.processTickUpdate(tick);
             }
         }
     }
