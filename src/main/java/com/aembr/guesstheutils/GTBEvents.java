@@ -99,8 +99,12 @@ public class GTBEvents {
         List<String> stringLines = scoreboardLines.stream().map(line -> Formatting.strip(line.getString())).toList();
         GameState state = getStateFromScoreboard(stringLines);
 
-        if ((gameState.equals(GameState.LOBBY) || gameState.equals(GameState.SETUP)) && state == null) {
+        if (gameState.equals(GameState.LOBBY) && state == null) {
             changeState(GameState.SETUP);
+            return;
+        }
+
+        if (gameState.equals(GameState.SETUP) && (state == null || state.equals(GameState.NONE))) {
             return;
         }
 
@@ -344,6 +348,7 @@ public class GTBEvents {
     public GameState getStateFromScoreboard(List<String> scoreboardLines) {
         if (scoreboardLines.isEmpty()) return null;
         if (!scoreboardLines.get(0).equals("GUESS THE BUILD")) return GameState.NONE;
+        if (scoreboardLines.size() == 1) return GameState.NONE;
         if (scoreboardLines.contains("Mode: Guess The Build")) return GameState.LOBBY;
         if (scoreboardLines.stream().anyMatch(line -> line.startsWith("1. "))) return GameState.POST_GAME;
         if (scoreboardLines.stream().anyMatch(line -> line.startsWith("Starts In: 00:"))) return GameState.ROUND_PRE;

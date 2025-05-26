@@ -32,6 +32,9 @@ public class GuessTheUtils implements ClientModInitializer {
 
     public static CustomScoreboard customScoreboard = new CustomScoreboard(events);
 
+    public static boolean testing = false;
+    public static final LiveE2ERunner liveE2ERunner = new LiveE2ERunner();
+
     private static Tick currentTick;
     private List<Text> previousScoreboardLines = new ArrayList<>();
     private List<Text> previousPlayerListEntries = new ArrayList<>();
@@ -62,6 +65,10 @@ public class GuessTheUtils implements ClientModInitializer {
         if (client.player == null || events == null) return;
         if (currentTick == null) currentTick = new Tick();
 
+        if (testing) {
+            currentTick = liveE2ERunner.getNext();
+        }
+
         if (!currentTick.isEmpty()) {
             replay.addTick(currentTick);
             try {
@@ -81,6 +88,8 @@ public class GuessTheUtils implements ClientModInitializer {
                 currentTick = new Tick();
             }
         }
+
+        if (testing) return;
 
         onScoreboardUpdate(Utils.getScoreboardLines(client));
         onPlayerListUpdate(Utils.collectTabListEntries(client));
