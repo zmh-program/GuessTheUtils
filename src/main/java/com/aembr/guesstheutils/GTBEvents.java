@@ -61,7 +61,7 @@ public class GTBEvents {
 
     /// We only consider a true score entry valid if it remains the same for at least 2 ticks.
     /// Random corruption that only lasts a tick is surprisingly common, as is slight de-sync between server and tracker.
-    private final Utils.FixedSizeBuffer<List<Utils.Pair<String, Integer>>> trueScoreHistory = new Utils.FixedSizeBuffer<>(1);
+    private final Utils.FixedSizeBuffer<List<Utils.Pair<String, Integer>>> trueScoreHistory = new Utils.FixedSizeBuffer<>(2);
     private List<Utils.Pair<String, Integer>> trueScores = null;
 
     private Tick currentTick;
@@ -128,6 +128,8 @@ public class GTBEvents {
         // Extract true scores
         if (gameState.equals(GameState.ROUND_BUILD) || gameState.equals(GameState.ROUND_PRE) || gameState.equals(GameState.ROUND_END)) {
             List<Utils.Pair<String, Integer>> trueScoreEntries = getTrueScoresFromScoreboard(stringLines);
+            //System.out.println("Got true scores from scoreboard: " + trueScoreEntries);
+            //System.out.println("True score history is " + trueScoreHistory.size());
             if (trueScoreHistory.size() == 2) {
                 if (trueScoreEntries.equals(trueScoreHistory.get(0))
                         && trueScoreEntries.equals(trueScoreHistory.get(1))

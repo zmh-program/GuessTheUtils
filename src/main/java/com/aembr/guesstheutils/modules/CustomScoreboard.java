@@ -20,7 +20,7 @@ public class CustomScoreboard implements GTBEvents.EventListener {
     private int potentialLeaverAmount;
 
     /// How long should a player be inactive for, until they're marked as such
-    private final int inactivePlayerTickThreshold = 100;
+    private final int inactivePlayerTickThreshold = 200;
 
     private String currentTheme = "";
     private Player currentBuilder = null;
@@ -117,11 +117,14 @@ public class CustomScoreboard implements GTBEvents.EventListener {
         if (event instanceof GTBEvents.TickEvent) {
             players.forEach(player -> {
                 player.inactiveTicks++;
-                if (player.inactiveTicks > inactivePlayerTickThreshold && player.state == Player.State.NORMAL
+
+                if (player.inactiveTicks >= inactivePlayerTickThreshold && player.state.equals(Player.State.NORMAL)
                         && !player.isUser && !Objects.equals(currentBuilder, player)
                         && latestTrueScore != null
-                        && latestTrueScore.stream().noneMatch(entry -> entry.a() == player)) {
+                        && latestTrueScore.stream().noneMatch(entry -> entry.a() == player)
+                    ){
                     player.state = Player.State.INACTIVE;
+                    System.out.println("Setting " + player.name + " to inactive.");
                 }
             });
         }
@@ -185,8 +188,11 @@ public class CustomScoreboard implements GTBEvents.EventListener {
 
         if (event instanceof GTBEvents.RoundEndEvent) {
             if (!((GTBEvents.RoundEndEvent) event).skipped() && !oneSecondAlertReached) {
-                players.stream().filter(p -> p.points[currentRound] == 0)
-                        .forEach(p -> p.state = Player.State.LEAVER);
+                players.stream().filter(p -> p.points[currentRound - 1] == 0)
+                        .forEach(p -> {
+                            p.state = Player.State.LEAVER;
+                            //System.out.println("Setting " + p.name + " to leaver, because they didn't guess.");
+                        });
             }
         }
 
@@ -238,6 +244,7 @@ public class CustomScoreboard implements GTBEvents.EventListener {
                 }
                 converted.add(new Utils.Pair<>(player, trueScore.b()));
             }
+
             latestTrueScore = converted;
 
             // Detect players who should appear in the top 3, but don't (confirmed leavers)
@@ -246,7 +253,7 @@ public class CustomScoreboard implements GTBEvents.EventListener {
                     .sorted((p1, p2) -> Integer.compare(p2.getTotalPoints(), p1.getTotalPoints())).toList();
 
             List<Utils.Pair<Player, Integer>> topNames = new ArrayList<>();
-            for (int i = 1; i < 4; i++) {
+            for (int i = 0; i < 3; i++) {
                 if (latestTrueScore.get(i) == null) continue;
                 topNames.add(latestTrueScore.get(i));
             }
@@ -271,6 +278,7 @@ public class CustomScoreboard implements GTBEvents.EventListener {
             for (Player player : guaranteedToAppearInScoreboard) {
                 if (topNames.stream().noneMatch(p -> p.a().equals(player))) {
                     player.state = Player.State.LEAVER;
+                    //System.out.println("Setting " + player.name + " to leaver, because they should appear in the scoreboard.");
                 }
             }
         }
@@ -298,7 +306,10 @@ public class CustomScoreboard implements GTBEvents.EventListener {
                         .thenComparingInt(p -> p.inactiveTicks).reversed())
                 .limit(potentialLeaverAmount)
                 .filter(p -> !p.state.equals(Player.State.LEAVER))
-                .forEach(p -> p.state = Player.State.POTENTIAL_LEAVER);
+                .forEach(p -> {
+                    p.state = Player.State.POTENTIAL_LEAVER;
+                    //System.out.println("Setting " + p.name + " to potential leaver.");
+                });
     }
 
     private boolean verifyPoints(String name, Integer expectedPoints) {
