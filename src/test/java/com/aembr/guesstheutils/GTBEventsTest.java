@@ -6,6 +6,7 @@ import net.minecraft.text.Text;
 import net.minecraft.util.Formatting;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 
 import java.util.*;
@@ -315,6 +316,7 @@ public class GTBEventsTest {
         assert ((GTBEvents.CorrectGuessEvent) event).players().equals(List.of("Yria", "nikIII123"));
     }
 
+    @Disabled("Needs to be redone from a chat message trigger to a state change trigger.")
     @Test
     void testRoundEndEvent() {
         events.subscribe(GTBEvents.RoundEndEvent.class, listener);

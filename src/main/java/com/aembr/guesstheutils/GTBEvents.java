@@ -301,12 +301,6 @@ public class GTBEvents {
                     emit(new ThemeUpdateEvent(theme));
                     currentTheme = theme;
                 }
-                if (!roundSkipped && chatMessages.stream().anyMatch(msg -> Arrays.stream(roundSkipMessages)
-                        .anyMatch(e -> e.equals(Formatting.strip(msg.getString()))))) {
-                    roundSkipped = true;
-                }
-                emit(new RoundEndEvent(roundSkipped));
-                roundSkipped = false;
             }
 
             if (strMessage.startsWith("Welcome back! You are building something relevant to the theme ")) {
@@ -411,6 +405,11 @@ public class GTBEvents {
 
         if (newState.equals(GameState.POST_GAME)) {
             onGameEnd(scoreboardLineHistory.get(0));
+        }
+
+        if (gameState.equals(GameState.ROUND_BUILD) && newState.equals(GameState.ROUND_END)) {
+            emit(new RoundEndEvent(roundSkipped));
+            roundSkipped = false;
         }
 
         if (newState.equals(GameState.NONE)

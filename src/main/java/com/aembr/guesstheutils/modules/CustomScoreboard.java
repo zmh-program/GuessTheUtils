@@ -7,6 +7,7 @@ import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.font.TextRenderer;
 import net.minecraft.client.gui.DrawContext;
+import net.minecraft.text.MutableText;
 import net.minecraft.text.Text;
 import net.minecraft.util.Formatting;
 
@@ -22,7 +23,7 @@ public class CustomScoreboard implements GTBEvents.EventListener {
     private int potentialLeaverAmount;
 
     /// How long should a player be inactive for, until they're marked as such
-    private final int inactivePlayerThresholdSeconds = 240;
+    private final int inactivePlayerThresholdSeconds = 120;
 
     private String currentTheme = "";
     private Player currentBuilder = null;
@@ -358,9 +359,15 @@ public class CustomScoreboard implements GTBEvents.EventListener {
                 line += String.format("+%d %d", player.points[round - 1], player.getTotalPoints());
             }
 
-            Text textLine = player.state.equals(Player.State.NORMAL) ?
-                    Text.literal(line).formatted(Formatting.WHITE)
-                    : Text.literal(line).formatted(Formatting.GRAY);
+            MutableText textLine = Text.literal(line);
+            if (player.state.equals(Player.State.NORMAL)) {
+                textLine.formatted(Formatting.WHITE);
+            } else if (player.state.equals(Player.State.INACTIVE)) {
+                textLine.formatted(Formatting.GRAY);
+            } else {
+                textLine.formatted(Formatting.DARK_GRAY);
+            }
+
 
             int lineWidth = renderer.getWidth(line);
             if (lineWidth > width) width = lineWidth;
