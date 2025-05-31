@@ -90,7 +90,10 @@ public class GTBEvents {
 
     private void onPlayerListUpdate(List<Text> playerListEntries) {
         if (gameState.equals(GameState.LOBBY)) lobbyPlayerList = playerListEntries;
-        if (gameState.equals(GameState.SETUP) && setupPlayerList.isEmpty()) setupPlayerList = playerListEntries;
+        if (gameState.equals(GameState.SETUP) && setupPlayerList.isEmpty()) {
+            if (playerListEntries.stream().noneMatch(entry -> entry.getSiblings().isEmpty())) return;
+            setupPlayerList = playerListEntries;
+        }
 
         if ((gameState.equals(GameState.SETUP) || gameState.equals(GameState.ROUND_PRE)) && !setupPlayerList.isEmpty()) {
             if (playerListEntries.stream().noneMatch(entry -> entry.getSiblings().isEmpty())) {

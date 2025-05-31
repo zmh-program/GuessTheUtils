@@ -24,7 +24,7 @@ public class CustomScoreboard implements GTBEvents.EventListener {
     private boolean userRoundSkipped = false;
 
     /// How long should a player be inactive for, until they're marked as such
-    private final int inactivePlayerThresholdSeconds = 120;
+    private final int inactivePlayerThresholdSeconds = 180;
 
     private String currentTheme = "";
     private Player currentBuilder = null;
@@ -349,8 +349,8 @@ public class CustomScoreboard implements GTBEvents.EventListener {
         if (players.isEmpty() || state.equals(GTBEvents.GameState.NONE) || state.equals(GTBEvents.GameState.LOBBY)
                 || state.equals(GTBEvents.GameState.POST_GAME)) return;
 
-        int round = state.equals(GTBEvents.GameState.ROUND_PRE) ? currentRound + 1 : currentRound;
-        if (round == 0 || round > players.size()) return;
+        int round = state.equals(GTBEvents.GameState.ROUND_PRE) || currentRound == 0 ? currentRound + 1 : currentRound;
+        if (round > players.size()) return;
 
         TextRenderer renderer = GuessTheUtils.CLIENT.textRenderer;
 
