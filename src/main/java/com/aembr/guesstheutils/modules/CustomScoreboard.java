@@ -88,6 +88,7 @@ public class CustomScoreboard implements GTBEvents.EventListener {
             for (GTBEvents.InitialPlayerData playerData : ((GTBEvents.GameStartEvent) event).players()) {
                 players.add(new Player(this, playerData.name(), playerData.isUser()));
             }
+            currentRound = 0;
             potentialLeaverAmount = 0;
             skippedRounds = 0;
             clearLeaveState();
