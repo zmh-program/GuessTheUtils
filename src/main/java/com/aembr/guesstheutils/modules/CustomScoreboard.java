@@ -21,6 +21,7 @@ public class CustomScoreboard implements GTBEvents.EventListener {
     private int currentRound = 0;
     private int skippedRounds = 0;
     private int potentialLeaverAmount;
+    private boolean userRoundSkipped = false;
 
     /// How long should a player be inactive for, until they're marked as such
     private final int inactivePlayerThresholdSeconds = 120;
@@ -196,13 +197,16 @@ public class CustomScoreboard implements GTBEvents.EventListener {
         }
 
         if (event instanceof GTBEvents.RoundEndEvent) {
-            if (!((GTBEvents.RoundEndEvent) event).skipped() && !oneSecondAlertReached) {
+            boolean skipped = (currentBuilder.isUser && userRoundSkipped) || ((GTBEvents.RoundEndEvent) event).skipped();
+            if (!skipped && !oneSecondAlertReached) {
+                System.out.println("Round ended prematurely and wasn't skipped!");
                 players.stream().filter(p -> p.points[currentRound - 1] == 0)
                         .forEach(p -> {
                             p.state = Player.State.LEAVER;
                             //System.out.println("Setting " + p.name + " to leaver, because they didn't guess.");
                         });
             }
+            userRoundSkipped = false;
         }
 
         if (event instanceof GTBEvents.CorrectGuessEvent) {
@@ -296,6 +300,10 @@ public class CustomScoreboard implements GTBEvents.EventListener {
             leaveState = state;
             leaveRound = currentRound;
             leaveBuilder = currentBuilder;
+
+            if (leaveBuilder.isUser && leaveState.equals(GTBEvents.GameState.ROUND_BUILD)) {
+                userRoundSkipped = true;
+            }
         }
     }
 
