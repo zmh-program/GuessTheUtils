@@ -17,7 +17,7 @@ public class CustomScoreboard implements GTBEvents.EventListener {
     private GTBEvents events;
 
     private GTBEvents.GameState state = GTBEvents.GameState.NONE;
-    private final List<Player> players = new ArrayList<>();
+    final List<Player> players = new ArrayList<>();
     private int currentRound = 0;
     private int skippedRounds = 0;
     private int potentialLeaverAmount;
@@ -83,6 +83,10 @@ public class CustomScoreboard implements GTBEvents.EventListener {
 
     @Override
     public void onEvent(GTBEvents.BaseEvent event) {
+//        if (!(event instanceof GTBEvents.TickUpdateEvent)) {
+//            System.out.println(event);
+//        }
+
         if (event instanceof GTBEvents.GameStartEvent) {
             players.clear();
             for (GTBEvents.InitialPlayerData playerData : ((GTBEvents.GameStartEvent) event).players()) {
@@ -399,7 +403,7 @@ public class CustomScoreboard implements GTBEvents.EventListener {
         leaveBuilder = null;
     }
 
-    private static class Player {
+    static class Player {
         enum State { NORMAL, INACTIVE, POTENTIAL_LEAVER, LEAVER }
 
         CustomScoreboard customScoreboard;

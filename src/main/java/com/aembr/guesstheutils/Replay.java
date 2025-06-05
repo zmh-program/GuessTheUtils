@@ -17,7 +17,7 @@ public class Replay {
     public static final String REPLAYS_DIR_NAME = "guesstheutils-replays";
 
     public static Path replayDir;
-    public static TickBuffer tickBuffer = new TickBuffer(1500);
+    public static TickBuffer tickBuffer = new TickBuffer(3000);
 
     public void initialize() {
         try {
@@ -34,13 +34,13 @@ public class Replay {
         tickBuffer.add(tick);
     }
 
-    public void save(){
+    public void save() {
         assert GuessTheUtils.CLIENT.player != null;
 
         String filename = LocalDate.now() + "_" + UUID.randomUUID().toString().substring(0, 4);
         Gson gson = new Gson();
         Path replayFilePath = replayDir.resolve(filename + ".json");
-        List<Tick.SerializedTick> buffer = tickBuffer.getBuffer().stream().map(Tick::serialize).toList();
+        List<Tick.SerializedTick> buffer = tickBuffer.getBuffer().stream().toList();
         String jsonString = gson.toJson(buffer);
 
         try {
@@ -53,7 +53,7 @@ public class Replay {
     }
 
     public static class TickBuffer {
-        private final Deque<Tick> buffer;
+        private final Deque<Tick.SerializedTick> buffer;
         private final int maxSize;
 
         public TickBuffer(int maxSize) {
@@ -62,13 +62,13 @@ public class Replay {
         }
 
         public void add(Tick tick) {
-            buffer.addLast(tick);
+            buffer.addLast(tick.serialize());
             if (buffer.size() > maxSize) {
                 buffer.removeFirst();
             }
         }
 
-        public Deque<Tick> getBuffer() {
+        public Deque<Tick.SerializedTick> getBuffer() {
             return buffer;
         }
     }
