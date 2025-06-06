@@ -83,18 +83,20 @@ public class CustomScoreboard implements GTBEvents.EventListener {
 
     @Override
     public void onEvent(GTBEvents.BaseEvent event) {
-//        if (!(event instanceof GTBEvents.TickUpdateEvent)) {
-//            System.out.println(event);
-//        }
+        if (!(event instanceof GTBEvents.TickUpdateEvent)) {
+            System.out.println(event);
+        }
 
         if (event instanceof GTBEvents.GameStartEvent) {
             players.clear();
             for (GTBEvents.InitialPlayerData playerData : ((GTBEvents.GameStartEvent) event).players()) {
                 players.add(new Player(this, playerData.name(), playerData.isUser()));
             }
+            currentBuilder = null;
             currentRound = 0;
             potentialLeaverAmount = 0;
             skippedRounds = 0;
+            oneSecondAlertReached = false;
             clearLeaveState();
         }
 
@@ -223,6 +225,8 @@ public class CustomScoreboard implements GTBEvents.EventListener {
                 correctGuessesThisRound++;
             }
 
+            assert currentBuilder != null;
+
             if (currentBuilder.points[currentRound - 1] == 0 && !currentTheme.isEmpty()) {
                 currentBuilder.points[currentRound - 1] = getThemePointAward(currentTheme);
             }
@@ -230,6 +234,9 @@ public class CustomScoreboard implements GTBEvents.EventListener {
 
         if (event instanceof GTBEvents.ThemeUpdateEvent) {
             currentTheme = ((GTBEvents.ThemeUpdateEvent) event).theme();
+
+            assert currentBuilder != null;
+
             if (currentBuilder.points[currentRound - 1] == 0 && correctGuessesThisRound > 0) {
                 currentBuilder.points[currentRound - 1] = getThemePointAward(currentTheme);
             }

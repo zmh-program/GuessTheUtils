@@ -177,6 +177,8 @@ public class GTBEvents {
 
             players.add(new InitialPlayerData(name, title, emblem, rankColor, isUser));
         }
+
+        currentBuilder = null;
         emit(new GameStartEvent(players));
 
         lobbyPlayerList = new ArrayList<>();
@@ -203,7 +205,7 @@ public class GTBEvents {
         if (screenTitle.getString().equals("Select a theme to build!")) {
             if (scoreboardLineHistory.size() == 0) return;
             String builderName = getBuilderNameFromScoreboard(scoreboardLineHistory.get(0));
-            if (currentBuilder.equals(builderName)) return;
+            if (Objects.equals(currentBuilder, builderName)) return;
             emit(new BuilderChangeEvent(currentBuilder, builderName));
             currentBuilder = builderName;
         }
@@ -284,7 +286,7 @@ public class GTBEvents {
             if ((gameState.equals(GameState.ROUND_PRE) || gameState.equals(GameState.ROUND_END))
                     && strMessage.startsWith("Builder: ")) {
                 String builderName = strMessage.replace("Builder: ", "");
-                if (currentBuilder.equals(builderName)) return;
+                if (Objects.equals(currentBuilder, builderName)) return;
                 emit(new BuilderChangeEvent(currentBuilder, builderName));
                 currentBuilder = builderName;
             }
