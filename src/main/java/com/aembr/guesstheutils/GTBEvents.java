@@ -3,6 +3,7 @@ package com.aembr.guesstheutils;
 import net.minecraft.text.Text;
 import net.minecraft.text.TextColor;
 import net.minecraft.util.Formatting;
+import org.apache.commons.lang3.NotImplementedException;
 
 import java.util.*;
 
@@ -37,6 +38,7 @@ public class GTBEvents {
     public record TickUpdateEvent() implements BaseEvent {}
     /// Emitted when a player sends any chat message.
     public record PlayerChatEvent(String player, String message) implements BaseEvent {}
+    //public record PlayerChatEvent(PlayerChatMessage message) implements BaseEvent {}
     /// Emitted when the 1-second remaining in round alert is received.
     public record OneSecondAlertEvent() implements BaseEvent {}
 
@@ -91,14 +93,9 @@ public class GTBEvents {
     private void onPlayerListUpdate(List<Text> playerListEntries) {
         if (gameState.equals(GameState.LOBBY)) lobbyPlayerList = playerListEntries;
         if (gameState.equals(GameState.SETUP) && setupPlayerList.isEmpty()) {
-            if (playerListEntries.stream().noneMatch(entry -> entry.getSiblings().isEmpty())) return;
+            //if (playerListEntries.stream().noneMatch(entry -> entry.getSiblings().isEmpty())) return;
+            if (playerListEntries.stream().filter(entry -> !entry.getSiblings().isEmpty()).count() != 1) return;
             setupPlayerList = playerListEntries;
-        }
-
-        if ((gameState.equals(GameState.SETUP) || gameState.equals(GameState.ROUND_PRE)) && !setupPlayerList.isEmpty()) {
-            if (playerListEntries.stream().noneMatch(entry -> entry.getSiblings().isEmpty())) {
-                onGameStart(lobbyPlayerList, setupPlayerList, playerListEntries);
-            }
         }
     }
 
@@ -153,10 +150,16 @@ public class GTBEvents {
 
         Set<InitialPlayerData> players = new HashSet<>();
         for (Text playerEntry : finalList) {
-            String name = playerEntry.getSiblings().get(1).getLiteralString();
-            Text title = playerEntry.getSiblings().get(0).getSiblings().get(0);
-            Text emblem = null;
-            if (!playerEntry.getSiblings().get(2).getSiblings().isEmpty()) {
+            String name = playerEntry.getSiblings().isEmpty() ?
+                    playerEntry.getString() : playerEntry.getSiblings().get(1).getLiteralString();
+
+            Text title = playerEntry.getSiblings().isEmpty() ?
+                    null : playerEntry.getSiblings().get(0).getSiblings().get(0);
+
+            Text emblem = playerEntry.getSiblings().isEmpty() ?
+                    null : Text.empty();
+
+            if (emblem != null && !playerEntry.getSiblings().get(2).getSiblings().isEmpty()) {
                 emblem = playerEntry.getSiblings().get(2).getSiblings()
                         .get(playerEntry.getSiblings().get(2).getSiblings().size() - 1);
             }
@@ -241,6 +244,11 @@ public class GTBEvents {
             }
         }
         return null;
+    }
+
+    // TODO: implement and use this instead of `getPlayerNameFromMessage`
+    private PlayerChatMessage validatePlayerChatMessage(Text message) {
+        throw new NotImplementedException();
     }
 
     private void onSubtitleSet(Text subtitle) {
@@ -404,7 +412,13 @@ public class GTBEvents {
         }
 
         if (newState.equals(GameState.ROUND_PRE)) {
-            //if (gameState.equals(GameState.SETUP)) return;
+            if (gameState.equals(GameState.SETUP) && !setupPlayerList.isEmpty()) {
+                if (playerListEntryHistory.get(0).size() < 3) {
+                    onGameStart(lobbyPlayerList, setupPlayerList, playerListEntryHistory.get(1));
+                } else {
+                    onGameStart(lobbyPlayerList, setupPlayerList, playerListEntryHistory.get(0));
+                }
+            }
             currentTheme = "";
         }
 
@@ -463,6 +477,31 @@ public class GTBEvents {
         public String toString() {
             return "InitialPlayerData{" + "name='" + name + '\'' + ", title=" + title + ", emblem=" + emblem +
                     ", rankColor=" + rankColor + ", isUser=" + isUser + '}';
+        }
+    }
+
+    public record PlayerChatMessage(String name, Text title, Text emblem, Text rank, String message) {
+        @Override
+        public boolean equals(Object o) {
+            if (o == null || getClass() != o.getClass()) return false;
+            PlayerChatMessage that = (PlayerChatMessage) o;
+            return Objects.equals(rank, that.rank) && Objects.equals(title, that.title) && Objects.equals(name, that.name) && Objects.equals(emblem, that.emblem) && Objects.equals(message, that.message);
+        }
+
+        @Override
+        public int hashCode() {
+            return Objects.hash(name, title, emblem, rank, message);
+        }
+
+        @Override
+        public String toString() {
+            return "PlayerChatMessage{" +
+                    "name='" + name + '\'' +
+                    ", title=" + title +
+                    ", emblem=" + emblem +
+                    ", rank=" + rank +
+                    ", message='" + message + '\'' +
+                    '}';
         }
     }
 }
