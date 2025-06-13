@@ -6,6 +6,7 @@ import net.minecraft.scoreboard.*;
 import net.minecraft.text.MutableText;
 import net.minecraft.text.Text;
 import net.minecraft.util.Formatting;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.*;
 
@@ -96,10 +97,34 @@ public class Utils {
     }
 
     public record Pair<T1, T2>(T1 a, T2 b) {
-
         @Override
-        public String toString() {
+        public @NotNull String toString() {
             return "Pair{" + this.a() + ", " + this.b() + "}";
         }
+    }
+
+    public static <T> List<List<T>> generatePermutations(List<T> list) {
+        List<List<T>> result = new ArrayList<>();
+        generatePermutationsHelper(list, 0, result);
+        return result;
+    }
+
+    private static <T> void generatePermutationsHelper(List<T> list, int start, List<List<T>> result) {
+        if (start >= list.size()) {
+            result.add(new ArrayList<>(list));
+            return;
+        }
+
+        for (int i = start; i < list.size(); i++) {
+            swap(list, start, i);
+            generatePermutationsHelper(list, start + 1, result);
+            swap(list, start, i); // backtrack
+        }
+    }
+
+    private static <T> void swap(List<T> list, int i, int j) {
+        T temp = list.get(i);
+        list.set(i, list.get(j));
+        list.set(j, temp);
     }
 }
