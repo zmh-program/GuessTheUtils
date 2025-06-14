@@ -84,7 +84,7 @@ public class CustomScoreboard implements GTBEvents.EventListener {
     @Override
     public void onEvent(GTBEvents.BaseEvent event) {
         if (!(event instanceof GTBEvents.TickUpdateEvent)) {
-            System.out.println(event);
+            //System.out.println(event);
         }
 
         if (event instanceof GTBEvents.GameStartEvent) {
@@ -206,7 +206,7 @@ public class CustomScoreboard implements GTBEvents.EventListener {
         if (event instanceof GTBEvents.RoundEndEvent) {
             boolean skipped = (currentBuilder.isUser && userRoundSkipped) || ((GTBEvents.RoundEndEvent) event).skipped();
             if (!skipped && !oneSecondAlertReached) {
-                System.out.println("Round ended prematurely and wasn't skipped!");
+                //System.out.println("Round ended prematurely and wasn't skipped!");
                 players.stream().filter(p -> p.points[currentRound - 1] == 0)
                         .forEach(p -> {
                             p.state = Player.State.LEAVER;

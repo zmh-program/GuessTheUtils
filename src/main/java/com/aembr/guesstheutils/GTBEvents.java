@@ -74,6 +74,9 @@ public class GTBEvents {
     private String currentBuilder = "";
     private String currentTheme = "";
 
+    /// Sometimes the "Builder: name" message happens before we emit GameStartEvent, so we store it to emit after instead
+    private String prematureBuilder;
+
     public void processTickUpdate(Tick tick) {
         currentTick = tick;
         emit(new TickUpdateEvent());
@@ -186,6 +189,12 @@ public class GTBEvents {
 
         lobbyPlayerList = new ArrayList<>();
         setupPlayerList = new ArrayList<>();
+
+        if (prematureBuilder != null) {
+            emit(new BuilderChangeEvent(null, prematureBuilder));
+            currentBuilder = prematureBuilder;
+            prematureBuilder = null;
+        }
     }
 
     private void onGameEnd(List<Text> scoreboardLines) {
@@ -291,12 +300,16 @@ public class GTBEvents {
                 emit(new RoundStartEvent(current, total));
             }
 
-            if ((gameState.equals(GameState.ROUND_PRE) || gameState.equals(GameState.ROUND_END))
-                    && strMessage.startsWith("Builder: ")) {
+            if (strMessage.startsWith("Builder: ")) {
                 String builderName = strMessage.replace("Builder: ", "");
                 if (Objects.equals(currentBuilder, builderName)) return;
-                emit(new BuilderChangeEvent(currentBuilder, builderName));
-                currentBuilder = builderName;
+
+                if (gameState.equals(GameState.ROUND_PRE) || gameState.equals(GameState.ROUND_END)) {
+                    emit(new BuilderChangeEvent(currentBuilder, builderName));
+                    currentBuilder = builderName;
+                } else if (gameState.equals(GameState.SETUP)) {
+                    prematureBuilder = builderName;
+                }
             }
 
             if (gameState.equals(GameState.ROUND_BUILD) && !strMessage.contains(":")
