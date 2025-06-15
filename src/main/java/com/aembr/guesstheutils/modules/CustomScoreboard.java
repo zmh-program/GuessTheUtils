@@ -13,9 +13,7 @@ import net.minecraft.util.Formatting;
 
 import java.util.*;
 
-public class CustomScoreboard implements GTBEvents.EventListener {
-    private GTBEvents events;
-
+public class CustomScoreboard extends GTBEvents.Module {
     private GTBEvents.GameState state = GTBEvents.GameState.NONE;
     final List<Player> players = new ArrayList<>();
     private int currentRound = 0;
@@ -42,25 +40,25 @@ public class CustomScoreboard implements GTBEvents.EventListener {
     private Player leaveBuilder;
 
     public CustomScoreboard(GTBEvents events) {
-        this.events = events;
+        super(events);
 
         ClientTickEvents.START_CLIENT_TICK.register(this::onTick);
 
-        events.subscribe(GTBEvents.GameStartEvent.class, this);
-        events.subscribe(GTBEvents.StateChangeEvent.class, this);
-        events.subscribe(GTBEvents.BuilderChangeEvent.class, this);
-        events.subscribe(GTBEvents.RoundStartEvent.class, this);
-        events.subscribe(GTBEvents.RoundEndEvent.class, this);
-        events.subscribe(GTBEvents.RoundSkipEvent.class, this);
-        events.subscribe(GTBEvents.CorrectGuessEvent.class, this);
-        events.subscribe(GTBEvents.ThemeUpdateEvent.class, this);
-        events.subscribe(GTBEvents.GameEndEvent.class, this);
-        events.subscribe(GTBEvents.TrueScoresUpdateEvent.class, this);
-        events.subscribe(GTBEvents.UserLeaveEvent.class, this);
-        events.subscribe(GTBEvents.UserRejoinEvent.class, this);
-        events.subscribe(GTBEvents.TickUpdateEvent.class, this);
-        events.subscribe(GTBEvents.PlayerChatEvent.class, this);
-        events.subscribe(GTBEvents.OneSecondAlertEvent.class, this);
+        events.subscribe(GTBEvents.GameStartEvent.class, this::onEvent, this);
+        events.subscribe(GTBEvents.StateChangeEvent.class, this::onEvent, this);
+        events.subscribe(GTBEvents.BuilderChangeEvent.class, this::onEvent, this);
+        events.subscribe(GTBEvents.RoundStartEvent.class, this::onEvent, this);
+        events.subscribe(GTBEvents.RoundEndEvent.class, this::onEvent, this);
+        events.subscribe(GTBEvents.RoundSkipEvent.class, this::onEvent, this);
+        events.subscribe(GTBEvents.CorrectGuessEvent.class, this::onEvent, this);
+        events.subscribe(GTBEvents.ThemeUpdateEvent.class, this::onEvent, this);
+        events.subscribe(GTBEvents.GameEndEvent.class, this::onEvent, this);
+        events.subscribe(GTBEvents.TrueScoresUpdateEvent.class, this::onEvent, this);
+        events.subscribe(GTBEvents.UserLeaveEvent.class, this::onEvent, this);
+        events.subscribe(GTBEvents.UserRejoinEvent.class, this::onEvent, this);
+        events.subscribe(GTBEvents.TickUpdateEvent.class, this::onEvent, this);
+        events.subscribe(GTBEvents.PlayerChatEvent.class, this::onEvent, this);
+        events.subscribe(GTBEvents.OneSecondAlertEvent.class, this::onEvent, this);
     }
 
     private void onTick(MinecraftClient minecraftClient) {
@@ -81,7 +79,6 @@ public class CustomScoreboard implements GTBEvents.EventListener {
         }
     }
 
-    @Override
     public void onEvent(GTBEvents.BaseEvent event) {
         if (!(event instanceof GTBEvents.TickUpdateEvent)) {
             //System.out.println(event);
@@ -408,6 +405,11 @@ public class CustomScoreboard implements GTBEvents.EventListener {
         leaveState = null;
         leaveRound = -1;
         leaveBuilder = null;
+    }
+
+    @Override
+    public ErrorAction getErrorAction() {
+        return ErrorAction.RESTART;
     }
 
     static class Player {

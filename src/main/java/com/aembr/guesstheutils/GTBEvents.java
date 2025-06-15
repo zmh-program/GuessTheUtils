@@ -6,6 +6,7 @@ import net.minecraft.util.Formatting;
 import org.apache.commons.lang3.NotImplementedException;
 
 import java.util.*;
+import java.util.function.Consumer;
 
 public class GTBEvents {
     public interface BaseEvent {}
@@ -42,7 +43,8 @@ public class GTBEvents {
     /// Emitted when the 1-second remaining in round alert is received.
     public record OneSecondAlertEvent() implements BaseEvent {}
 
-    private final Map<Class<? extends BaseEvent>, List<EventListener>> listeners = new HashMap<>();
+    private final Map<Consumer<?>, Module> modules = new HashMap<>();
+    private final Map<Class<? extends BaseEvent>, List<Consumer<?>>> subscribers = new HashMap<>();
 
     public enum GameState { NONE, LOBBY, SETUP, ROUND_PRE, ROUND_BUILD, ROUND_END, POST_GAME }
 
@@ -455,20 +457,67 @@ public class GTBEvents {
         gameState = newState;
     }
 
-    public interface EventListener {
-        void onEvent(BaseEvent event);
+    public <T extends BaseEvent> void subscribe(Class<T> eventClass, Consumer<T> consumer, Module module) {
+        subscribers.computeIfAbsent(eventClass, k -> new ArrayList<>()).add(consumer);
+        modules.put(consumer, module);
     }
 
-    public <T extends BaseEvent> void subscribe(Class<T> eventType, EventListener listener) {
-        listeners.computeIfAbsent(eventType, k -> new ArrayList<>()).add(listener);
-    }
-
-    public void emit(BaseEvent event) {
-        List<EventListener> eventListeners = listeners.get(event.getClass());
-        if (eventListeners != null) {
-            for (EventListener listener : eventListeners) {
-                listener.onEvent(event);
+    @SuppressWarnings("unchecked")
+    public <T extends BaseEvent> void emit(T event) {
+        List<Consumer<?>> eventSubscribers = subscribers.get(event.getClass());
+        if (eventSubscribers != null) {
+            for (Consumer<?> consumer : eventSubscribers) {
+                try {
+                    ((Consumer<T>) consumer).accept(event);
+                } catch (Exception e) {
+                    handleException(e, consumer);
+                }
             }
+        }
+    }
+
+    private void handleException(Exception e, Consumer<?> consumer) {
+        GuessTheUtils.LOGGER.error("Exception occurred in subscriber: {}", consumer);
+
+        Module module = modules.get(consumer);
+        if (module != null) {
+            Module.ErrorAction action = module.getErrorAction();
+            switch (action) {
+                case STOP:
+                    GuessTheUtils.LOGGER.error("Stopping module: {}", module.getClass().getSimpleName());
+                    unsubscribeModule(module);
+                    break;
+                case RESTART:
+                    GuessTheUtils.LOGGER.error("Restarting module: {}", module.getClass().getSimpleName());
+                    unsubscribeModule(module);
+                    createNewModuleInstance(module.getClass());
+                    break;
+                case LOG_AND_CONTINUE:
+                    GuessTheUtils.LOGGER.error("Logging error and continuing for module: {}", module.getClass().getSimpleName());
+                    break;
+            }
+        }
+    }
+
+    private void unsubscribeModule(Module module) {
+        List<Consumer<?>> toRemove = new ArrayList<>();
+        for (Map.Entry<Consumer<?>, Module> entry : modules.entrySet()) {
+            if (entry.getValue() == module) {
+                toRemove.add(entry.getKey());
+            }
+        }
+        for (Consumer<?> consumer : toRemove) {
+            modules.remove(consumer);
+            subscribers.values().forEach(list -> list.remove(consumer));
+        }
+    }
+
+    private Module createNewModuleInstance(Class<? extends Module> moduleClass) {
+        try {
+            return moduleClass.getDeclaredConstructor(GTBEvents.class).newInstance(this);
+        } catch (Exception e) {
+            e.printStackTrace();
+            return null; // Handle this case appropriately
         }
     }
 
@@ -515,6 +564,27 @@ public class GTBEvents {
                     ", rank=" + rank +
                     ", message='" + message + '\'' +
                     '}';
+        }
+    }
+
+    public static class Module {
+        public enum ErrorAction {
+            STOP,
+            RESTART,
+            LOG_AND_CONTINUE
+        }
+
+        protected final GTBEvents events;
+
+        public Module(GTBEvents events) {
+            this.events = events;
+        }
+
+        public void registerEvents() {}
+
+        // Default error action is DISABLE
+        public ErrorAction getErrorAction() {
+            return ErrorAction.STOP;
         }
     }
 }
