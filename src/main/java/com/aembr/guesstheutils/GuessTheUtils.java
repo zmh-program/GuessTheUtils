@@ -74,15 +74,14 @@ public class GuessTheUtils implements ClientModInitializer {
             try {
                 events.processTickUpdate(currentTick);
             } catch (Exception e) {
-                StringWriter sw = new StringWriter();
-                PrintWriter pw = new PrintWriter(sw);
-                e.printStackTrace(pw);
+                String stackTrace = Utils.getStackTraceAsString(e);
 
                 events = null;
                 Tick error = new Tick();
-                error.error = sw.toString();
+                error.error = stackTrace;
                 replay.addTick(error);
-                Utils.sendMessage("Exception: " + e.getMessage() + ". Saving details to replay file...");
+                Utils.sendMessage("Exception in GTBEvents: " + e.getMessage() + ". Saving details to replay file...");
+                Utils.sendMessage("Game restart required.");
                 replay.save();
             } finally {
                 currentTick = new Tick();

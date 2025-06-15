@@ -3,6 +3,7 @@ package com.aembr.guesstheutils;
 import com.google.gson.Gson;
 import net.fabricmc.loader.api.FabricLoader;
 
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -10,7 +11,7 @@ import java.time.LocalDate;
 import java.util.ArrayDeque;
 import java.util.Deque;
 import java.util.List;
-import java.util.UUID;
+import java.util.zip.GZIPOutputStream;
 
 public class Replay {
     public static final Path GAME_DIR = FabricLoader.getInstance().getGameDir();
@@ -37,19 +38,29 @@ public class Replay {
     public void save() {
         assert GuessTheUtils.CLIENT.player != null;
 
-        String filename = LocalDate.now() + "_" + UUID.randomUUID().toString().substring(0, 4);
+        String date = LocalDate.now().toString();
+
+        int counter = 0;
+        String filename;
+        Path replayFilePath;
+
+        do {
+            filename = date + "_" + counter + ".json.gz";
+            replayFilePath = replayDir.resolve(filename);
+            counter++;
+        } while (Files.exists(replayFilePath));
+
         Gson gson = new Gson();
-        Path replayFilePath = replayDir.resolve(filename + ".json");
         List<Tick.SerializedTick> buffer = tickBuffer.getBuffer().stream().toList();
         String jsonString = gson.toJson(buffer);
 
-        try {
-            Files.writeString(replayFilePath, jsonString);
+        try (GZIPOutputStream gzipOutputStream = new GZIPOutputStream(new FileOutputStream(replayFilePath.toFile()))) {
+            gzipOutputStream.write(jsonString.getBytes());
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
 
-        Utils.sendMessage(filename + ".json saved.");
+        Utils.sendMessage("Replay " + filename + " saved.");
     }
 
     public static class TickBuffer {

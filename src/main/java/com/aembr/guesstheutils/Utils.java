@@ -8,6 +8,8 @@ import net.minecraft.text.Text;
 import net.minecraft.util.Formatting;
 import org.jetbrains.annotations.NotNull;
 
+import java.io.PrintWriter;
+import java.io.StringWriter;
 import java.util.*;
 
 public class Utils {
@@ -126,5 +128,12 @@ public class Utils {
         T temp = list.get(i);
         list.set(i, list.get(j));
         list.set(j, temp);
+    }
+
+    public static String getStackTraceAsString(Exception e) {
+        StringWriter sw = new StringWriter();
+        PrintWriter pw = new PrintWriter(sw);
+        e.printStackTrace(pw);
+        return sw.toString();
     }
 }

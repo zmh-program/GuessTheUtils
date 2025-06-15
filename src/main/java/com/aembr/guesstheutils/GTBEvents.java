@@ -480,20 +480,35 @@ public class GTBEvents {
         GuessTheUtils.LOGGER.error("Exception occurred in subscriber: {}", consumer);
 
         Module module = modules.get(consumer);
+
         if (module != null) {
+            String moduleName = module.getClass().getSimpleName();
             Module.ErrorAction action = module.getErrorAction();
+            String stackTrace = Utils.getStackTraceAsString(e);
+
+            if (GuessTheUtils.CLIENT.player != null) {
+                Utils.sendMessage("Exception in module " + moduleName + ": " + e.getMessage() + ". Saving details to replay file...");
+            }
+
+            Tick error = new Tick();
+            error.error = stackTrace;
+            GuessTheUtils.replay.addTick(error);
+            GuessTheUtils.replay.save();
+
             switch (action) {
                 case STOP:
-                    GuessTheUtils.LOGGER.error("Stopping module: {}", module.getClass().getSimpleName());
+                    GuessTheUtils.LOGGER.error("Stopping module: {}", moduleName);
                     unsubscribeModule(module);
+                    Utils.sendMessage("Stopped " + moduleName + ".");
                     break;
                 case RESTART:
-                    GuessTheUtils.LOGGER.error("Restarting module: {}", module.getClass().getSimpleName());
+                    GuessTheUtils.LOGGER.error("Restarting module: {}", moduleName);
                     unsubscribeModule(module);
                     createNewModuleInstance(module.getClass());
+                    Utils.sendMessage("Restarted " + moduleName + ".");
                     break;
                 case LOG_AND_CONTINUE:
-                    GuessTheUtils.LOGGER.error("Logging error and continuing for module: {}", module.getClass().getSimpleName());
+                    GuessTheUtils.LOGGER.error("Logging error and continuing for module: {}", moduleName);
                     break;
             }
         }
