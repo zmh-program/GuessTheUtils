@@ -40,7 +40,7 @@ public class Replay {
 
         String date = LocalDate.now().toString();
 
-        int counter = 0;
+        int counter = 1;
         String filename;
         Path replayFilePath;
 
