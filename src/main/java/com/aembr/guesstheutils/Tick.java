@@ -1,12 +1,14 @@
 package com.aembr.guesstheutils;
 
 import com.google.common.reflect.TypeToken;
-import com.google.gson.Gson;
-import com.google.gson.JsonObject;
-import com.google.gson.JsonParser;
+import com.google.gson.*;
+import com.mojang.serialization.JsonOps;
 import net.minecraft.text.Text;
+import net.minecraft.text.TextCodecs;
 
 import java.lang.reflect.Field;
+import java.lang.reflect.Type;
+import java.util.ArrayList;
 import java.util.List;
 
 public class Tick {
@@ -36,39 +38,45 @@ public class Tick {
                     new TypeToken<List<String>>() {}.getType()));
         }
         if (tickUpdate.has("actionBarMessage")) {
-            actionBarMessage = Text.Serialization.fromJson(new Gson().fromJson(tickUpdate.get("actionBarMessage"),
-                    new TypeToken<String>() {}.getType()));
+            actionBarMessage = TextCodecs.CODEC.decode(JsonOps.INSTANCE, new Gson().fromJson(tickUpdate.get("actionBarMessage"),
+                    JsonObject.class)).getOrThrow().getFirst();
         }
         if (tickUpdate.has("title")) {
-            title = Text.Serialization.fromJson(new Gson().fromJson(tickUpdate.get("title"),
-                    new TypeToken<String>() {}.getType()));
+            title = TextCodecs.CODEC.decode(JsonOps.INSTANCE, new Gson().fromJson(tickUpdate.get("title"),
+                    JsonObject.class)).getOrThrow().getFirst();
         }
         if (tickUpdate.has("subtitle")) {
-            subtitle = Text.Serialization.fromJson(new Gson().fromJson(tickUpdate.get("subtitle"),
-                    new TypeToken<String>() {}.getType()));
+            subtitle = TextCodecs.CODEC.decode(JsonOps.INSTANCE, new Gson().fromJson(tickUpdate.get("subtitle"),
+                    JsonObject.class)).getOrThrow().getFirst();
         }
         if (tickUpdate.has("screenTitle")) {
-            screenTitle = Text.Serialization.fromJson(new Gson().fromJson(tickUpdate.get("screenTitle"),
-                    new TypeToken<String>() {}.getType()));
+            screenTitle = TextCodecs.CODEC.decode(JsonOps.INSTANCE, new Gson().fromJson(tickUpdate.get("screenTitle"),
+                    JsonObject.class)).getOrThrow().getFirst();
         }
     }
 
     public static List<Text> deserializeList(List<String> input) {
-        return input.stream().map(str -> (Text) Text.Serialization.fromJson(str)).toList();
+        Gson gson = new Gson();
+        return input.stream().map(str -> TextCodecs.CODEC
+                .decode(JsonOps.INSTANCE, gson.fromJson(str, JsonObject.class)).getOrThrow().getFirst())
+                .toList();
     }
 
     public static List<String> serializeList(List<Text> input) {
-        return input.stream().map(Text.Serialization::toJsonString).toList();
+        Gson gson = new Gson();
+        return input.stream().map(text ->
+                gson.toJson(TextCodecs.CODEC.encodeStart(JsonOps.INSTANCE, text).getOrThrow())).toList();
     }
 
     public SerializedTick serialize() {
+        Gson gson = new Gson();
         return new SerializedTick(scoreboardLines == null ? null : serializeList(scoreboardLines),
                 playerListEntries == null ? null : serializeList(playerListEntries),
                 chatMessages == null ? null : serializeList(chatMessages),
-                actionBarMessage == null ? null : Text.Serialization.toJsonString(actionBarMessage),
-                title == null ? null : Text.Serialization.toJsonString(title),
-                subtitle == null ? null : Text.Serialization.toJsonString(subtitle),
-                screenTitle == null ? null : Text.Serialization.toJsonString(screenTitle),
+                actionBarMessage == null ? null : gson.toJson(TextCodecs.CODEC.encodeStart(JsonOps.INSTANCE, actionBarMessage).getOrThrow()),
+                title == null ? null : gson.toJson(TextCodecs.CODEC.encodeStart(JsonOps.INSTANCE, title).getOrThrow()),
+                subtitle == null ? null : gson.toJson(TextCodecs.CODEC.encodeStart(JsonOps.INSTANCE, subtitle).getOrThrow()),
+                screenTitle == null ? null : gson.toJson(TextCodecs.CODEC.encodeStart(JsonOps.INSTANCE, screenTitle).getOrThrow()),
                 error);
     }
 

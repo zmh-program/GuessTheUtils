@@ -59,12 +59,12 @@ public class Utils {
     public static void sendMessage(String message) {
         if (GuessTheUtils.CLIENT == null || GuessTheUtils.CLIENT.player == null) return;
         GuessTheUtils.CLIENT.player.sendMessage(GuessTheUtils.prefix.copy()
-                .append(Text.literal(message).formatted(Formatting.GRAY)));
+                .append(Text.literal(message).formatted(Formatting.GRAY)), false);
     }
 
     public static void sendMessage(Text message) {
         if (GuessTheUtils.CLIENT == null || GuessTheUtils.CLIENT.player == null) return;
-        GuessTheUtils.CLIENT.player.sendMessage(GuessTheUtils.prefix.copy().append(message));
+        GuessTheUtils.CLIENT.player.sendMessage(GuessTheUtils.prefix.copy().append(message), false);
     }
 
     public static class FixedSizeBuffer<T> {
