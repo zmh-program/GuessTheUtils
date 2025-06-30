@@ -25,41 +25,44 @@ public class Tick {
 
     public Tick(String jsonString) {
         JsonObject tickUpdate = JsonParser.parseString(jsonString).getAsJsonObject();
+
         if (tickUpdate.has("scoreboardLines")) {
-            scoreboardLines = deserializeList(new Gson().fromJson(tickUpdate.get("scoreboardLines"),
-                    new TypeToken<List<String>>() {}.getType()));
+            scoreboardLines = deserializeList(tickUpdate.get("scoreboardLines"));
         }
         if (tickUpdate.has("playerListEntries")) {
-            playerListEntries = deserializeList(new Gson().fromJson(tickUpdate.get("playerListEntries"),
-                    new TypeToken<List<String>>() {}.getType()));
+            playerListEntries = deserializeList(tickUpdate.get("playerListEntries"));
         }
         if (tickUpdate.has("chatMessages")) {
-            chatMessages = deserializeList(new Gson().fromJson(tickUpdate.get("chatMessages"),
-                    new TypeToken<List<String>>() {}.getType()));
+            chatMessages = deserializeList(tickUpdate.get("chatMessages"));
         }
         if (tickUpdate.has("actionBarMessage")) {
-            actionBarMessage = TextCodecs.CODEC.decode(JsonOps.INSTANCE, new Gson().fromJson(tickUpdate.get("actionBarMessage"),
-                    JsonObject.class)).getOrThrow().getFirst();
+            actionBarMessage = deserializeText(tickUpdate.get("actionBarMessage").getAsString());
         }
         if (tickUpdate.has("title")) {
-            title = TextCodecs.CODEC.decode(JsonOps.INSTANCE, new Gson().fromJson(tickUpdate.get("title"),
-                    JsonObject.class)).getOrThrow().getFirst();
+            title = deserializeText(tickUpdate.get("title").getAsString());
         }
         if (tickUpdate.has("subtitle")) {
-            subtitle = TextCodecs.CODEC.decode(JsonOps.INSTANCE, new Gson().fromJson(tickUpdate.get("subtitle"),
-                    JsonObject.class)).getOrThrow().getFirst();
+            subtitle = deserializeText(tickUpdate.get("subtitle").getAsString());
         }
         if (tickUpdate.has("screenTitle")) {
-            screenTitle = TextCodecs.CODEC.decode(JsonOps.INSTANCE, new Gson().fromJson(tickUpdate.get("screenTitle"),
-                    JsonObject.class)).getOrThrow().getFirst();
+            screenTitle = deserializeText(tickUpdate.get("screenTitle").getAsString());
         }
     }
 
-    public static List<Text> deserializeList(List<String> input) {
-        Gson gson = new Gson();
-        return input.stream().map(str -> TextCodecs.CODEC
-                .decode(JsonOps.INSTANCE, gson.fromJson(str, JsonObject.class)).getOrThrow().getFirst())
-                .toList();
+    private List<Text> deserializeList(JsonElement jsonElement) {
+        List<Text> textList = new ArrayList<>();
+        for (JsonElement element : jsonElement.getAsJsonArray()) {
+            String jsonString = element.getAsString();
+            textList.add(deserializeText(jsonString));
+        }
+        return textList;
+    }
+
+    private Text deserializeText(String jsonString) {
+        return TextCodecs.CODEC
+                .decode(JsonOps.INSTANCE, new Gson().fromJson(jsonString, JsonElement.class))
+                .getOrThrow()
+                .getFirst();
     }
 
     public static List<String> serializeList(List<Text> input) {
