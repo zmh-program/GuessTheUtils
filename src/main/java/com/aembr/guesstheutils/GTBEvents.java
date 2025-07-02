@@ -26,7 +26,7 @@ public class GTBEvents {
     public record ThemeUpdateEvent(String theme) implements BaseEvent {}
     /// Emitted when the game is over and all scores are displayed.
     public record GameEndEvent(Map<String, Integer> scores) implements BaseEvent {}
-    /// Emitted when the game state changes. See `GameState` for all possible states.
+    /// Emitted when the game leaverState changes. See `GameState` for all possible states.
     public record StateChangeEvent(GameState previous, GameState current) implements BaseEvent {}
     /// Emitted when the true scores, as seen on the vanilla scoreboard, have updated.
     /// The first 3 elements are reserved for the top 3 players, and the 4th for the user (if not in top 3).

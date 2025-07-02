@@ -64,18 +64,7 @@ public class CustomScoreboard extends GTBEvents.Module {
     private void onTick(MinecraftClient minecraftClient) {
         if (!players.isEmpty() && (state.equals(GTBEvents.GameState.ROUND_PRE)
                 || state.equals(GTBEvents.GameState.ROUND_BUILD) || state.equals(GTBEvents.GameState.ROUND_END))) {
-            players.forEach(player -> {
-                player.inactiveTicks++;
-
-                if (player.inactiveTicks >= inactivePlayerThresholdSeconds * 20
-                        && player.state.equals(Player.State.NORMAL)
-                        && !player.isUser && !Objects.equals(currentBuilder, player)
-                        && latestTrueScore != null
-                        && latestTrueScore.stream().noneMatch(entry -> entry.a() == player)
-                ){
-                    player.state = Player.State.INACTIVE;
-                }
-            });
+            players.forEach(player -> player.inactiveTicks++);
         }
     }
 
@@ -99,7 +88,7 @@ public class CustomScoreboard extends GTBEvents.Module {
 
         if (event instanceof GTBEvents.StateChangeEvent) {
             state = ((GTBEvents.StateChangeEvent) event).current();
-            //System.out.println(state);
+            //System.out.println(leaverState);
         }
 
         if (event instanceof GTBEvents.UserRejoinEvent) {
@@ -206,7 +195,7 @@ public class CustomScoreboard extends GTBEvents.Module {
                 //System.out.println("Round ended prematurely and wasn't skipped!");
                 players.stream().filter(p -> p.points[currentRound - 1] == 0)
                         .forEach(p -> {
-                            p.state = Player.State.LEAVER;
+                            p.leaverState = Player.LeaverState.LEAVER;
                             //System.out.println("Setting " + p.name + " to leaver, because they didn't guess.");
                         });
             }
@@ -254,8 +243,8 @@ public class CustomScoreboard extends GTBEvents.Module {
                 Player player = getPlayerFromName(trueScore.a());
                 assert player != null;
 
-                if (player.state.equals(Player.State.LEAVER) || player.state.equals(Player.State.INACTIVE)) {
-                    player.state = Player.State.NORMAL;
+                if (player.leaverState.equals(Player.LeaverState.LEAVER)) {
+                    player.leaverState = Player.LeaverState.NORMAL;
                 }
 
                 if (!verifyPoints(trueScore.a(), trueScore.b())) {
@@ -271,7 +260,7 @@ public class CustomScoreboard extends GTBEvents.Module {
 
             // Detect players who should appear in the top 3, but don't (confirmed leavers)
             List<Player> playersSortedByPoints = players.stream()
-                    .filter(p -> !p.state.equals(Player.State.LEAVER))
+                    .filter(p -> !p.leaverState.equals(Player.LeaverState.LEAVER))
                     .sorted((p1, p2) -> Integer.compare(p2.getTotalPoints(), p1.getTotalPoints())).toList();
 
             List<Utils.Pair<Player, Integer>> topNames = new ArrayList<>();
@@ -299,7 +288,7 @@ public class CustomScoreboard extends GTBEvents.Module {
 
             for (Player player : guaranteedToAppearInScoreboard) {
                 if (topNames.stream().noneMatch(p -> p.a().equals(player))) {
-                    player.state = Player.State.LEAVER;
+                    player.leaverState = Player.LeaverState.LEAVER;
                     //System.out.println("Setting " + player.name + " to leaver, because they should appear in the scoreboard.");
                 }
             }
@@ -317,8 +306,8 @@ public class CustomScoreboard extends GTBEvents.Module {
     }
 
     void updatePotentialLeavers() {
-        players.stream().filter(player -> player.state.equals(Player.State.POTENTIAL_LEAVER))
-                .forEach(player -> player.state = Player.State.NORMAL);
+        players.stream().filter(player -> player.leaverState.equals(Player.LeaverState.POTENTIAL_LEAVER))
+                .forEach(player -> player.leaverState = Player.LeaverState.NORMAL);
 
         players.stream()
                 .filter(p -> p.buildRound <= 0)
@@ -328,12 +317,12 @@ public class CustomScoreboard extends GTBEvents.Module {
                     if (latestTrueScore == null) return true;
                     else return latestTrueScore.stream().noneMatch(score -> score.a().equals(p));
                     })
-                .sorted(Comparator.comparing((Player p) -> p.state == Player.State.LEAVER ? 0 : 1)
+                .sorted(Comparator.comparing((Player p) -> p.leaverState == Player.LeaverState.LEAVER ? 0 : 1)
                         .thenComparingInt(p -> p.inactiveTicks).reversed())
                 .limit(potentialLeaverAmount)
-                .filter(p -> !p.state.equals(Player.State.LEAVER))
+                .filter(p -> !p.leaverState.equals(Player.LeaverState.LEAVER))
                 .forEach(p -> {
-                    p.state = Player.State.POTENTIAL_LEAVER;
+                    p.leaverState = Player.LeaverState.POTENTIAL_LEAVER;
                     //System.out.println("Setting " + p.name + " to potential leaver.");
                 });
     }
@@ -377,10 +366,12 @@ public class CustomScoreboard extends GTBEvents.Module {
             }
 
             MutableText textLine = Text.literal(line);
-            if (player.state.equals(Player.State.NORMAL)) {
-                textLine.formatted(Formatting.WHITE);
-            } else if (player.state.equals(Player.State.INACTIVE)) {
-                textLine.formatted(Formatting.GRAY);
+            if (player.leaverState.equals(Player.LeaverState.NORMAL)) {
+                if (player.inactiveTicks >= inactivePlayerThresholdSeconds * 20) {
+                    textLine.formatted(Formatting.GRAY);
+                } else {
+                    textLine.formatted(Formatting.WHITE);
+                }
             } else {
                 textLine.formatted(Formatting.DARK_GRAY);
             }
@@ -413,7 +404,7 @@ public class CustomScoreboard extends GTBEvents.Module {
     }
 
     static class Player {
-        enum State { NORMAL, INACTIVE, POTENTIAL_LEAVER, LEAVER }
+        enum LeaverState { NORMAL, POTENTIAL_LEAVER, LEAVER }
 
         CustomScoreboard customScoreboard;
         String name;
@@ -422,7 +413,7 @@ public class CustomScoreboard extends GTBEvents.Module {
         boolean isUser;
 
         public int inactiveTicks = 0;
-        public State state = State.NORMAL;
+        public LeaverState leaverState = LeaverState.NORMAL;
 
         public Player(CustomScoreboard customScoreboard, String name, boolean isUser) {
             this.name = name;
@@ -438,10 +429,10 @@ public class CustomScoreboard extends GTBEvents.Module {
 
         public void onActivity() {
             inactiveTicks = 0;
-            if (state.equals(State.POTENTIAL_LEAVER)) {
+            if (leaverState.equals(LeaverState.POTENTIAL_LEAVER)) {
                 customScoreboard.updatePotentialLeavers();
-            } else if (state.equals(State.LEAVER) || state.equals(State.INACTIVE)) {
-                state = State.NORMAL;
+            } else if (leaverState.equals(LeaverState.LEAVER)) {
+                leaverState = LeaverState.NORMAL;
             }
         }
 
@@ -454,7 +445,7 @@ public class CustomScoreboard extends GTBEvents.Module {
                     ", buildRound=" + buildRound +
                     ", isUser=" + isUser +
                     ", inactiveTicks=" + inactiveTicks +
-                    ", state=" + state +
+                    ", leaverState=" + leaverState +
                     '}';
         }
     }

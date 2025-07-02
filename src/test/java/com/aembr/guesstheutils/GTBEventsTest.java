@@ -415,7 +415,7 @@ public class GTBEventsTest {
         assert ((GTBEvents.CorrectGuessEvent) event).players().equals(List.of("Yria", "nikIII123"));
     }
 
-    @Disabled("Needs to be redone from a chat message trigger to a state change trigger.")
+    @Disabled("Needs to be redone from a chat message trigger to a leaverState change trigger.")
     @Test
     void testRoundEndEvent() {
         events.subscribe(GTBEvents.RoundEndEvent.class, event -> listener.onEvent(event), listener);
