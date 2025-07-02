@@ -94,11 +94,10 @@ public class GameTracker extends GTBEvents.Module {
         Text title;
         Text emblem;
 
-        PlayerAlias.InactiveState inactiveState = PlayerAlias.InactiveState.NORMAL;
+        InactiveState inactiveState = InactiveState.NORMAL;
         int inactiveTicks = 0;
         int buildRound = 0;
         int[] points = new int[] { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 };
-
 
         public PlayerAlias(String name, Formatting rankColor, Text title, Text emblem) {
             this.name = name;

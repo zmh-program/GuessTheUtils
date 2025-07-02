@@ -42,6 +42,8 @@ public class GTBEvents {
     //public record PlayerChatEvent(PlayerChatMessage message) implements BaseEvent {}
     /// Emitted when the 1-second remaining in round alert is received.
     public record OneSecondAlertEvent() implements BaseEvent {}
+    /// Emitted when the timer updates.
+    public record TimerUpdateEvent(String timer) implements BaseEvent {}
 
     private final Map<Consumer<?>, Module> modules = new HashMap<>();
     private final Map<Class<? extends BaseEvent>, List<Consumer<?>>> subscribers = new HashMap<>();
@@ -75,6 +77,7 @@ public class GTBEvents {
     private List<Text> setupPlayerList = new ArrayList<>();
     private String currentBuilder = "";
     private String currentTheme = "";
+    private String currentTimer = "";
 
     /// Sometimes the "Builder: name" message happens before we emit GameStartEvent, so we store it to emit after instead
     private String prematureBuilder;
@@ -119,6 +122,22 @@ public class GTBEvents {
 
         if (state != null) {
             changeState(state);
+        }
+
+        // Extract timer
+        Optional<String> timerLine = stringLines.stream()
+                .filter(line -> (line.startsWith("Starts In: ")
+                        || line.startsWith("Time: ")
+                        || line.startsWith("Next Round: ")))
+                .reduce((first, second) -> second);
+        if (timerLine.isPresent()) {
+            String[] timerLineParts = timerLine.get().split(": ", 2);
+            if (timerLineParts.length == 2
+                    && timerLineParts[1].matches("\\d{2}:\\d{2}")
+                    && !timerLineParts[1].equals(currentTimer)) {
+                currentTimer = timerLineParts[1];
+                emit(new TimerUpdateEvent(currentTimer));
+            }
         }
 
         // Extract theme
