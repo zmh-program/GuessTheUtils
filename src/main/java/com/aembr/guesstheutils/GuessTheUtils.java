@@ -1,6 +1,7 @@
 package com.aembr.guesstheutils;
 
-import com.aembr.guesstheutils.modules.CustomScoreboard;
+import com.aembr.guesstheutils.modules.GameTracker;
+import com.aembr.guesstheutils.modules.LiveE2ERunner;
 import net.fabricmc.api.ClientModInitializer;
 import net.fabricmc.fabric.api.client.command.v2.ClientCommandRegistrationCallback;
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents;
@@ -28,7 +29,7 @@ public class GuessTheUtils implements ClientModInitializer {
     public static final Replay replay = new Replay();
     public static GTBEvents events = new GTBEvents();
 
-    public static CustomScoreboard customScoreboard = new CustomScoreboard(events);
+    public static GameTracker gameTracker = new GameTracker(events);
 
     public static boolean testing = false;
     public static final LiveE2ERunner liveE2ERunner = new LiveE2ERunner();
@@ -53,7 +54,7 @@ public class GuessTheUtils implements ClientModInitializer {
         });
 
         HudRenderCallback.EVENT.register((drawContext, v) -> {
-            customScoreboard.drawScoreboard(drawContext);
+            gameTracker.drawScoreboard(drawContext);
         });
 
         replay.initialize();

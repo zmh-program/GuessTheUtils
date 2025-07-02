@@ -5,6 +5,7 @@ import com.google.gson.*;
 import com.mojang.serialization.JsonOps;
 import net.minecraft.text.Text;
 import net.minecraft.text.TextCodecs;
+import org.jetbrains.annotations.NotNull;
 
 import java.lang.reflect.Field;
 import java.lang.reflect.Type;
@@ -103,7 +104,7 @@ public class Tick {
                                  String screenTitle, String error) {
 
         @Override
-        public String toString() {
+        public @NotNull String toString() {
             return "SerializedTick{" +
                     "scoreboardLines=" + scoreboardLines +
                     ", playerListEntries=" + playerListEntries +
