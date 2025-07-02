@@ -148,11 +148,11 @@ public class GameTracker extends GTBEvents.Module {
         }
     }
 
-    public static int getThemePointAward(String theme) {
+    private static int getThemePointAward(String theme) {
         return (theme.length() < 6) ? 1 : (theme.length() < 9) ? 2 : 3;
     }
 
-    public void clearGame() {
+    private void clearGame() {
         game = null;
     }
 
