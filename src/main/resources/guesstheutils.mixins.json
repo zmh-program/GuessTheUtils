@@ -1,12 +1,14 @@
 {
-	"required": true,
-	"package": "com.aembr.guesstheutils.mixin",
-	"compatibilityLevel": "JAVA_17",
-	"injectors": {
-		"defaultRequire": 1
-	},
-	"client": [
-		"ClientPlayNetworkHandlerMixin",
-		"InGameHudMixin"
-	]
+  "required": true,
+  "package": "com.aembr.guesstheutils.mixin",
+  "compatibilityLevel": "JAVA_17",
+  "injectors": {
+    "defaultRequire": 1
+  },
+  "client": [
+    "ClientPlayNetworkHandlerMixin",
+    "InGameHudMixin",
+    "item_hider.ItemGroup_EntriesImplMixin",
+    "item_hider.ItemGroupsMixin"
+  ]
 }
