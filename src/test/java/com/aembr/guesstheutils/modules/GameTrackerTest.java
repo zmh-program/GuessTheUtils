@@ -63,6 +63,7 @@ public class GameTrackerTest {
             String line;
             while ((line = br.readLine()) != null) {
                 Tick tick = new Tick(line);
+                //System.out.println("Processing tick: " + line);
                 events.processTickUpdate(tick);
             }
         }

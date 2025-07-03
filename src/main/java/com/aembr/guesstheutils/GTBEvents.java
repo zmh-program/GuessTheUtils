@@ -167,6 +167,7 @@ public class GTBEvents {
         }
     }
 
+    @SuppressWarnings("SequencedCollectionMethodCanBeUsed")
     private void onGameStart(List<Text> lobbyList, List<Text> setupList, List<Text> finalList) {
 //        System.out.println("lobby list: " + lobbyList);
 //        System.out.println("setup list: " + setupList);
@@ -405,6 +406,7 @@ public class GTBEvents {
         return themeLineString.substring(1);
     }
 
+    @SuppressWarnings("SequencedCollectionMethodCanBeUsed")
     public GameState getStateFromScoreboard(List<String> scoreboardLines) {
         if (scoreboardLines.isEmpty()) return null;
         if (!scoreboardLines.get(0).equals("GUESS THE BUILD")) return GameState.NONE;
@@ -496,6 +498,7 @@ public class GTBEvents {
     }
 
     private void handleException(Exception e, Consumer<?> consumer) {
+        System.out.println("Exception occurred in subscriber: " + consumer);
         GuessTheUtils.LOGGER.error("Exception occurred in subscriber: {}", consumer);
 
         Module module = modules.get(consumer);
@@ -613,8 +616,6 @@ public class GTBEvents {
         public Module(GTBEvents events) {
             this.events = events;
         }
-
-        public void registerEvents() {}
 
         // Default error action is DISABLE
         public ErrorAction getErrorAction() {

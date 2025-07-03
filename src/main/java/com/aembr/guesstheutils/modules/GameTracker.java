@@ -158,8 +158,7 @@ public class GameTracker extends GTBEvents.Module {
 
     private void clearGameWithError(String error) {
         clearGame();
-        Utils.sendMessage(error);
-        assert false : error;
+        throw new RuntimeException(error);
     }
 
     @Override
@@ -173,7 +172,7 @@ public class GameTracker extends GTBEvents.Module {
         int[] points;
         int buildRound;
         boolean isUser;
-
+        int scoreMismatchCounter = 0;
         int inactiveTicks = 0;
         LeaverState leaverState = LeaverState.NORMAL;
 
@@ -322,7 +321,13 @@ public class GameTracker extends GTBEvents.Module {
 
         public void onGameEnd(Map<String, Integer> scores) {
             for (Map.Entry<String, Integer> expected : scores.entrySet()) {
-                if (!verifyPoints(expected.getKey(), expected.getValue())) {
+                Player player = getPlayerFromName(expected.getKey());
+                if (player == null) {
+                    tracker.clearGameWithError("Player " + expected.getKey() + " not found in player list!");
+                    return;
+                }
+
+                if (!verifyPoints(player, expected.getValue())) {
                     tracker.clearGameWithError("Scores do not match expected!");
                     return;
                 }
@@ -344,13 +349,19 @@ public class GameTracker extends GTBEvents.Module {
                     player.leaverState = Player.LeaverState.NORMAL;
                 }
 
-                if (!verifyPoints(trueScore.a(), trueScore.b())) {
+                if (verifyPoints(player, trueScore.b())) {
+                    player.scoreMismatchCounter = 0;
+                } else {
                     if (player.buildRound == currentRound && player.points[currentRound - 1] == 0
                             && correctGuessesThisRound != 0) {
                         currentBuilder.points[currentRound - 1] = trueScore.b() - player.getTotalPoints();
                     } else {
-                        tracker.clearGameWithError("Score mismatch!");
-                        return;
+                        // Sometimes the scoreboard is slow, so we want to wait a bit before we sound the alarm
+                        if (player.scoreMismatchCounter > 0) { // increase this to wait longer
+                            tracker.clearGameWithError("Score mismatch!");
+                            return;
+                        }
+                        player.scoreMismatchCounter++;
                     }
                 }
                 converted.add(new Utils.Pair<>(player, trueScore.b()));
@@ -446,12 +457,7 @@ public class GameTracker extends GTBEvents.Module {
         }
 
         @SuppressWarnings("BooleanMethodIsAlwaysInverted")
-        private boolean verifyPoints(String name, Integer expectedPoints) {
-            Player player = getPlayerFromName(name);
-            if (player == null) {
-                tracker.clearGameWithError("Player " + name + " not found in player list!");
-                return true;
-            }
+        private boolean verifyPoints(Player player, Integer expectedPoints) {
             return player.getTotalPoints() == expectedPoints;
         }
 
