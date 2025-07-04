@@ -75,7 +75,7 @@ public class BuilderNotification extends GTBEvents.Module {
             }
 
             SystemTray tray = SystemTray.getSystemTray();
-            TrayIcon trayIcon = new TrayIcon(Toolkit.getDefaultToolkit().getImage(""), "GuessTheUtils");
+            TrayIcon trayIcon = new TrayIcon(Toolkit.getDefaultToolkit().getImage(""), "Guess The Utils Toast");
 
             try {
                 tray.add(trayIcon);
@@ -86,9 +86,19 @@ public class BuilderNotification extends GTBEvents.Module {
             }
         }
 
+        private static String escapeForShell(String input) {
+            if (input == null) {
+                return null;
+            }
+            return input.replace("'", "'\\''");
+        }
+
         private static void sendWindowsPowerShellNotification(String title, String message) {
             try {
-                String command = getString(title, message);
+                String escapedTitle = escapeForShell(title);
+                String escapedMessage = escapeForShell(message);
+
+                String command = getString(escapedTitle, escapedMessage);
                 ProcessBuilder builder = new ProcessBuilder("cmd.exe", "/c", command);
                 builder.redirectErrorStream(true);
                 Process process = builder.start();
@@ -105,13 +115,14 @@ public class BuilderNotification extends GTBEvents.Module {
 
         private static @NotNull String getString(String title, String message) {
             final String COMMAND_TEMPLATE = "powershell.exe -ExecutionPolicy Bypass -Command \"" + "[Windows.UI.Notifications.ToastNotificationManager, Windows.UI.Notifications, ContentType = WindowsRuntime] > $null;" + "$template = [Windows.UI.Notifications.ToastNotificationManager]::GetTemplateContent([Windows.UI.Notifications.ToastTemplateType]::ToastText02);" + "$xml = New-Object Windows.Data.Xml.Dom.XmlDocument;" + "$xml.LoadXml($template.GetXml());" + "$texts = $xml.GetElementsByTagName('text');" + "$texts.Item(0).AppendChild($xml.CreateTextNode('%s')) > $null;" + "$texts.Item(1).AppendChild($xml.CreateTextNode('%s')) > $null;" + "$toast = [Windows.UI.Notifications.ToastNotification]::new($xml);" + "$notifier = [Windows.UI.Notifications.ToastNotificationManager]::CreateToastNotifier('%s');" + "$notifier.Show($toast);\"";
-            return String.format(COMMAND_TEMPLATE, title, message.replace("\n", "'+\\\"`r`n\\\"+'"), "Guess the Utils Toast");
+            return String.format(COMMAND_TEMPLATE, title, message.replace("\n", "'+\\\"`r`n\\\"+'"), "Guess The Utils Toast");
         }
 
         private static void sendLinuxNotification(String title, String message) {
             try {
-                String escapedTitle = title.replace("'", "'\\''");
-                String escapedMessage = message.replace("'", "'\\''");
+                String escapedTitle = escapeForShell(title);
+                String escapedMessage = escapeForShell(message);
+
                 String command = String.format("notify-send '%s' '%s'", escapedTitle, escapedMessage);
                 Process process = Runtime.getRuntime().exec(new String[] { "bash", "-c", command });
 
