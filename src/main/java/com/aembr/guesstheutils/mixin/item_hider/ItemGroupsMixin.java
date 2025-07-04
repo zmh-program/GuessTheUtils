@@ -1,6 +1,5 @@
 package com.aembr.guesstheutils.mixin.item_hider;
 
-import com.aembr.guesstheutils.GTBEvents;
 import com.aembr.guesstheutils.GuessTheUtils;
 import net.minecraft.item.ItemGroup;
 import net.minecraft.item.ItemGroups;

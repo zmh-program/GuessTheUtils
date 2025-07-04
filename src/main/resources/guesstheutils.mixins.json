@@ -9,6 +9,7 @@
     "ClientPlayNetworkHandlerMixin",
     "InGameHudMixin",
     "item_hider.ItemGroup_EntriesImplMixin",
-    "item_hider.ItemGroupsMixin"
+    "item_hider.ItemGroupsMixin",
+    "name_autocomplete.ClientCommandSourceMixin"
   ]
 }

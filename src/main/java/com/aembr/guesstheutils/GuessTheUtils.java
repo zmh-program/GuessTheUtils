@@ -2,6 +2,7 @@ package com.aembr.guesstheutils;
 
 import com.aembr.guesstheutils.modules.GameTracker;
 import com.aembr.guesstheutils.modules.LiveE2ERunner;
+import com.aembr.guesstheutils.modules.NameAutocomplete;
 import net.fabricmc.api.ClientModInitializer;
 import net.fabricmc.fabric.api.client.command.v2.ClientCommandRegistrationCallback;
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents;
@@ -30,6 +31,7 @@ public class GuessTheUtils implements ClientModInitializer {
     public static GTBEvents events = new GTBEvents();
 
     public static GameTracker gameTracker = new GameTracker(events);
+    public static NameAutocomplete nameAutocomplete = new NameAutocomplete(events);
 
     public static boolean testing = false;
     public static final LiveE2ERunner liveE2ERunner = new LiveE2ERunner();
