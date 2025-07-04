@@ -1,12 +1,15 @@
 package com.aembr.guesstheutils.modules;
 
 import com.aembr.guesstheutils.GTBEvents;
+import com.aembr.guesstheutils.GuessTheUtils;
 import net.minecraft.client.MinecraftClient;
+import org.jetbrains.annotations.NotNull;
 
 import java.awt.*;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.nio.charset.StandardCharsets;
 
 public class BuilderNotification extends GTBEvents.Module {
     public BuilderNotification(GTBEvents events) {
@@ -85,11 +88,24 @@ public class BuilderNotification extends GTBEvents.Module {
 
         private static void sendWindowsPowerShellNotification(String title, String message) {
             try {
-                String command = String.format("powershell -Command \"New-BurntToastNotification -Text '%s', '%s'\"", title, message);
-                Runtime.getRuntime().exec(command);
-            } catch (IOException e) {
+                String command = getString(title, message);
+                ProcessBuilder builder = new ProcessBuilder("cmd.exe", "/c", command);
+                builder.redirectErrorStream(true);
+                Process process = builder.start();
+                try (BufferedReader reader = new BufferedReader(new InputStreamReader(process.getInputStream(), StandardCharsets.UTF_8))) {
+                    String line;
+                    while ((line = reader.readLine()) != null) {
+                        GuessTheUtils.LOGGER.info(line);
+                    }
+                }
+            } catch (Exception e) {
                 e.printStackTrace();
             }
+        }
+
+        private static @NotNull String getString(String title, String message) {
+            final String COMMAND_TEMPLATE = "powershell.exe -ExecutionPolicy Bypass -Command \"" + "[Windows.UI.Notifications.ToastNotificationManager, Windows.UI.Notifications, ContentType = WindowsRuntime] > $null;" + "$template = [Windows.UI.Notifications.ToastNotificationManager]::GetTemplateContent([Windows.UI.Notifications.ToastTemplateType]::ToastText02);" + "$xml = New-Object Windows.Data.Xml.Dom.XmlDocument;" + "$xml.LoadXml($template.GetXml());" + "$texts = $xml.GetElementsByTagName('text');" + "$texts.Item(0).AppendChild($xml.CreateTextNode('%s')) > $null;" + "$texts.Item(1).AppendChild($xml.CreateTextNode('%s')) > $null;" + "$toast = [Windows.UI.Notifications.ToastNotification]::new($xml);" + "$notifier = [Windows.UI.Notifications.ToastNotificationManager]::CreateToastNotifier('%s');" + "$notifier.Show($toast);\"";
+            return String.format(COMMAND_TEMPLATE, title, message.replace("\n", "'+\\\"`r`n\\\"+'"), "Guess the Utils Toast");
         }
 
         private static void sendLinuxNotification(String title, String message) {
