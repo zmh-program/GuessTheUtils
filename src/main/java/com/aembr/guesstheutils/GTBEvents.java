@@ -517,14 +517,16 @@ public class GTBEvents {
             Module.ErrorAction action = module.getErrorAction();
             String stackTrace = Utils.getStackTraceAsString(e);
 
-            if (GuessTheUtils.CLIENT.player != null) {
+            if (GuessTheUtils.CLIENT != null && GuessTheUtils.CLIENT.player != null) {
                 Utils.sendMessage("Exception in module " + moduleName + ": " + e.getMessage() + ". Saving details to replay file...");
-            }
 
-            Tick error = new Tick();
-            error.error = stackTrace;
-            GuessTheUtils.replay.addTick(error);
-            GuessTheUtils.replay.save();
+                Tick error = new Tick();
+                error.error = stackTrace;
+                GuessTheUtils.replay.addTick(error);
+                GuessTheUtils.replay.save();
+            } else {
+                throw new RuntimeException();
+            }
 
             switch (action) {
                 case STOP:

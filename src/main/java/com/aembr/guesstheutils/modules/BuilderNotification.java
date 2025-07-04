@@ -28,8 +28,8 @@ public class BuilderNotification extends GTBEvents.Module {
 
     public static class NotificationUtil {
         public enum Platform {
-            WINDOWS,
             LINUX,
+            WINDOWS,
             UNSUPPORTED
         }
 
@@ -37,10 +37,10 @@ public class BuilderNotification extends GTBEvents.Module {
 
         private static Platform detectPlatform() {
             String os = System.getProperty("os.name").toLowerCase();
-            if (os.contains("win")) {
-                return Platform.WINDOWS;
-            } else if (os.contains("nix") || os.contains("nux")) {
+            if (os.contains("nix") || os.contains("nux")) {
                 return Platform.LINUX;
+            } else if (os.contains("win")) {
+                    return Platform.WINDOWS;
             } else {
                 return Platform.UNSUPPORTED;
             }

@@ -369,7 +369,7 @@ public class GameTracker extends GTBEvents.Module {
                     .sorted((p1, p2) -> Integer.compare(p2.getTotalPoints(), p1.getTotalPoints())).toList();
 
             List<Utils.Pair<Player, Integer>> topNames = new ArrayList<>();
-            for (int i = 0; i < 3; i++) {
+            for (int i = 0; i < Math.min(3, latestTrueScore.size()); i++) {
                 if (latestTrueScore.get(i) == null) continue;
                 topNames.add(latestTrueScore.get(i));
             }
