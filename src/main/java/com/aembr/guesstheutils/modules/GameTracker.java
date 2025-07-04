@@ -107,6 +107,7 @@ public class GameTracker extends GTBEvents.Module {
                 .sorted((p1, p2) -> Integer.compare(p2.getTotalPoints(), p1.getTotalPoints())).toList();
 
         List<Text> lines = new ArrayList<>();
+
         int width = 0;
         for (int i = 0; i < sortedByPoints.size(); i++) {
             Player player = sortedByPoints.get(i);

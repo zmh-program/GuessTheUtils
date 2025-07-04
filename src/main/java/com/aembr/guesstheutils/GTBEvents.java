@@ -14,6 +14,8 @@ public class GTBEvents {
     public record GameStartEvent(Set<InitialPlayerData> players) implements BaseEvent {}
     /// Emitted when the current builder changes. Can be null if the builder has left.
     public record BuilderChangeEvent(String previous, String current) implements BaseEvent {}
+    /// Emitted when the user becomes builder.
+    public record UserBuilderEvent() implements BaseEvent {}
     /// Emitted once the builder has picked a theme.
     public record RoundStartEvent(int currentRound, int totalRounds) implements BaseEvent {}
     /// Emitted when one or more players guess correctly. Contains all players that guessed during the same tick.
@@ -241,6 +243,7 @@ public class GTBEvents {
             String builderName = getBuilderNameFromScoreboard(scoreboardLineHistory.get(0));
             if (Objects.equals(currentBuilder, builderName)) return;
             emit(new BuilderChangeEvent(currentBuilder, builderName));
+            emit(new UserBuilderEvent());
             currentBuilder = builderName;
         }
     }

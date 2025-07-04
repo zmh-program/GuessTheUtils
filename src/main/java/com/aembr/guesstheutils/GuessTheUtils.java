@@ -1,9 +1,6 @@
 package com.aembr.guesstheutils;
 
-import com.aembr.guesstheutils.modules.GameTracker;
-import com.aembr.guesstheutils.modules.LiveE2ERunner;
-import com.aembr.guesstheutils.modules.NameAutocomplete;
-import com.aembr.guesstheutils.modules.ShortcutReminder;
+import com.aembr.guesstheutils.modules.*;
 import net.fabricmc.api.ClientModInitializer;
 import net.fabricmc.fabric.api.client.command.v2.ClientCommandRegistrationCallback;
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents;
@@ -34,6 +31,8 @@ public class GuessTheUtils implements ClientModInitializer {
     public static GameTracker gameTracker = new GameTracker(events);
     public static NameAutocomplete nameAutocomplete = new NameAutocomplete(events);
     public static ShortcutReminder shortcutReminder = new ShortcutReminder(events);
+    @SuppressWarnings("unused")
+    public static BuilderNotification builderNotification = new BuilderNotification(events);
 
     public static boolean testing = false;
     public static final LiveE2ERunner liveE2ERunner = new LiveE2ERunner();
