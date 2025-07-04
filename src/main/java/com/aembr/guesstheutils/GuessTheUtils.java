@@ -76,7 +76,12 @@ public class GuessTheUtils implements ClientModInitializer {
         if (!currentTick.isEmpty()) {
             replay.addTick(currentTick);
             try {
-                events.processTickUpdate(currentTick);
+                Tick tempTick = currentTick;
+                // Reset currentTick immediately. ConcurrentModificationException can be thrown if
+                // a new message arrives while we're processing, modifying the chatMessage list
+                currentTick = new Tick();
+
+                events.processTickUpdate(tempTick);
             } catch (Exception e) {
                 String stackTrace = Utils.getStackTraceAsString(e);
 
