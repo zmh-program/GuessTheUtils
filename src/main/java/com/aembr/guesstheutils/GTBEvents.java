@@ -478,6 +478,12 @@ public class GTBEvents {
         gameState = newState;
     }
 
+    public boolean isInGtb() {
+        return gameState.equals(GameState.ROUND_BUILD)
+                || gameState.equals(GameState.ROUND_PRE)
+                || gameState.equals(GameState.ROUND_END);
+    }
+
     public <T extends BaseEvent> void subscribe(Class<T> eventClass, Consumer<T> consumer, Module module) {
         subscribers.computeIfAbsent(eventClass, k -> new ArrayList<>()).add(consumer);
         modules.put(consumer, module);

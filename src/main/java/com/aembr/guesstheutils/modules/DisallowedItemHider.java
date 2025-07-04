@@ -576,7 +576,7 @@ public class DisallowedItemHider {
     );
 
     public static boolean isAllowed(Item item) {
-        if (!GuessTheUtils.events.gameState.equals(GTBEvents.GameState.ROUND_BUILD)) return true;
+        if (!GuessTheUtils.events.isInGtb()) return true;
         return ALLOWED_ITEMS.contains(item);
     }
 }

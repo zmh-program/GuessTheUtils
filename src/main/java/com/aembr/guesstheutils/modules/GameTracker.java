@@ -89,16 +89,12 @@ public class GameTracker extends GTBEvents.Module {
     }
 
     private void onTick(MinecraftClient client) {
-        if (game == null) return;
-        if (!game.players.isEmpty() && (state.equals(GTBEvents.GameState.ROUND_PRE)
-                || state.equals(GTBEvents.GameState.ROUND_BUILD) || state.equals(GTBEvents.GameState.ROUND_END))) {
-            game.players.forEach(player -> player.inactiveTicks++);
-        }
+        if (game == null || !events.isInGtb()) return;
+        game.players.forEach(player -> player.inactiveTicks++);
     }
 
     public void drawScoreboard(DrawContext ctx) {
-        if (game == null || state.equals(GTBEvents.GameState.NONE) || state.equals(GTBEvents.GameState.LOBBY)
-                || state.equals(GTBEvents.GameState.POST_GAME)) return;
+        if (game == null || !events.isInGtb()) return;
 
         int round = state.equals(GTBEvents.GameState.ROUND_PRE)
                 || game.currentRound == 0 ? game.currentRound + 1 : game.currentRound;
@@ -345,9 +341,7 @@ public class GameTracker extends GTBEvents.Module {
                     return;
                 }
 
-                if (player.leaverState.equals(Player.LeaverState.LEAVER)) {
-                    player.leaverState = Player.LeaverState.NORMAL;
-                }
+                onActivity(player);
 
                 if (verifyPoints(player, trueScore.b())) {
                     player.scoreMismatchCounter = 0;

@@ -26,12 +26,12 @@ public abstract class ItemGroupsMixin {
     }
 
     @Unique
-    private static GTBEvents.GameState state;
+    private static boolean isInGtb;
 
     @Inject(method = "updateDisplayContext", at = @At("HEAD"), cancellable = true)
     private static void trackLastVersion(FeatureSet enabledFeatures, boolean operatorEnabled, RegistryWrapper.WrapperLookup lookup, CallbackInfoReturnable<Boolean> cir) {
-        if (GuessTheUtils.events.gameState != state) {
-            state = GuessTheUtils.events.gameState;
+        if (GuessTheUtils.events.isInGtb() != isInGtb) {
+            isInGtb = GuessTheUtils.events.isInGtb();
             displayContext = new ItemGroup.DisplayContext(enabledFeatures, operatorEnabled, lookup);
             updateEntries(displayContext);
             cir.setReturnValue(true);
