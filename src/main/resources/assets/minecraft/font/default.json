@@ -1,0 +1,58 @@
+{
+  "providers": [
+    {
+      "type": "bitmap",
+      "file": "guesstheutils:icons/scoreboard/1p.png",
+      "ascent": 8,
+      "height": 16,
+      "chars": [
+        "\uea00"
+      ]
+    },
+    {
+      "type": "bitmap",
+      "file": "guesstheutils:icons/scoreboard/2p.png",
+      "ascent": 8,
+      "height": 16,
+      "chars": [
+        "\uea01"
+      ]
+    },
+    {
+      "type": "bitmap",
+      "file": "guesstheutils:icons/scoreboard/3p.png",
+      "ascent": 8,
+      "height": 16,
+      "chars": [
+        "\uea02"
+      ]
+    },
+    {
+      "type": "bitmap",
+      "file": "guesstheutils:icons/scoreboard/builder.png",
+      "ascent": 8,
+      "height": 16,
+      "chars": [
+        "\uea03"
+      ]
+    },
+    {
+      "type": "bitmap",
+      "file": "guesstheutils:icons/scoreboard/inactive.png",
+      "ascent": 8,
+      "height": 16,
+      "chars": [
+        "\uea04"
+      ]
+    },
+    {
+      "type": "bitmap",
+      "file": "guesstheutils:icons/scoreboard/disconnected.png",
+      "ascent": 8,
+      "height": 16,
+      "chars": [
+        "\uea05"
+      ]
+    }
+  ]
+}

@@ -107,7 +107,7 @@ public class GameTracker extends GTBEvents.Module {
                 .sorted((p1, p2) -> Integer.compare(p2.getTotalPoints(), p1.getTotalPoints())).toList();
 
         List<Text> lines = new ArrayList<>();
-
+        lines.add(Text.of("\uea00\uea01\uea02\uea03\uea04\uea05"));
         int width = 0;
         for (int i = 0; i < sortedByPoints.size(); i++) {
             Player player = sortedByPoints.get(i);
@@ -166,6 +166,9 @@ public class GameTracker extends GTBEvents.Module {
     static class Player {
         enum LeaverState { NORMAL, POTENTIAL_LEAVER, LEAVER }
         String name;
+        Formatting rank;
+        Text title;
+        Text emblem;
         int[] points;
         int buildRound;
         boolean isUser;

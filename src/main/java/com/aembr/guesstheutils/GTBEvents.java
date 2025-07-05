@@ -281,7 +281,7 @@ public class GTBEvents {
     }
 
     // TODO: implement and use this instead of `getPlayerNameFromMessage`
-    private PlayerChatMessage validatePlayerChatMessage(Text message) {
+    private PlayerChatMessage parsePlayerChatMessage(Text message) {
         throw new NotImplementedException();
     }
 
@@ -560,6 +560,7 @@ public class GTBEvents {
         }
     }
 
+    @SuppressWarnings("UnusedReturnValue")
     private Module createNewModuleInstance(Class<? extends Module> moduleClass) {
         try {
             return moduleClass.getDeclaredConstructor(GTBEvents.class).newInstance(this);
