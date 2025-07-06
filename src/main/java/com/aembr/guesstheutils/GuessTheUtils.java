@@ -55,10 +55,9 @@ public class GuessTheUtils implements ClientModInitializer {
             if (overlay) onActionBarMessage(message);
             else onChatMessage(message);
         });
-
-        HudRenderCallback.EVENT.register((drawContext, v) -> {
-            gameTracker.drawScoreboard(drawContext);
-        });
+//        HudLayerRegistrationCallback.EVENT.register((drawContext, v) -> {
+//            gameTracker.drawScoreboard(drawContext);
+//        });
 
         replay.initialize();
         shortcutReminder.init();

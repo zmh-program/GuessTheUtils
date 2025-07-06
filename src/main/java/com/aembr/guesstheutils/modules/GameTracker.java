@@ -15,12 +15,14 @@ import java.util.*;
 
 public class GameTracker extends GTBEvents.Module {
     public static GTBEvents.GameState state = GTBEvents.GameState.NONE;
-    final int inactivePlayerThresholdSeconds = 180;
 
     Game game;
+    CustomScoreboard scoreboard;
 
     public GameTracker(GTBEvents events) {
         super(events);
+
+        scoreboard = new CustomScoreboard(this);
 
         ClientTickEvents.START_CLIENT_TICK.register(this::onTick);
         events.subscribe(GTBEvents.GameStartEvent.class, this::onGameStart, this);
@@ -70,6 +72,10 @@ public class GameTracker extends GTBEvents.Module {
         events.subscribe(GTBEvents.OneSecondAlertEvent.class, e -> {
             if (game != null) game.onOneSecondAlert();
         }, this);
+
+        events.subscribe(GTBEvents.TimerUpdateEvent.class, e -> {
+            if (game != null) game.currentTimer = e.timer();
+        }, this);
     }
 
     private void onUserRejoin(GTBEvents.UserRejoinEvent userRejoinEvent) {
@@ -84,65 +90,14 @@ public class GameTracker extends GTBEvents.Module {
 
     private void onGameStart(GTBEvents.GameStartEvent event) {
         Set<Player> players = new HashSet<>();
-        event.players().forEach(p -> players.add(new Player(p.name(), p.isUser())));
+        event.players().forEach(p ->
+                players.add(new Player(p.name(), p.rankColor(), p.title(), p.emblem(), p.isUser())));
         game = new Game(this, players);
     }
 
     private void onTick(MinecraftClient client) {
         if (game == null || !events.isInGtb()) return;
         game.players.forEach(player -> player.inactiveTicks++);
-    }
-
-    public void drawScoreboard(DrawContext ctx) {
-        if (game == null || !events.isInGtb()) return;
-
-        int round = state.equals(GTBEvents.GameState.ROUND_PRE)
-                || game.currentRound == 0 ? game.currentRound + 1 : game.currentRound;
-
-        if (round > game.players.size()) return;
-
-        TextRenderer renderer = GuessTheUtils.CLIENT.textRenderer;
-
-        List<Player> sortedByPoints = game.players.stream()
-                .sorted((p1, p2) -> Integer.compare(p2.getTotalPoints(), p1.getTotalPoints())).toList();
-
-        List<Text> lines = new ArrayList<>();
-        lines.add(Text.of("\uea00\uea01\uea02\uea03\uea04\uea05"));
-        int width = 0;
-        for (int i = 0; i < sortedByPoints.size(); i++) {
-            Player player = sortedByPoints.get(i);
-            String line = String.format("%d %d %s: ", i + 1, player.buildRound, player.name);
-            if (player.points[round - 1] == 0) {
-                line += player.getTotalPoints();
-            } else {
-                line += String.format("+%d %d", player.points[round - 1], player.getTotalPoints());
-            }
-
-            MutableText textLine = Text.literal(line);
-            if (player.leaverState.equals(Player.LeaverState.NORMAL)) {
-                if (player.inactiveTicks >= inactivePlayerThresholdSeconds * 20) {
-                    textLine.formatted(Formatting.GRAY);
-                } else {
-                    textLine.formatted(Formatting.WHITE);
-                }
-            } else {
-                textLine.formatted(Formatting.DARK_GRAY);
-            }
-
-
-            int lineWidth = renderer.getWidth(line);
-            if (lineWidth > width) width = lineWidth;
-            lines.add(textLine);
-        }
-
-        int height = renderer.fontHeight * lines.size();
-        int x = ctx.getScaledWindowWidth() - width - 4;
-        int startY = ctx.getScaledWindowHeight() - height - 20;
-
-        for (int i = 0; i < lines.size(); i++) {
-            int y = startY + i * renderer.fontHeight;
-            ctx.drawText(renderer, lines.get(i), x, y, 0xFFFFFFFF, true);
-        }
     }
 
     private static int getThemePointAward(String theme) {
@@ -176,11 +131,14 @@ public class GameTracker extends GTBEvents.Module {
         int inactiveTicks = 0;
         LeaverState leaverState = LeaverState.NORMAL;
 
-        Player(String name, boolean isUser) {
+        Player(String name, Formatting rank, Text title, Text emblem, boolean isUser) {
             this.name = name;
+            this.rank = rank;
+            this.title = title;
+            this.emblem = emblem;
+            this.isUser = isUser;
             this.points = new int[]{0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
             this.buildRound = 0;
-            this.isUser = isUser;
         }
 
         int getTotalPoints() {
@@ -205,11 +163,13 @@ public class GameTracker extends GTBEvents.Module {
         Set<Player> players;
 
         int currentRound = 0;
+        int totalRounds;
         int skippedRounds = 0;
         int potentialLeaverAmount = 0;
         boolean userRoundSkipped = false;
 
         String currentTheme = "";
+        String currentTimer = "";
         Player currentBuilder = null;
         int correctGuessesThisRound = 0;
         boolean oneSecondAlertReached = false;
@@ -224,6 +184,7 @@ public class GameTracker extends GTBEvents.Module {
         public Game(GameTracker tracker, Set<Player> players) {
             this.tracker = tracker;
             this.players = players;
+            this.totalRounds = players.size();
         }
 
         public void onBuilderChange(String builderName) {
@@ -265,6 +226,7 @@ public class GameTracker extends GTBEvents.Module {
             currentTheme = "";
             correctGuessesThisRound = 0;
 
+            totalRounds = total;
             int missing = players.size() - skippedRounds - total;
             if (missing != potentialLeaverAmount) {
                 potentialLeaverAmount = missing;
