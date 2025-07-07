@@ -323,6 +323,7 @@ public class GTBEvents {
                 int current = Integer.parseInt(currentOverTotal[0]);
                 int total = Integer.parseInt(currentOverTotal[1]);
                 emit(new RoundStartEvent(current, total));
+                changeState(GameState.ROUND_BUILD);
             }
 
             if (strMessage.startsWith("Builder: ")) {
