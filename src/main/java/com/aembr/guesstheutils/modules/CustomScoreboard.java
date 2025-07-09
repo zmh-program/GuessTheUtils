@@ -19,11 +19,12 @@ import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Stream;
 
 import static com.aembr.guesstheutils.GuessTheUtils.CLIENT;
+import static com.aembr.guesstheutils.GuessTheUtils.events;
 
 public class CustomScoreboard implements HudElement {
     public static final String[] BUILDING_SPINNER = new String[] {"\uea00", "\uea01", "\uea02", "\uea03", "\uea04",
             "\uea05", "\uea06", "\uea07", "\uea08", "\uea09", "\uea10", "\uea11", "\uea12", "\uea13", "\uea14", "\uea15"};
-    public static final String[] POINTS_ICONS = new String[] {"\uea16", "\uea17", "\uea18"};
+    public static final String[] POINTS_ICONS = new String[] {"+1", "+2", "+3"};
     public static final String INACTIVE_ICON = "\uea19";
     public static final String LEAVER_ICON = "\uea20";
     public static final String BUILD_BG_ICON = "\uea21";
@@ -51,7 +52,7 @@ public class CustomScoreboard implements HudElement {
     public static Formatting pointsThisRoundColor1 = Formatting.DARK_GREEN;
     public static Formatting pointsThisRoundColor2 = Formatting.GREEN;
     public static Formatting pointsThisRoundColor3 = Formatting.YELLOW;
-    public static float pointsThisRoundOpacity = 0.7f;
+    public static float pointsThisRoundOpacity = 0.5f;
 
     public static Formatting pointsColor = Formatting.DARK_GREEN;
     public static Formatting pointsColorHighlight = Formatting.GREEN;
@@ -59,23 +60,23 @@ public class CustomScoreboard implements HudElement {
     public static Formatting unknownThemeColor = Formatting.RED;
     public static String unknownThemeString = "???";
 
-    public static int lineSpacing = 1;
+    public static int lineSpacing = 0;
     public static int lineItemSpacing = 3;
-    public static int defaultSeparatorHeight = 8;
+    public static int defaultSeparatorHeight = 6;
     public static boolean drawSeparatorBg = false;
     public static int linePadding = 1;
     public static int heightOffset = 20;
-    public static int playerNameRightPad = 4;
+    public static int playerNameRightPad = 6;
 
-    GameTracker tracker;
+    static GameTracker tracker;
     Identifier identifier = Identifier.of("guess_the_utils_scoreboard");
 
-    public boolean isRendering() {
+    public static boolean isRendering() {
         return tracker != null && tracker.game != null && GuessTheUtils.events.isInGtb();
     }
 
     public CustomScoreboard(GameTracker tracker) {
-        this.tracker = tracker;
+        CustomScoreboard.tracker = tracker;
         try {
             HudElementRegistry.attachElementAfter(Identifier.ofVanilla("chat"), identifier, this);
         } catch (Exception e) {
@@ -91,15 +92,14 @@ public class CustomScoreboard implements HudElement {
     @SuppressWarnings({"DataFlowIssue"})
     @Override
     public void render(DrawContext context, RenderTickCounter tickCounter) {
+        if (tracker == null || tracker.game == null || !events.isInGtb()) return;
+
         boolean extended = CLIENT.options.playerListKey.isPressed();
+        TextRenderer renderer = MinecraftClient.getInstance().textRenderer;
 
         boolean includePlaces = extended;
         boolean includeTitles = extended;
         boolean includeEmblems = true;
-
-        if (tracker == null || tracker.game == null) return;
-
-        TextRenderer renderer = MinecraftClient.getInstance().textRenderer;
 
         // Technically, round starts when the theme is picked, but I think it's confusing
         int visualCurrentRound = tracker.game.currentRound;
@@ -298,7 +298,7 @@ public class CustomScoreboard implements HudElement {
 
             // Points this round
             if (!isRoundPre && pointsThisRound > 0) {
-                itemX -= pointsWidth + lineItemSpacing / 2;
+                itemX -= pointsWidth + lineItemSpacing;
                 MutableText pointsThisRoundIcon = Text.literal(POINTS_ICONS[pointsThisRound - 1]);
                 Formatting pointsThisRoundColor;
                 if (isBuildingThisRound) pointsThisRoundIcon.formatted(accentColorBuilder);

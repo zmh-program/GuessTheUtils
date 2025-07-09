@@ -3,7 +3,7 @@
     {
       "type": "bitmap",
       "file": "guesstheutils:icons/scoreboard/build_spinner_01.png",
-      "ascent": 7,
+      "ascent": 8,
       "height": 16,
       "chars": [
         "\uea00"
@@ -12,7 +12,7 @@
     {
       "type": "bitmap",
       "file": "guesstheutils:icons/scoreboard/build_spinner_02.png",
-      "ascent": 7,
+      "ascent": 8,
       "height": 16,
       "chars": [
         "\uea01"
@@ -21,7 +21,7 @@
     {
       "type": "bitmap",
       "file": "guesstheutils:icons/scoreboard/build_spinner_03.png",
-      "ascent": 7,
+      "ascent": 8,
       "height": 16,
       "chars": [
         "\uea02"
@@ -30,7 +30,7 @@
     {
       "type": "bitmap",
       "file": "guesstheutils:icons/scoreboard/build_spinner_04.png",
-      "ascent": 7,
+      "ascent": 8,
       "height": 16,
       "chars": [
         "\uea03"
@@ -39,7 +39,7 @@
     {
       "type": "bitmap",
       "file": "guesstheutils:icons/scoreboard/build_spinner_05.png",
-      "ascent": 7,
+      "ascent": 8,
       "height": 16,
       "chars": [
         "\uea04"
@@ -48,7 +48,7 @@
     {
       "type": "bitmap",
       "file": "guesstheutils:icons/scoreboard/build_spinner_06.png",
-      "ascent": 7,
+      "ascent": 8,
       "height": 16,
       "chars": [
         "\uea05"
@@ -57,7 +57,7 @@
     {
       "type": "bitmap",
       "file": "guesstheutils:icons/scoreboard/build_spinner_07.png",
-      "ascent": 7,
+      "ascent": 8,
       "height": 16,
       "chars": [
         "\uea06"
@@ -66,7 +66,7 @@
     {
       "type": "bitmap",
       "file": "guesstheutils:icons/scoreboard/build_spinner_08.png",
-      "ascent": 7,
+      "ascent": 8,
       "height": 16,
       "chars": [
         "\uea07"
@@ -75,7 +75,7 @@
     {
       "type": "bitmap",
       "file": "guesstheutils:icons/scoreboard/build_spinner_09.png",
-      "ascent": 7,
+      "ascent": 8,
       "height": 16,
       "chars": [
         "\uea08"
@@ -84,7 +84,7 @@
     {
       "type": "bitmap",
       "file": "guesstheutils:icons/scoreboard/build_spinner_10.png",
-      "ascent": 7,
+      "ascent": 8,
       "height": 16,
       "chars": [
         "\uea09"
@@ -93,7 +93,7 @@
     {
       "type": "bitmap",
       "file": "guesstheutils:icons/scoreboard/build_spinner_11.png",
-      "ascent": 7,
+      "ascent": 8,
       "height": 16,
       "chars": [
         "\uea10"
@@ -102,7 +102,7 @@
     {
       "type": "bitmap",
       "file": "guesstheutils:icons/scoreboard/build_spinner_12.png",
-      "ascent": 7,
+      "ascent": 8,
       "height": 16,
       "chars": [
         "\uea11"
@@ -111,7 +111,7 @@
     {
       "type": "bitmap",
       "file": "guesstheutils:icons/scoreboard/build_spinner_13.png",
-      "ascent": 7,
+      "ascent": 8,
       "height": 16,
       "chars": [
         "\uea12"
@@ -120,7 +120,7 @@
     {
       "type": "bitmap",
       "file": "guesstheutils:icons/scoreboard/build_spinner_14.png",
-      "ascent": 7,
+      "ascent": 8,
       "height": 16,
       "chars": [
         "\uea13"
@@ -129,7 +129,7 @@
     {
       "type": "bitmap",
       "file": "guesstheutils:icons/scoreboard/build_spinner_15.png",
-      "ascent": 7,
+      "ascent": 8,
       "height": 16,
       "chars": [
         "\uea14"
@@ -138,7 +138,7 @@
     {
       "type": "bitmap",
       "file": "guesstheutils:icons/scoreboard/build_spinner_16.png",
-      "ascent": 7,
+      "ascent": 8,
       "height": 16,
       "chars": [
         "\uea15"
@@ -192,7 +192,7 @@
     {
       "type": "bitmap",
       "file": "guesstheutils:icons/scoreboard/buildbg.png",
-      "ascent": 7,
+      "ascent": 8,
       "height": 16,
       "chars": [
         "\uea21"
@@ -201,7 +201,7 @@
     {
       "type": "bitmap",
       "file": "guesstheutils:icons/scoreboard/buildcheck.png",
-      "ascent": 7,
+      "ascent": 8,
       "height": 16,
       "chars": [
         "\uea22"
