@@ -94,6 +94,7 @@ public class GameTracker extends GTBEvents.Module {
     private void onTick(MinecraftClient client) {
         if (game == null || !events.isInGtb()) return;
         game.players.forEach(player -> player.inactiveTicks++);
+        CustomScoreboard.tickCounter++;
     }
 
     private static int getThemePointAward(String theme) {
