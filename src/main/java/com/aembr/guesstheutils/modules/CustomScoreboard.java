@@ -36,7 +36,7 @@ public class CustomScoreboard implements HudElement {
     public static boolean shadow = true;
     public static Formatting backgroundColor = Formatting.BLACK;
     public static float backgroundOpacity = 0.5f;
-    public static Formatting textColor = Formatting.GRAY;
+    public static Formatting textColor = Formatting.WHITE;
     public static float foregroundOpacity = 1.0f;
     public static float foregroundOpacityInactive = 0.3f;
 

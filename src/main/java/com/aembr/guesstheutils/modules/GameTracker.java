@@ -22,7 +22,12 @@ public class GameTracker extends GTBEvents.Module {
 
         ClientTickEvents.START_CLIENT_TICK.register(this::onTick);
         events.subscribe(GTBEvents.GameStartEvent.class, this::onGameStart, this);
-        events.subscribe(GTBEvents.StateChangeEvent.class, e -> state = e.current(), this);
+        events.subscribe(GTBEvents.StateChangeEvent.class, e -> {
+            state = e.current();
+            if (state.equals(GTBEvents.GameState.ROUND_PRE) && game != null) {
+                game.currentTheme = "";
+            }
+        }, this);
         events.subscribe(GTBEvents.BuilderChangeEvent.class, e -> {
             if (game != null) game.onBuilderChange(e.current());
         }, this);
