@@ -31,4 +31,4 @@ A: Not planned. I only plan to support latest, and only port it to newer version
 A: Open a new issue, or contact me, `aembr`, on Discord directly.
 
 ### Can you add X feature?
-A: If you do have an idea you think could be useful, that I haven't implemented yet, open a new issue or DM me on Discord.
+A: If you do have an idea you think could be useful, that I haven't implemented yet, open a new issue or DM `aembr` on Discord.
