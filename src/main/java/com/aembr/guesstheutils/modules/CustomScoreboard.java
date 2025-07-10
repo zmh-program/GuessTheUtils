@@ -38,11 +38,11 @@ public class CustomScoreboard implements HudElement {
     public static float backgroundOpacity = 0.5f;
     public static Formatting textColor = Formatting.WHITE;
     public static float foregroundOpacity = 1.0f;
-    public static float foregroundOpacityInactive = 0.3f;
+    public static float foregroundOpacityInactive = 0.4f;
 
     public static Formatting accentColor = Formatting.GREEN;
     public static Formatting accentColorBuilder = Formatting.AQUA;
-    public static float backgroundHighlightOpacity = 0.13f;
+    public static float backgroundHighlightOpacity = 0.1f;
 
     public static Formatting notBuiltIconColor = Formatting.DARK_GRAY;
     public static float notBuiltIconOpacity = 0.5f;
@@ -61,9 +61,9 @@ public class CustomScoreboard implements HudElement {
     public static String unknownThemeString = "???";
 
     public static int lineSpacing = 0;
-    public static int lineItemSpacing = 3;
+    public static int lineItemSpacing = 6;
     public static int defaultSeparatorHeight = 6;
-    public static boolean drawSeparatorBg = false;
+    public static boolean drawSeparatorBg = true;
     public static int linePadding = 1;
     public static int heightOffset = 20;
     public static int playerNameRightPad = 6;
@@ -231,8 +231,8 @@ public class CustomScoreboard implements HudElement {
             int bottom = y + renderer.fontHeight - 2 + linePadding * 2;
 
             // Highlight
-            int highlightColor = isBuildingThisRound ? backgroundHighlightColorBuilder : backgroundHighlightColor;
-            if ((pointsThisRound > 0 || isBuildingThisRound) && !isRoundPre) {
+            int highlightColor = isBuilder ? backgroundHighlightColorBuilder : backgroundHighlightColor;
+            if (pointsThisRound > 0 || isBuilder) {
                 context.fill(x, y, x + width, bottom, highlightColor);
             }
 

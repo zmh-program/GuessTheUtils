@@ -435,6 +435,7 @@ public class GameTracker extends GTBEvents.Module {
                 updatePotentialLeavers();
             } else if (player.leaverState.equals(Player.LeaverState.LEAVER)) {
                 player.leaverState = Player.LeaverState.NORMAL;
+                updatePotentialLeavers();
             }
         }
 
@@ -446,10 +447,10 @@ public class GameTracker extends GTBEvents.Module {
                     .filter(p -> p.buildRound <= 0)
                     .filter(p -> !p.isUser)
                     .filter(p -> !Objects.equals(p, currentBuilder))
-                    .filter(p -> {
-                        if (latestTrueScore == null) return true;
-                        else return latestTrueScore.stream().noneMatch(score -> score.a().equals(p));
-                    })
+//                    .filter(p -> {
+//                        if (latestTrueScore == null) return true;
+//                        else return latestTrueScore.stream().noneMatch(score -> score.a().equals(p));
+//                    })
                     .sorted(Comparator.comparing((Player p) -> p.leaverState == Player.LeaverState.LEAVER ? 0 : 1)
                             .thenComparingInt(p -> p.inactiveTicks).reversed())
                     .limit(potentialLeaverAmount)
