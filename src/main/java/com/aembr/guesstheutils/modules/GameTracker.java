@@ -287,8 +287,8 @@ public class GameTracker extends GTBEvents.Module {
             for (Map.Entry<String, Integer> expected : scores.entrySet()) {
                 Player player = getPlayerFromName(expected.getKey());
                 if (player == null) {
-                    tracker.clearGameWithError("Player " + expected.getKey() + " not found in player list!");
-                    return;
+                    // there is a possibility for names to be cut off here, but it's the end of the game anyway
+                    continue;
                 }
 
                 if (!verifyPoints(player, expected.getValue())) {

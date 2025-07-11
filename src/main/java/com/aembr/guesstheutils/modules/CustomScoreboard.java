@@ -61,12 +61,12 @@ public class CustomScoreboard implements HudElement {
     public static String unknownThemeString = "???";
 
     public static int lineSpacing = 0;
-    public static int lineItemSpacing = 6;
+    public static int lineItemSpacing = 4;
     public static int defaultSeparatorHeight = 6;
     public static boolean drawSeparatorBg = true;
     public static int linePadding = 1;
     public static int heightOffset = 20;
-    public static int playerNameRightPad = 6;
+    public static int playerNameRightPad = 4;
 
     static GameTracker tracker;
     Identifier identifier = Identifier.of("guess_the_utils_scoreboard");
@@ -100,6 +100,7 @@ public class CustomScoreboard implements HudElement {
         boolean includePlaces = extended;
         boolean includeTitles = extended;
         boolean includeEmblems = true;
+
 
         // Technically, round starts when the theme is picked, but I think it's confusing
         int visualCurrentRound = tracker.game.currentRound;
