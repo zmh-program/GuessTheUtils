@@ -451,6 +451,7 @@ public class GTBEvents {
             }
         }
 
+
         if (newState.equals(GameState.ROUND_PRE)) {
             if (gameState.equals(GameState.SETUP) && !setupPlayerList.isEmpty()) {
                 if (playerListEntryHistory.get(0).size() < 3) {

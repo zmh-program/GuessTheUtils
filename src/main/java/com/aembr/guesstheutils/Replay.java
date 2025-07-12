@@ -1,16 +1,16 @@
 package com.aembr.guesstheutils;
 
 import com.google.gson.Gson;
+import com.google.gson.JsonArray;
+import com.google.gson.JsonObject;
+import com.google.gson.JsonParser;
 import net.fabricmc.loader.api.FabricLoader;
 
-import java.io.FileOutputStream;
-import java.io.IOException;
+import java.io.*;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.time.LocalDate;
-import java.util.ArrayDeque;
-import java.util.Deque;
-import java.util.List;
+import java.util.*;
 import java.util.zip.GZIPOutputStream;
 
 public class Replay {
@@ -61,6 +61,31 @@ public class Replay {
         }
 
         Utils.sendMessage("Replay " + filename + " saved.");
+    }
+
+    public static List<JsonObject> load(File filePath) {
+        try (FileReader reader = new FileReader(filePath)) {
+            return parseJson(reader);
+        } catch (IOException e) {
+            e.printStackTrace();
+            return new ArrayList<>();
+        }
+    }
+
+    public static List<JsonObject> load(InputStream inputStream) {
+        try (InputStreamReader reader = new InputStreamReader(inputStream)) {
+            return parseJson(reader);
+        } catch (IOException e) {
+            e.printStackTrace();
+            return new ArrayList<>();
+        }
+    }
+
+    public static List<JsonObject> parseJson(Reader reader) {
+        List<JsonObject> jsonObjectList = new ArrayList<>();
+        JsonArray jsonArray = JsonParser.parseReader(reader).getAsJsonArray();
+        jsonArray.forEach(el -> jsonObjectList.add(el.getAsJsonObject()));
+        return jsonObjectList;
     }
 
     public static class TickBuffer {

@@ -24,29 +24,27 @@ public class Tick {
 
     public Tick() {}
 
-    public Tick(String jsonString) {
-        JsonObject tickUpdate = JsonParser.parseString(jsonString).getAsJsonObject();
-
-        if (tickUpdate.has("scoreboardLines")) {
-            scoreboardLines = deserializeList(tickUpdate.get("scoreboardLines"));
+    public Tick(JsonObject json) {
+        if (json.has("scoreboardLines")) {
+            scoreboardLines = deserializeList(json.get("scoreboardLines"));
         }
-        if (tickUpdate.has("playerListEntries")) {
-            playerListEntries = deserializeList(tickUpdate.get("playerListEntries"));
+        if (json.has("playerListEntries")) {
+            playerListEntries = deserializeList(json.get("playerListEntries"));
         }
-        if (tickUpdate.has("chatMessages")) {
-            chatMessages = deserializeList(tickUpdate.get("chatMessages"));
+        if (json.has("chatMessages")) {
+            chatMessages = deserializeList(json.get("chatMessages"));
         }
-        if (tickUpdate.has("actionBarMessage")) {
-            actionBarMessage = deserializeText(tickUpdate.get("actionBarMessage").getAsString());
+        if (json.has("actionBarMessage")) {
+            actionBarMessage = deserializeText(json.get("actionBarMessage").getAsString());
         }
-        if (tickUpdate.has("title")) {
-            title = deserializeText(tickUpdate.get("title").getAsString());
+        if (json.has("title")) {
+            title = deserializeText(json.get("title").getAsString());
         }
-        if (tickUpdate.has("subtitle")) {
-            subtitle = deserializeText(tickUpdate.get("subtitle").getAsString());
+        if (json.has("subtitle")) {
+            subtitle = deserializeText(json.get("subtitle").getAsString());
         }
-        if (tickUpdate.has("screenTitle")) {
-            screenTitle = deserializeText(tickUpdate.get("screenTitle").getAsString());
+        if (json.has("screenTitle")) {
+            screenTitle = deserializeText(json.get("screenTitle").getAsString());
         }
     }
 

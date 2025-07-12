@@ -1,0 +1,225 @@
+[
+	{
+        "scoreboardLines":
+        [
+            "\"GUESS THE BUILD\"",
+            "{\"text\":\"\",\"extra\":[{\"text\":\"\",\"extra\":[{\"text\":\"05/26/25  \",\"color\":\"gray\"},{\"text\":\"m1\",\"color\":\"dark_gray\"}],\"italic\":false},{\"text\":\"\",\"extra\":[{\"text\":\"50DU\",\"color\":\"dark_gray\"}],\"italic\":false}]}",
+            "{\"text\":\"\",\"extra\":[{\"text\":\"\",\"extra\":[{\"text\":\"Players: \",\"color\":\"white\"},{\"text\":\"3/10\",\"color\":\"green\"}],\"italic\":false},{\"text\":\"\",\"italic\":false}]}",
+            "{\"text\":\"\",\"extra\":[{\"text\":\"\",\"extra\":[{\"text\":\"Starting in \",\"color\":\"white\"},{\"text\":\"02\",\"color\":\"green\"}],\"italic\":false},{\"text\":\"\",\"extra\":[{\"text\":\":46\",\"color\":\"green\"},{\"text\":\" to\",\"color\":\"white\"}],\"italic\":false}]}",
+            "{\"text\":\"\",\"extra\":[{\"text\":\"\",\"extra\":[{\"text\":\"allow time for\",\"color\":\"white\"}],\"italic\":false},{\"text\":\"\",\"italic\":false}]}",
+            "{\"text\":\"\",\"extra\":[{\"text\":\"\",\"extra\":[{\"text\":\"additional playe\",\"color\":\"white\"}],\"italic\":false},{\"text\":\"\",\"extra\":[\"rs\"],\"italic\":false}]}",
+            "{\"text\":\"\",\"extra\":[{\"text\":\"\",\"extra\":[{\"text\":\"Mode: \",\"color\":\"white\"},{\"text\":\"Guess Th\",\"color\":\"green\"}],\"italic\":false},{\"text\":\"\",\"extra\":[{\"text\":\"e Build\",\"color\":\"green\"}],\"italic\":false}]}",
+            "{\"text\":\"\",\"extra\":[{\"text\":\"\",\"extra\":[{\"text\":\"www.hypixel.ne\",\"hoverEvent\":{\"contents\":\"§c§lDo not trust unknown links!\",\"action\":\"show_text\"},\"color\":\"yellow\"}],\"italic\":false},{\"text\":\"\",\"extra\":[{\"text\":\"t\",\"color\":\"yellow\"}],\"italic\":false}]}"
+        ]
+    },
+    {
+        "chatMessages":
+        [
+            "{\"text\":\"\",\"extra\":[{\"text\":\"\",\"color\":\"yellow\"},{\"text\":\"We don't have enough players! Start delayed.\",\"color\":\"red\"},{\"text\":\"\",\"color\":\"yellow\"}],\"italic\":false}",
+            "{\"text\":\"\",\"extra\":[{\"text\":\"\",\"color\":\"yellow\"},{\"text\":\"MilkIceLolly\",\"color\":\"gray\"},\"\",{\"text\":\"\",\"obfuscated\":false,\"italic\":false,\"underlined\":false,\"strikethrough\":false,\"bold\":false},{\"text\":\" has quit!\",\"color\":\"yellow\"},{\"text\":\"\",\"color\":\"yellow\"}],\"italic\":false}"
+        ]
+    },
+    {
+        "playerListEntries":
+        [
+            "{\"text\":\"\",\"extra\":[{\"text\":\"\",\"extra\":[{\"text\":\"\",\"color\":\"gray\"}],\"italic\":false},\"LocaLocust\",{\"text\":\"\",\"italic\":false}],\"color\":\"gray\"}",
+            "{\"text\":\"\",\"extra\":[{\"text\":\"\",\"extra\":[{\"text\":\"\",\"color\":\"aqua\"}],\"italic\":false},\"Yria\",{\"text\":\"\",\"italic\":false}],\"color\":\"aqua\"}"
+        ]
+    },
+    {
+        "scoreboardLines":
+        [
+            "\"GUESS THE BUILD\"",
+            "{\"text\":\"\",\"extra\":[{\"text\":\"\",\"extra\":[{\"text\":\"05/26/25  \",\"color\":\"gray\"},{\"text\":\"m1\",\"color\":\"dark_gray\"}],\"italic\":false},{\"text\":\"\",\"extra\":[{\"text\":\"50DU\",\"color\":\"dark_gray\"}],\"italic\":false}]}",
+            "{\"text\":\"\",\"extra\":[{\"text\":\"\",\"extra\":[{\"text\":\"Players: \",\"color\":\"white\"},{\"text\":\"2/10\",\"color\":\"green\"}],\"italic\":false},{\"text\":\"\",\"italic\":false}]}",
+            "{\"text\":\"\",\"extra\":[{\"text\":\"\",\"extra\":[{\"text\":\"Starting in \",\"color\":\"white\"},{\"text\":\"04\",\"color\":\"green\"}],\"italic\":false},{\"text\":\"\",\"extra\":[{\"text\":\":39\",\"color\":\"green\"},{\"text\":\" if\",\"color\":\"white\"}],\"italic\":false}]}",
+            "{\"text\":\"\",\"extra\":[{\"text\":\"\",\"extra\":[{\"text\":\"1\",\"color\":\"green\"},{\"text\":\" more playe\",\"color\":\"white\"}],\"italic\":false},{\"text\":\"\",\"extra\":[{\"text\":\"r joins\",\"color\":\"white\"}],\"italic\":false}]}",
+            "{\"text\":\"\",\"extra\":[{\"text\":\"\",\"extra\":[{\"text\":\"Mode: \",\"color\":\"white\"},{\"text\":\"Guess Th\",\"color\":\"green\"}],\"italic\":false},{\"text\":\"\",\"extra\":[{\"text\":\"e Build\",\"color\":\"green\"}],\"italic\":false}]}",
+            "{\"text\":\"\",\"extra\":[{\"text\":\"\",\"extra\":[{\"text\":\"www.hypixel.ne\",\"hoverEvent\":{\"contents\":\"§c§lDo not trust unknown links!\",\"action\":\"show_text\"},\"color\":\"yellow\"}],\"italic\":false},{\"text\":\"\",\"extra\":[{\"text\":\"t\",\"color\":\"yellow\"}],\"italic\":false}]}"
+        ]
+    },
+    {
+        "scoreboardLines":
+        [
+            "\"GUESS THE BUILD\"",
+            "{\"text\":\"\",\"extra\":[{\"text\":\"\",\"extra\":[{\"text\":\"05/26/25  \",\"color\":\"gray\"},{\"text\":\"m1\",\"color\":\"dark_gray\"}],\"italic\":false},{\"text\":\"\",\"extra\":[{\"text\":\"50DU\",\"color\":\"dark_gray\"}],\"italic\":false}]}",
+            "{\"text\":\"\",\"extra\":[{\"text\":\"\",\"extra\":[{\"text\":\"Players: \",\"color\":\"white\"},{\"text\":\"2/10\",\"color\":\"green\"}],\"italic\":false},{\"text\":\"\",\"italic\":false}]}",
+            "{\"text\":\"\",\"extra\":[{\"text\":\"\",\"extra\":[{\"text\":\"Starting in \",\"color\":\"white\"},{\"text\":\"04\",\"color\":\"green\"}],\"italic\":false},{\"text\":\"\",\"extra\":[{\"text\":\":38\",\"color\":\"green\"},{\"text\":\" if\",\"color\":\"white\"}],\"italic\":false}]}",
+            "{\"text\":\"\",\"extra\":[{\"text\":\"\",\"extra\":[{\"text\":\"1\",\"color\":\"green\"},{\"text\":\" more playe\",\"color\":\"white\"}],\"italic\":false},{\"text\":\"\",\"extra\":[{\"text\":\"r joins\",\"color\":\"white\"}],\"italic\":false}]}",
+            "{\"text\":\"\",\"extra\":[{\"text\":\"\",\"extra\":[{\"text\":\"Mode: \",\"color\":\"white\"},{\"text\":\"Guess Th\",\"color\":\"green\"}],\"italic\":false},{\"text\":\"\",\"extra\":[{\"text\":\"e Build\",\"color\":\"green\"}],\"italic\":false}]}",
+            "{\"text\":\"\",\"extra\":[{\"text\":\"\",\"extra\":[{\"text\":\"www.hypixel.ne\",\"hoverEvent\":{\"contents\":\"§c§lDo not trust unknown links!\",\"action\":\"show_text\"},\"color\":\"yellow\"}],\"italic\":false},{\"text\":\"\",\"extra\":[{\"text\":\"t\",\"color\":\"yellow\"}],\"italic\":false}]}"
+        ]
+    },
+    {
+        "scoreboardLines":
+        [
+            "\"GUESS THE BUILD\"",
+            "{\"text\":\"\",\"extra\":[{\"text\":\"\",\"extra\":[{\"text\":\"05/26/25  \",\"color\":\"gray\"},{\"text\":\"m1\",\"color\":\"dark_gray\"}],\"italic\":false},{\"text\":\"\",\"extra\":[{\"text\":\"50DU\",\"color\":\"dark_gray\"}],\"italic\":false}]}",
+            "{\"text\":\"\",\"extra\":[{\"text\":\"\",\"extra\":[{\"text\":\"Players: \",\"color\":\"white\"},{\"text\":\"2/10\",\"color\":\"green\"}],\"italic\":false},{\"text\":\"\",\"italic\":false}]}",
+            "{\"text\":\"\",\"extra\":[{\"text\":\"\",\"extra\":[{\"text\":\"Starting in \",\"color\":\"white\"},{\"text\":\"04\",\"color\":\"green\"}],\"italic\":false},{\"text\":\"\",\"extra\":[{\"text\":\":37\",\"color\":\"green\"},{\"text\":\" if\",\"color\":\"white\"}],\"italic\":false}]}",
+            "{\"text\":\"\",\"extra\":[{\"text\":\"\",\"extra\":[{\"text\":\"1\",\"color\":\"green\"},{\"text\":\" more playe\",\"color\":\"white\"}],\"italic\":false},{\"text\":\"\",\"extra\":[{\"text\":\"r joins\",\"color\":\"white\"}],\"italic\":false}]}",
+            "{\"text\":\"\",\"extra\":[{\"text\":\"\",\"extra\":[{\"text\":\"Mode: \",\"color\":\"white\"},{\"text\":\"Guess Th\",\"color\":\"green\"}],\"italic\":false},{\"text\":\"\",\"extra\":[{\"text\":\"e Build\",\"color\":\"green\"}],\"italic\":false}]}",
+            "{\"text\":\"\",\"extra\":[{\"text\":\"\",\"extra\":[{\"text\":\"www.hypixel.ne\",\"hoverEvent\":{\"contents\":\"§c§lDo not trust unknown links!\",\"action\":\"show_text\"},\"color\":\"yellow\"}],\"italic\":false},{\"text\":\"\",\"extra\":[{\"text\":\"t\",\"color\":\"yellow\"}],\"italic\":false}]}"
+        ]
+    },
+    {
+        "scoreboardLines":
+        [
+            "\"GUESS THE BUILD\"",
+            "{\"text\":\"\",\"extra\":[{\"text\":\"\",\"extra\":[{\"text\":\"05/26/25  \",\"color\":\"gray\"},{\"text\":\"m1\",\"color\":\"dark_gray\"}],\"italic\":false},{\"text\":\"\",\"extra\":[{\"text\":\"50DU\",\"color\":\"dark_gray\"}],\"italic\":false}]}",
+            "{\"text\":\"\",\"extra\":[{\"text\":\"\",\"extra\":[{\"text\":\"Players: \",\"color\":\"white\"},{\"text\":\"2/10\",\"color\":\"green\"}],\"italic\":false},{\"text\":\"\",\"italic\":false}]}",
+            "{\"text\":\"\",\"extra\":[{\"text\":\"\",\"extra\":[{\"text\":\"Starting in \",\"color\":\"white\"},{\"text\":\"04\",\"color\":\"green\"}],\"italic\":false},{\"text\":\"\",\"extra\":[{\"text\":\":36\",\"color\":\"green\"},{\"text\":\" if\",\"color\":\"white\"}],\"italic\":false}]}",
+            "{\"text\":\"\",\"extra\":[{\"text\":\"\",\"extra\":[{\"text\":\"1\",\"color\":\"green\"},{\"text\":\" more playe\",\"color\":\"white\"}],\"italic\":false},{\"text\":\"\",\"extra\":[{\"text\":\"r joins\",\"color\":\"white\"}],\"italic\":false}]}",
+            "{\"text\":\"\",\"extra\":[{\"text\":\"\",\"extra\":[{\"text\":\"Mode: \",\"color\":\"white\"},{\"text\":\"Guess Th\",\"color\":\"green\"}],\"italic\":false},{\"text\":\"\",\"extra\":[{\"text\":\"e Build\",\"color\":\"green\"}],\"italic\":false}]}",
+            "{\"text\":\"\",\"extra\":[{\"text\":\"\",\"extra\":[{\"text\":\"www.hypixel.ne\",\"hoverEvent\":{\"contents\":\"§c§lDo not trust unknown links!\",\"action\":\"show_text\"},\"color\":\"yellow\"}],\"italic\":false},{\"text\":\"\",\"extra\":[{\"text\":\"t\",\"color\":\"yellow\"}],\"italic\":false}]}"
+        ]
+    },
+    {
+        "chatMessages":
+        [
+            "{\"text\":\"-----------------------------------------------------\",\"strikethrough\":true,\"color\":\"blue\"}",
+            "{\"text\":\"[MVP\",\"extra\":[{\"text\":\"+\",\"color\":\"gold\"},{\"text\":\"] Nescafe755 \",\"color\":\"aqua\"},{\"text\":\"invited \",\"color\":\"yellow\"},{\"text\":\"[MVP\",\"color\":\"aqua\"},{\"text\":\"+\",\"color\":\"dark_purple\"},{\"text\":\"] _Mitoma \",\"color\":\"aqua\"},{\"text\":\"to the party! They have \",\"color\":\"yellow\"},{\"text\":\"60 \",\"color\":\"red\"},{\"text\":\"seconds to accept.\",\"color\":\"yellow\"}],\"color\":\"aqua\"}",
+            "{\"text\":\"-----------------------------------------------------\",\"strikethrough\":true,\"color\":\"blue\"}"
+        ]
+    },
+    {
+        "scoreboardLines":
+        [
+            "\"GUESS THE BUILD\"",
+            "{\"text\":\"\",\"extra\":[{\"text\":\"\",\"extra\":[{\"text\":\"05/26/25  \",\"color\":\"gray\"},{\"text\":\"m1\",\"color\":\"dark_gray\"}],\"italic\":false},{\"text\":\"\",\"extra\":[{\"text\":\"50DU\",\"color\":\"dark_gray\"}],\"italic\":false}]}",
+            "{\"text\":\"\",\"extra\":[{\"text\":\"\",\"extra\":[{\"text\":\"Players: \",\"color\":\"white\"},{\"text\":\"2/10\",\"color\":\"green\"}],\"italic\":false},{\"text\":\"\",\"italic\":false}]}",
+            "{\"text\":\"\",\"extra\":[{\"text\":\"\",\"extra\":[{\"text\":\"Starting in \",\"color\":\"white\"},{\"text\":\"04\",\"color\":\"green\"}],\"italic\":false},{\"text\":\"\",\"extra\":[{\"text\":\":35\",\"color\":\"green\"},{\"text\":\" if\",\"color\":\"white\"}],\"italic\":false}]}",
+            "{\"text\":\"\",\"extra\":[{\"text\":\"\",\"extra\":[{\"text\":\"1\",\"color\":\"green\"},{\"text\":\" more playe\",\"color\":\"white\"}],\"italic\":false},{\"text\":\"\",\"extra\":[{\"text\":\"r joins\",\"color\":\"white\"}],\"italic\":false}]}",
+            "{\"text\":\"\",\"extra\":[{\"text\":\"\",\"extra\":[{\"text\":\"Mode: \",\"color\":\"white\"},{\"text\":\"Guess Th\",\"color\":\"green\"}],\"italic\":false},{\"text\":\"\",\"extra\":[{\"text\":\"e Build\",\"color\":\"green\"}],\"italic\":false}]}",
+            "{\"text\":\"\",\"extra\":[{\"text\":\"\",\"extra\":[{\"text\":\"www.hypixel.ne\",\"hoverEvent\":{\"contents\":\"§c§lDo not trust unknown links!\",\"action\":\"show_text\"},\"color\":\"yellow\"}],\"italic\":false},{\"text\":\"\",\"extra\":[{\"text\":\"t\",\"color\":\"yellow\"}],\"italic\":false}]}"
+        ]
+    },
+    {
+        "scoreboardLines":
+        [
+            "\"GUESS THE BUILD\"",
+            "{\"text\":\"\",\"extra\":[{\"text\":\"\",\"extra\":[{\"text\":\"05/26/25  \",\"color\":\"gray\"},{\"text\":\"m1\",\"color\":\"dark_gray\"}],\"italic\":false},{\"text\":\"\",\"extra\":[{\"text\":\"50DU\",\"color\":\"dark_gray\"}],\"italic\":false}]}",
+            "{\"text\":\"\",\"extra\":[{\"text\":\"\",\"extra\":[{\"text\":\"Players: \",\"color\":\"white\"},{\"text\":\"2/10\",\"color\":\"green\"}],\"italic\":false},{\"text\":\"\",\"italic\":false}]}",
+            "{\"text\":\"\",\"extra\":[{\"text\":\"\",\"extra\":[{\"text\":\"Starting in \",\"color\":\"white\"},{\"text\":\"04\",\"color\":\"green\"}],\"italic\":false},{\"text\":\"\",\"extra\":[{\"text\":\":34\",\"color\":\"green\"},{\"text\":\" if\",\"color\":\"white\"}],\"italic\":false}]}",
+            "{\"text\":\"\",\"extra\":[{\"text\":\"\",\"extra\":[{\"text\":\"1\",\"color\":\"green\"},{\"text\":\" more playe\",\"color\":\"white\"}],\"italic\":false},{\"text\":\"\",\"extra\":[{\"text\":\"r joins\",\"color\":\"white\"}],\"italic\":false}]}",
+            "{\"text\":\"\",\"extra\":[{\"text\":\"\",\"extra\":[{\"text\":\"Mode: \",\"color\":\"white\"},{\"text\":\"Guess Th\",\"color\":\"green\"}],\"italic\":false},{\"text\":\"\",\"extra\":[{\"text\":\"e Build\",\"color\":\"green\"}],\"italic\":false}]}",
+            "{\"text\":\"\",\"extra\":[{\"text\":\"\",\"extra\":[{\"text\":\"www.hypixel.ne\",\"hoverEvent\":{\"contents\":\"§c§lDo not trust unknown links!\",\"action\":\"show_text\"},\"color\":\"yellow\"}],\"italic\":false},{\"text\":\"\",\"extra\":[{\"text\":\"t\",\"color\":\"yellow\"}],\"italic\":false}]}"
+        ]
+    },
+    {
+        "scoreboardLines":
+        [
+            "\"GUESS THE BUILD\"",
+            "{\"text\":\"\",\"extra\":[{\"text\":\"\",\"extra\":[{\"text\":\"05/26/25  \",\"color\":\"gray\"},{\"text\":\"m1\",\"color\":\"dark_gray\"}],\"italic\":false},{\"text\":\"\",\"extra\":[{\"text\":\"50DU\",\"color\":\"dark_gray\"}],\"italic\":false}]}",
+            "{\"text\":\"\",\"extra\":[{\"text\":\"\",\"extra\":[{\"text\":\"Players: \",\"color\":\"white\"},{\"text\":\"2/10\",\"color\":\"green\"}],\"italic\":false},{\"text\":\"\",\"italic\":false}]}",
+            "{\"text\":\"\",\"extra\":[{\"text\":\"\",\"extra\":[{\"text\":\"Starting in \",\"color\":\"white\"},{\"text\":\"04\",\"color\":\"green\"}],\"italic\":false},{\"text\":\"\",\"extra\":[{\"text\":\":33\",\"color\":\"green\"},{\"text\":\" if\",\"color\":\"white\"}],\"italic\":false}]}",
+            "{\"text\":\"\",\"extra\":[{\"text\":\"\",\"extra\":[{\"text\":\"1\",\"color\":\"green\"},{\"text\":\" more playe\",\"color\":\"white\"}],\"italic\":false},{\"text\":\"\",\"extra\":[{\"text\":\"r joins\",\"color\":\"white\"}],\"italic\":false}]}",
+            "{\"text\":\"\",\"extra\":[{\"text\":\"\",\"extra\":[{\"text\":\"Mode: \",\"color\":\"white\"},{\"text\":\"Guess Th\",\"color\":\"green\"}],\"italic\":false},{\"text\":\"\",\"extra\":[{\"text\":\"e Build\",\"color\":\"green\"}],\"italic\":false}]}",
+            "{\"text\":\"\",\"extra\":[{\"text\":\"\",\"extra\":[{\"text\":\"www.hypixel.ne\",\"hoverEvent\":{\"contents\":\"§c§lDo not trust unknown links!\",\"action\":\"show_text\"},\"color\":\"yellow\"}],\"italic\":false},{\"text\":\"\",\"extra\":[{\"text\":\"t\",\"color\":\"yellow\"}],\"italic\":false}]}"
+        ]
+    },
+    {
+        "scoreboardLines":
+        [
+            "\"GUESS THE BUILD\"",
+            "{\"text\":\"\",\"extra\":[{\"text\":\"\",\"extra\":[{\"text\":\"05/26/25  \",\"color\":\"gray\"},{\"text\":\"m1\",\"color\":\"dark_gray\"}],\"italic\":false},{\"text\":\"\",\"extra\":[{\"text\":\"50DU\",\"color\":\"dark_gray\"}],\"italic\":false}]}",
+            "{\"text\":\"\",\"extra\":[{\"text\":\"\",\"extra\":[{\"text\":\"Players: \",\"color\":\"white\"},{\"text\":\"2/10\",\"color\":\"green\"}],\"italic\":false},{\"text\":\"\",\"italic\":false}]}",
+            "{\"text\":\"\",\"extra\":[{\"text\":\"\",\"extra\":[{\"text\":\"Starting in \",\"color\":\"white\"},{\"text\":\"04\",\"color\":\"green\"}],\"italic\":false},{\"text\":\"\",\"extra\":[{\"text\":\":32\",\"color\":\"green\"},{\"text\":\" if\",\"color\":\"white\"}],\"italic\":false}]}",
+            "{\"text\":\"\",\"extra\":[{\"text\":\"\",\"extra\":[{\"text\":\"1\",\"color\":\"green\"},{\"text\":\" more playe\",\"color\":\"white\"}],\"italic\":false},{\"text\":\"\",\"extra\":[{\"text\":\"r joins\",\"color\":\"white\"}],\"italic\":false}]}",
+            "{\"text\":\"\",\"extra\":[{\"text\":\"\",\"extra\":[{\"text\":\"Mode: \",\"color\":\"white\"},{\"text\":\"Guess Th\",\"color\":\"green\"}],\"italic\":false},{\"text\":\"\",\"extra\":[{\"text\":\"e Build\",\"color\":\"green\"}],\"italic\":false}]}",
+            "{\"text\":\"\",\"extra\":[{\"text\":\"\",\"extra\":[{\"text\":\"www.hypixel.ne\",\"hoverEvent\":{\"contents\":\"§c§lDo not trust unknown links!\",\"action\":\"show_text\"},\"color\":\"yellow\"}],\"italic\":false},{\"text\":\"\",\"extra\":[{\"text\":\"t\",\"color\":\"yellow\"}],\"italic\":false}]}"
+        ]
+    },
+    {
+        "scoreboardLines":
+        [
+            "\"GUESS THE BUILD\"",
+            "{\"text\":\"\",\"extra\":[{\"text\":\"\",\"extra\":[{\"text\":\"05/26/25  \",\"color\":\"gray\"},{\"text\":\"m1\",\"color\":\"dark_gray\"}],\"italic\":false},{\"text\":\"\",\"extra\":[{\"text\":\"50DU\",\"color\":\"dark_gray\"}],\"italic\":false}]}",
+            "{\"text\":\"\",\"extra\":[{\"text\":\"\",\"extra\":[{\"text\":\"Players: \",\"color\":\"white\"},{\"text\":\"2/10\",\"color\":\"green\"}],\"italic\":false},{\"text\":\"\",\"italic\":false}]}",
+            "{\"text\":\"\",\"extra\":[{\"text\":\"\",\"extra\":[{\"text\":\"Starting in \",\"color\":\"white\"},{\"text\":\"04\",\"color\":\"green\"}],\"italic\":false},{\"text\":\"\",\"extra\":[{\"text\":\":31\",\"color\":\"green\"},{\"text\":\" if\",\"color\":\"white\"}],\"italic\":false}]}",
+            "{\"text\":\"\",\"extra\":[{\"text\":\"\",\"extra\":[{\"text\":\"1\",\"color\":\"green\"},{\"text\":\" more playe\",\"color\":\"white\"}],\"italic\":false},{\"text\":\"\",\"extra\":[{\"text\":\"r joins\",\"color\":\"white\"}],\"italic\":false}]}",
+            "{\"text\":\"\",\"extra\":[{\"text\":\"\",\"extra\":[{\"text\":\"Mode: \",\"color\":\"white\"},{\"text\":\"Guess Th\",\"color\":\"green\"}],\"italic\":false},{\"text\":\"\",\"extra\":[{\"text\":\"e Build\",\"color\":\"green\"}],\"italic\":false}]}",
+            "{\"text\":\"\",\"extra\":[{\"text\":\"\",\"extra\":[{\"text\":\"www.hypixel.ne\",\"hoverEvent\":{\"contents\":\"§c§lDo not trust unknown links!\",\"action\":\"show_text\"},\"color\":\"yellow\"}],\"italic\":false},{\"text\":\"\",\"extra\":[{\"text\":\"t\",\"color\":\"yellow\"}],\"italic\":false}]}"
+        ]
+    },
+    {
+        "chatMessages":
+        [
+            "{\"text\":\"-----------------------------------------------------\",\"strikethrough\":true,\"color\":\"blue\"}",
+            "{\"text\":\"[MVP\",\"extra\":[{\"text\":\"+\",\"color\":\"dark_purple\"},{\"text\":\"] _Mitoma \",\"color\":\"aqua\"},{\"text\":\"joined the party.\",\"color\":\"yellow\"}],\"color\":\"aqua\"}",
+            "{\"text\":\"-----------------------------------------------------\",\"strikethrough\":true,\"color\":\"blue\"}"
+        ]
+    },
+    {
+        "scoreboardLines":
+        [
+            "\"GUESS THE BUILD\"",
+            "{\"text\":\"\",\"extra\":[{\"text\":\"\",\"extra\":[{\"text\":\"05/26/25  \",\"color\":\"gray\"},{\"text\":\"m1\",\"color\":\"dark_gray\"}],\"italic\":false},{\"text\":\"\",\"extra\":[{\"text\":\"50DU\",\"color\":\"dark_gray\"}],\"italic\":false}]}",
+            "{\"text\":\"\",\"extra\":[{\"text\":\"\",\"extra\":[{\"text\":\"Players: \",\"color\":\"white\"},{\"text\":\"2/10\",\"color\":\"green\"}],\"italic\":false},{\"text\":\"\",\"italic\":false}]}",
+            "{\"text\":\"\",\"extra\":[{\"text\":\"\",\"extra\":[{\"text\":\"Starting in \",\"color\":\"white\"},{\"text\":\"04\",\"color\":\"green\"}],\"italic\":false},{\"text\":\"\",\"extra\":[{\"text\":\":30\",\"color\":\"green\"},{\"text\":\" if\",\"color\":\"white\"}],\"italic\":false}]}",
+            "{\"text\":\"\",\"extra\":[{\"text\":\"\",\"extra\":[{\"text\":\"1\",\"color\":\"green\"},{\"text\":\" more playe\",\"color\":\"white\"}],\"italic\":false},{\"text\":\"\",\"extra\":[{\"text\":\"r joins\",\"color\":\"white\"}],\"italic\":false}]}",
+            "{\"text\":\"\",\"extra\":[{\"text\":\"\",\"extra\":[{\"text\":\"Mode: \",\"color\":\"white\"},{\"text\":\"Guess Th\",\"color\":\"green\"}],\"italic\":false},{\"text\":\"\",\"extra\":[{\"text\":\"e Build\",\"color\":\"green\"}],\"italic\":false}]}",
+            "{\"text\":\"\",\"extra\":[{\"text\":\"\",\"extra\":[{\"text\":\"www.hypixel.ne\",\"hoverEvent\":{\"contents\":\"§c§lDo not trust unknown links!\",\"action\":\"show_text\"},\"color\":\"yellow\"}],\"italic\":false},{\"text\":\"\",\"extra\":[{\"text\":\"t\",\"color\":\"yellow\"}],\"italic\":false}]}"
+        ]
+    },
+    {
+        "scoreboardLines":
+        [
+            "\"GUESS THE BUILD\"",
+            "{\"text\":\"\",\"extra\":[{\"text\":\"\",\"extra\":[{\"text\":\"05/26/25  \",\"color\":\"gray\"},{\"text\":\"m1\",\"color\":\"dark_gray\"}],\"italic\":false},{\"text\":\"\",\"extra\":[{\"text\":\"50DU\",\"color\":\"dark_gray\"}],\"italic\":false}]}",
+            "{\"text\":\"\",\"extra\":[{\"text\":\"\",\"extra\":[{\"text\":\"Players: \",\"color\":\"white\"},{\"text\":\"2/10\",\"color\":\"green\"}],\"italic\":false},{\"text\":\"\",\"italic\":false}]}",
+            "{\"text\":\"\",\"extra\":[{\"text\":\"\",\"extra\":[{\"text\":\"Starting in \",\"color\":\"white\"},{\"text\":\"04\",\"color\":\"green\"}],\"italic\":false},{\"text\":\"\",\"extra\":[{\"text\":\":29\",\"color\":\"green\"},{\"text\":\" if\",\"color\":\"white\"}],\"italic\":false}]}",
+            "{\"text\":\"\",\"extra\":[{\"text\":\"\",\"extra\":[{\"text\":\"1\",\"color\":\"green\"},{\"text\":\" more playe\",\"color\":\"white\"}],\"italic\":false},{\"text\":\"\",\"extra\":[{\"text\":\"r joins\",\"color\":\"white\"}],\"italic\":false}]}",
+            "{\"text\":\"\",\"extra\":[{\"text\":\"\",\"extra\":[{\"text\":\"Mode: \",\"color\":\"white\"},{\"text\":\"Guess Th\",\"color\":\"green\"}],\"italic\":false},{\"text\":\"\",\"extra\":[{\"text\":\"e Build\",\"color\":\"green\"}],\"italic\":false}]}",
+            "{\"text\":\"\",\"extra\":[{\"text\":\"\",\"extra\":[{\"text\":\"www.hypixel.ne\",\"hoverEvent\":{\"contents\":\"§c§lDo not trust unknown links!\",\"action\":\"show_text\"},\"color\":\"yellow\"}],\"italic\":false},{\"text\":\"\",\"extra\":[{\"text\":\"t\",\"color\":\"yellow\"}],\"italic\":false}]}"
+        ]
+    },
+    {
+        "scoreboardLines":
+        [
+            "\"GUESS THE BUILD\"",
+            "{\"text\":\"\",\"extra\":[{\"text\":\"\",\"extra\":[{\"text\":\"05/26/25  \",\"color\":\"gray\"},{\"text\":\"m1\",\"color\":\"dark_gray\"}],\"italic\":false},{\"text\":\"\",\"extra\":[{\"text\":\"50DU\",\"color\":\"dark_gray\"}],\"italic\":false}]}",
+            "{\"text\":\"\",\"extra\":[{\"text\":\"\",\"extra\":[{\"text\":\"Players: \",\"color\":\"white\"},{\"text\":\"2/10\",\"color\":\"green\"}],\"italic\":false},{\"text\":\"\",\"italic\":false}]}",
+            "{\"text\":\"\",\"extra\":[{\"text\":\"\",\"extra\":[{\"text\":\"Starting in \",\"color\":\"white\"},{\"text\":\"04\",\"color\":\"green\"}],\"italic\":false},{\"text\":\"\",\"extra\":[{\"text\":\":28\",\"color\":\"green\"},{\"text\":\" if\",\"color\":\"white\"}],\"italic\":false}]}",
+            "{\"text\":\"\",\"extra\":[{\"text\":\"\",\"extra\":[{\"text\":\"1\",\"color\":\"green\"},{\"text\":\" more playe\",\"color\":\"white\"}],\"italic\":false},{\"text\":\"\",\"extra\":[{\"text\":\"r joins\",\"color\":\"white\"}],\"italic\":false}]}",
+            "{\"text\":\"\",\"extra\":[{\"text\":\"\",\"extra\":[{\"text\":\"Mode: \",\"color\":\"white\"},{\"text\":\"Guess Th\",\"color\":\"green\"}],\"italic\":false},{\"text\":\"\",\"extra\":[{\"text\":\"e Build\",\"color\":\"green\"}],\"italic\":false}]}",
+            "{\"text\":\"\",\"extra\":[{\"text\":\"\",\"extra\":[{\"text\":\"www.hypixel.ne\",\"hoverEvent\":{\"contents\":\"§c§lDo not trust unknown links!\",\"action\":\"show_text\"},\"color\":\"yellow\"}],\"italic\":false},{\"text\":\"\",\"extra\":[{\"text\":\"t\",\"color\":\"yellow\"}],\"italic\":false}]}"
+        ]
+    },
+    {
+        "chatMessages":
+        [
+            "{\"text\":\"Sending you to mini150D!\",\"color\":\"green\"}"
+        ]
+    },
+    {
+        "scoreboardLines":
+        [
+            "\"GUESS THE BUILD\"",
+            "{\"text\":\"\",\"extra\":[{\"text\":\"\",\"extra\":[{\"text\":\"05/26/25  \",\"color\":\"gray\"},{\"text\":\"m1\",\"color\":\"dark_gray\"}],\"italic\":false},{\"text\":\"\",\"extra\":[{\"text\":\"50DU\",\"color\":\"dark_gray\"}],\"italic\":false}]}",
+            "{\"text\":\"\",\"extra\":[{\"text\":\"\",\"extra\":[{\"text\":\"Players: \",\"color\":\"white\"},{\"text\":\"2/10\",\"color\":\"green\"}],\"italic\":false},{\"text\":\"\",\"italic\":false}]}",
+            "{\"text\":\"\",\"extra\":[{\"text\":\"\",\"extra\":[{\"text\":\"Starting in \",\"color\":\"white\"},{\"text\":\"04\",\"color\":\"green\"}],\"italic\":false},{\"text\":\"\",\"extra\":[{\"text\":\":27\",\"color\":\"green\"},{\"text\":\" if\",\"color\":\"white\"}],\"italic\":false}]}",
+            "{\"text\":\"\",\"extra\":[{\"text\":\"\",\"extra\":[{\"text\":\"1\",\"color\":\"green\"},{\"text\":\" more playe\",\"color\":\"white\"}],\"italic\":false},{\"text\":\"\",\"extra\":[{\"text\":\"r joins\",\"color\":\"white\"}],\"italic\":false}]}",
+            "{\"text\":\"\",\"extra\":[{\"text\":\"\",\"extra\":[{\"text\":\"Mode: \",\"color\":\"white\"},{\"text\":\"Guess Th\",\"color\":\"green\"}],\"italic\":false},{\"text\":\"\",\"extra\":[{\"text\":\"e Build\",\"color\":\"green\"}],\"italic\":false}]}",
+            "{\"text\":\"\",\"extra\":[{\"text\":\"\",\"extra\":[{\"text\":\"www.hypixel.ne\",\"hoverEvent\":{\"contents\":\"§c§lDo not trust unknown links!\",\"action\":\"show_text\"},\"color\":\"yellow\"}],\"italic\":false},{\"text\":\"\",\"extra\":[{\"text\":\"t\",\"color\":\"yellow\"}],\"italic\":false}]}"
+        ]
+    },
+    {
+        "chatMessages":
+        [
+            "{\"text\":\"\",\"extra\":[{\"text\":\" \",\"color\":\"dark_gray\"},{\"text\":\" \",\"color\":\"dark_gray\"},{\"text\":\" \",\"color\":\"dark_blue\"},{\"text\":\" \",\"color\":\"dark_aqua\"},{\"text\":\" \",\"color\":\"dark_aqua\"},{\"text\":\" \",\"color\":\"gray\"},{\"text\":\" \",\"color\":\"dark_gray\"}],\"italic\":false}"
+        ]
+    },
+    {
+        "scoreboardLines":
+        [
+            "\"GUESS THE BUILD\""
+        ],
+        "playerListEntries":
+        [
+            "{\"text\":\"\",\"extra\":[{\"text\":\"\",\"extra\":[{\"text\":\"\",\"color\":\"aqua\"}],\"italic\":false},\"_Mitoma\",{\"text\":\"\",\"italic\":false}],\"color\":\"aqua\"}",
+            "{\"text\":\"\",\"extra\":[{\"text\":\"\",\"extra\":[{\"text\":\"\",\"color\":\"aqua\"}],\"italic\":false},\"Yria\",{\"text\":\"\",\"italic\":false}],\"color\":\"aqua\"}",
+            "{\"text\":\"\",\"extra\":[{\"text\":\"\",\"extra\":[{\"text\":\"\",\"color\":\"aqua\"}],\"italic\":false},\"Nescafe755\",{\"text\":\"\",\"italic\":false}],\"color\":\"aqua\"}"
+        ]
+    }
+]
