@@ -8,7 +8,7 @@ import com.google.gson.JsonObject;
 import java.util.List;
 
 public class LiveE2ERunner {
-    List<JsonObject> tickObjects = Replay.load(GuessTheUtils.class.getResourceAsStream("/live_tests/1.json"));
+    List<JsonObject> tickObjects = Replay.load(GuessTheUtils.class.getResourceAsStream("/live_tests/check_scoreboard_spacing.json"));
     public int currentTick = 0;
 
     public Tick getNext() {
