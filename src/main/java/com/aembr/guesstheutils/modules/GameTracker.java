@@ -6,6 +6,7 @@ import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.text.Text;
 import net.minecraft.util.Formatting;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.*;
 
@@ -147,10 +148,18 @@ public class GameTracker extends GTBEvents.Module {
             return Arrays.stream(points).sum();
         }
 
+        public int getInactiveTicks() {
+            return inactiveTicks;
+        }
+
+        public LeaverState getLeaverState() {
+            return leaverState;
+        }
+
         @Override
         public String toString() {
             return "Player{" +
-                    ", name='" + name + '\'' +
+                    "name='" + name + '\'' +
                     ", points=" + Arrays.toString(points) +
                     ", buildRound=" + buildRound +
                     ", isUser=" + isUser +
@@ -443,21 +452,26 @@ public class GameTracker extends GTBEvents.Module {
             players.stream().filter(player -> player.leaverState.equals(Player.LeaverState.POTENTIAL_LEAVER))
                     .forEach(player -> player.leaverState = Player.LeaverState.NORMAL);
 
+            //System.out.println("leaver amount is " + potentialLeaverAmount);
+
             players.stream()
+                    //.peek(s -> System.out.println("Starting players: " + s.name))
                     .filter(p -> p.buildRound <= 0)
                     .filter(p -> !p.isUser)
                     .filter(p -> !Objects.equals(p, currentBuilder))
+                    //.peek(s -> System.out.println("Filtered players: " + s.name))
 //                    .filter(p -> {
 //                        if (latestTrueScore == null) return true;
 //                        else return latestTrueScore.stream().noneMatch(score -> score.a().equals(p));
 //                    })
-                    .sorted(Comparator.comparing((Player p) -> p.leaverState == Player.LeaverState.LEAVER ? 0 : 1)
-                            .thenComparingInt(p -> p.inactiveTicks).reversed())
+                    .sorted(Comparator.comparing(Player::getLeaverState).reversed() // LEAVER first
+                            .thenComparing(Comparator.comparingInt(Player::getInactiveTicks).reversed()))
+                    //.peek(s -> System.out.println("Sorted by inactivity: " + s.name))
                     .limit(potentialLeaverAmount)
                     .filter(p -> !p.leaverState.equals(Player.LeaverState.LEAVER))
                     .forEach(p -> {
                         p.leaverState = Player.LeaverState.POTENTIAL_LEAVER;
-                        System.out.println("Setting " + p.name + " to potential leaver!");
+                        //System.out.println("Setting " + p.name + " to potential leaver!");
                     });
         }
 
