@@ -5,7 +5,6 @@ import net.fabricmc.api.ClientModInitializer;
 import net.fabricmc.fabric.api.client.command.v2.ClientCommandRegistrationCallback;
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents;
 import net.fabricmc.fabric.api.client.message.v1.ClientReceiveMessageEvents;
-import net.fabricmc.fabric.api.client.rendering.v1.HudRenderCallback;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.text.MutableText;
 import net.minecraft.text.Text;
@@ -35,7 +34,7 @@ public class GuessTheUtils implements ClientModInitializer {
     public static BuilderNotification builderNotification = new BuilderNotification(events);
 
     public static boolean testing = false;
-    public static final LiveE2ERunner liveE2ERunner = new LiveE2ERunner();
+    public static LiveE2ERunner liveE2ERunner;
 
     private static Tick currentTick;
     private List<Text> previousScoreboardLines = new ArrayList<>();
@@ -61,6 +60,7 @@ public class GuessTheUtils implements ClientModInitializer {
 
         replay.initialize();
         shortcutReminder.init();
+        liveE2ERunner = new LiveE2ERunner(Replay.load(GuessTheUtils.class.getResourceAsStream("/assets/live_tests/check_scoreboard_spacing.json")));
     }
 
     private void onStartTick(MinecraftClient client) {

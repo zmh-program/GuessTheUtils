@@ -1,15 +1,17 @@
 package com.aembr.guesstheutils.modules;
 
-import com.aembr.guesstheutils.GuessTheUtils;
-import com.aembr.guesstheutils.Replay;
 import com.aembr.guesstheutils.Tick;
 import com.google.gson.JsonObject;
 
 import java.util.List;
 
 public class LiveE2ERunner {
-    List<JsonObject> tickObjects = Replay.load(GuessTheUtils.class.getResourceAsStream("/live_tests/check_scoreboard_spacing.json"));
+    List<JsonObject> tickObjects;
     public int currentTick = 0;
+
+    public LiveE2ERunner(List<JsonObject> replay) {
+        this.tickObjects = replay;
+    }
 
     public Tick getNext() {
         Tick tick = new Tick(tickObjects.get(currentTick));

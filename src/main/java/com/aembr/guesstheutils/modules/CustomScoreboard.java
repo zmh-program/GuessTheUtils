@@ -351,20 +351,29 @@ public class CustomScoreboard implements HudElement {
             if (line instanceof PlayerLine) {
                 GameTracker.Player player = ((PlayerLine) line).player;
 
-                String name = player.name;
+                int placeWidth = 0;
+                if (includePlaces) {
+                    placeWidth = (game.players.size() == 10 ? renderer.getWidth("00")
+                            : renderer.getWidth("0")) + lineItemSpacing;
+                }
+
+                int leaverBadgeWidth = player.leaverState.equals(GameTracker.Player.LeaverState.NORMAL) ? 0
+                        : renderer.getWidth(LEAVER_ICON) + lineItemSpacing;
+
+                int nameWidth = renderer.getWidth(player.name) + playerNameRightPad + lineItemSpacing;
+
                 if (includeEmblems && player.emblem != null && !player.emblem.getString().isEmpty()) {
-                    name += " " + player.emblem.getString();
+                    nameWidth += renderer.getWidth(Text.literal(" ").append(player.emblem));
                 }
+
                 if (includeTitles && player.title != null) {
-                    name = player.title.getString() + " " + name;
+                    nameWidth += renderer.getWidth(Text.literal(" ").append(player.title));
                 }
-                if (!player.leaverState.equals(GameTracker.Player.LeaverState.NORMAL)) name += LEAVER_ICON;
 
-                int placeWidth = !includePlaces ? 0 : game.players.size() == 10 ? renderer.getWidth("00")
-                        : renderer.getWidth("0") + lineItemSpacing;
+                int pointsThisRoundWidth = renderer.getWidth("+3") + lineItemSpacing;
+                int pointsWidth = player.getTotalPoints() >= 10 ? renderer.getWidth("00") : renderer.getWidth("0");
 
-                int totalWidth = linePadding * 2 + lineItemSpacing + renderer.getWidth(name) + placeWidth +
-                        renderer.getWidth("\uea00 " + player.getTotalPoints()) + playerNameRightPad;
+                int totalWidth = linePadding * 2 + placeWidth + leaverBadgeWidth + nameWidth + pointsThisRoundWidth + pointsWidth;
 
                 if (totalWidth > width) width = totalWidth;
             }
