@@ -278,6 +278,7 @@ public class CustomScoreboard implements HudElement {
             if (includeEmblems && player.emblem != null && !player.emblem.getString().isEmpty()) {
                 name.append(Text.literal(" ")).append(player.emblem);
             }
+
             if (includeTitles && player.title != null) {
                 MutableText title = player.title.copy();
                 name = title.append(Text.literal(" ")).append(name);

@@ -189,6 +189,11 @@ public class GTBEvents {
             if (emblem != null && !playerEntry.getSiblings().get(2).getSiblings().isEmpty()) {
                 emblem = playerEntry.getSiblings().get(2).getSiblings()
                         .get(playerEntry.getSiblings().get(2).getSiblings().size() - 1);
+                if (Formatting.strip(emblem.getString()).startsWith(" ")) {
+                    // white emblems have a space at the start and just don't have any formatting at all
+                    emblem = Text.literal(Formatting.strip(emblem.getString().substring(1)))
+                            .formatted(Formatting.WHITE);
+                }
             }
 
             Text lobbyEntry = lobbyList.stream().filter(
