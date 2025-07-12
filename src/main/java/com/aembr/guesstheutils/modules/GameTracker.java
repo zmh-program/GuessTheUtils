@@ -457,6 +457,7 @@ public class GameTracker extends GTBEvents.Module {
                     .filter(p -> !p.leaverState.equals(Player.LeaverState.LEAVER))
                     .forEach(p -> {
                         p.leaverState = Player.LeaverState.POTENTIAL_LEAVER;
+                        System.out.println("Setting " + p.name + " to potential leaver!");
                     });
         }
 

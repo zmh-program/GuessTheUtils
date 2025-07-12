@@ -60,7 +60,7 @@ public class GuessTheUtils implements ClientModInitializer {
 
         replay.initialize();
         shortcutReminder.init();
-        liveE2ERunner = new LiveE2ERunner(Replay.load(GuessTheUtils.class.getResourceAsStream("/assets/live_tests/check_scoreboard_spacing.json")));
+        liveE2ERunner = new LiveE2ERunner(Replay.load(GuessTheUtils.class.getResourceAsStream("/assets/live_tests/TestBuggyLeaverDetection.json")));
     }
 
     private void onStartTick(MinecraftClient client) {

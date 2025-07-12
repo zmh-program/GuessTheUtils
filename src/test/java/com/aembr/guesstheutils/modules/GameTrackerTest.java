@@ -21,7 +21,7 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 public class GameTrackerTest {
-    private final String e2eTestsDir = "src/test/java/resources/tests/e2e";
+    private final String e2eTestsDir = "src/test/java/resources/tests/e2e/";
     private GTBEvents events;
     private GameTracker tracker;
 
@@ -61,7 +61,7 @@ public class GameTrackerTest {
 
     private void processTestFile(File filePath) throws IOException {
         System.out.println("Running test file " + e2eTestsDir + filePath);
-        TestRunner runner = new TestRunner(filePath);
+        TestRunner runner = new TestRunner(new File(e2eTestsDir + filePath));
         runner.play(events);
     }
 
@@ -80,5 +80,15 @@ public class GameTrackerTest {
         GameTracker.Player nescafe = tracker.game.players.stream().filter(p -> p.name.equals("Nescafe755")).findAny().orElse(null);
         assert nescafe != null;
         assert nescafe.getTotalPoints() == 3;
+    }
+
+    @Test
+    void testNescafeGettingMarkedAsLeaverIncorrectly() {
+        TestRunner runner = new TestRunner(new File("src/test/java/resources/tests/modules/game_tracker/TestBuggyLeaverDetection.json"));
+        runner.play(events);
+
+        GameTracker.Player nescafe = tracker.game.players.stream().filter(p -> p.name.equals("Nescafe755")).findAny().orElse(null);
+        assert nescafe != null;
+        assert nescafe.leaverState.equals(GameTracker.Player.LeaverState.NORMAL);
     }
 }
