@@ -312,9 +312,9 @@ public class GameTracker extends GTBEvents.Module {
             List<Utils.Pair<Player, Integer>> converted = new ArrayList<>();
             for (GTBEvents.TrueScore trueScore : scores) {
                 if (trueScore == null) continue;
-                Player player = getPlayerFromName(trueScore.name());
+                Player player = getPlayerFromName(trueScore.fName().name());
                 if (player == null) {
-                    tracker.clearGameWithError("Player " + trueScore.name() + " not found in player list!");
+                    tracker.clearGameWithError("Player " + trueScore.fName().name() + " not found in player list!");
                     return;
                 }
 

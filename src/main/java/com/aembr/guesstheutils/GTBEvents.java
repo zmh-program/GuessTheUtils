@@ -442,7 +442,7 @@ public class GTBEvents {
                 Text line = scoreboardLines.get(i);
                 Formatting rank = Formatting.byName(Objects.requireNonNull(
                         line.getSiblings().get(0).getSiblings().get(0).getStyle().getColor()).getName());
-                trueScores.add(new TrueScore(parts[0], rank, Integer.parseInt(parts[1])));
+                trueScores.add(new TrueScore(new FormattedName(parts[0], rank), Integer.parseInt(parts[1])));
             }
         }
 
@@ -644,25 +644,46 @@ public class GTBEvents {
         }
     }
 
-    public record TrueScore(String name, Formatting rankColor, int points) {
+    public record TrueScore(FormattedName fName, int points) {
         @Override
         public boolean equals(Object o) {
             if (o == null || getClass() != o.getClass()) return false;
             TrueScore trueScore = (TrueScore) o;
-            return points == trueScore.points && Objects.equals(name, trueScore.name) && rankColor == trueScore.rankColor;
+            return points == trueScore.points && Objects.equals(fName, trueScore.fName);
         }
 
         @Override
         public int hashCode() {
-            return Objects.hash(name, rankColor, points);
+            return Objects.hash(fName, points);
         }
 
         @Override
         public @NotNull String toString() {
             return "TrueScore{" +
+                    "fName=" + fName +
+                    ", points=" + points +
+                    '}';
+        }
+    }
+
+    public record FormattedName(String name, Formatting rankColor) {
+        @Override
+        public boolean equals(Object o) {
+            if (o == null || getClass() != o.getClass()) return false;
+            FormattedName that = (FormattedName) o;
+            return Objects.equals(name, that.name) && rankColor == that.rankColor;
+        }
+
+        @Override
+        public int hashCode() {
+            return Objects.hash(name, rankColor);
+        }
+
+        @Override
+        public @NotNull String toString() {
+            return "FormattedName{" +
                     "name='" + name + '\'' +
                     ", rankColor=" + rankColor +
-                    ", points=" + points +
                     '}';
         }
     }

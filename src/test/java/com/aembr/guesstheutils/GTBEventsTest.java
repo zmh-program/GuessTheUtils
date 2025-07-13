@@ -377,10 +377,10 @@ public class GTBEventsTest {
         List<GTBEvents.TrueScore> a1 = events.getTrueScoresFromScoreboard(runner.next().scoreboardLines);
 
         List<GTBEvents.TrueScore> e1 = List.of(
-                new GTBEvents.TrueScore("_emmy", Formatting.GOLD, 3),
-                new GTBEvents.TrueScore("theofficialwater", Formatting.AQUA, 3),
-                new GTBEvents.TrueScore("Nescafe755", Formatting.GOLD, 2),
-                new GTBEvents.TrueScore("Yria", Formatting.GOLD, 1)
+                new GTBEvents.TrueScore(new GTBEvents.FormattedName("_emmy", Formatting.GOLD), 3),
+                new GTBEvents.TrueScore(new GTBEvents.FormattedName("theofficialwater", Formatting.AQUA), 3),
+                new GTBEvents.TrueScore(new GTBEvents.FormattedName("Nescafe755", Formatting.GOLD), 2),
+                new GTBEvents.TrueScore(new GTBEvents.FormattedName("Yria", Formatting.GOLD), 1)
         );
 
         assert a1.equals(e1) : "Actual:\n" + a1 + "\nExpected:\n" + e1;
@@ -388,8 +388,8 @@ public class GTBEventsTest {
         List<GTBEvents.TrueScore> a2 = events.getTrueScoresFromScoreboard(runner.next().scoreboardLines);
 
         List<GTBEvents.TrueScore> e2 = List.of(
-                new GTBEvents.TrueScore("Yria", Formatting.GOLD, 0),
-                new GTBEvents.TrueScore("Nescafe755", Formatting.GOLD, 0)
+                new GTBEvents.TrueScore(new GTBEvents.FormattedName("Yria", Formatting.GOLD), 0),
+                new GTBEvents.TrueScore(new GTBEvents.FormattedName("Nescafe755", Formatting.GOLD), 0)
         );
 
         assert a2.equals(e2) : "Actual:\n" + a2 + "\nExpected:\n" + e2;
@@ -397,9 +397,9 @@ public class GTBEventsTest {
         List<GTBEvents.TrueScore> a3 = events.getTrueScoresFromScoreboard(runner.next().scoreboardLines);
 
         List<GTBEvents.TrueScore> e3 = List.of(
-                new GTBEvents.TrueScore("_emmy", Formatting.GOLD, 9),
-                new GTBEvents.TrueScore("theofficialwater", Formatting.AQUA, 5),
-                new GTBEvents.TrueScore("Yria", Formatting.GOLD, 4)
+                new GTBEvents.TrueScore(new GTBEvents.FormattedName("_emmy", Formatting.GOLD), 9),
+                new GTBEvents.TrueScore(new GTBEvents.FormattedName("theofficialwater", Formatting.AQUA), 5),
+                new GTBEvents.TrueScore(new GTBEvents.FormattedName("Yria", Formatting.GOLD), 4)
         );
 
         assert a3.equals(e3) : "Actual:\n" + a3 + "\nExpected:\n" + e3;
