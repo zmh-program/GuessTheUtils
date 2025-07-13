@@ -308,24 +308,24 @@ public class GameTracker extends GTBEvents.Module {
             tracker.clearGame();
         }
 
-        public void onTrueScoresUpdate(List<Utils.Pair<String, Integer>> scores) {
+        public void onTrueScoresUpdate(List<GTBEvents.TrueScore> scores) {
             List<Utils.Pair<Player, Integer>> converted = new ArrayList<>();
-            for (Utils.Pair<String, Integer> trueScore : scores) {
+            for (GTBEvents.TrueScore trueScore : scores) {
                 if (trueScore == null) continue;
-                Player player = getPlayerFromName(trueScore.a());
+                Player player = getPlayerFromName(trueScore.name());
                 if (player == null) {
-                    tracker.clearGameWithError("Player " + trueScore.a() + " not found in player list!");
+                    tracker.clearGameWithError("Player " + trueScore.name() + " not found in player list!");
                     return;
                 }
 
                 onActivity(player);
 
-                if (verifyPoints(player, trueScore.b())) {
+                if (verifyPoints(player, trueScore.points())) {
                     player.scoreMismatchCounter = 0;
                 } else {
                     if (player.buildRound == currentRound && player.points[currentRound - 1] == 0
                             && correctGuessesThisRound != 0) {
-                        currentBuilder.points[currentRound - 1] = trueScore.b() - player.getTotalPoints();
+                        currentBuilder.points[currentRound - 1] = trueScore.points() - player.getTotalPoints();
                     } else {
                         // Sometimes the scoreboard is slow, so we want to wait a bit before we sound the alarm
                         if (player.scoreMismatchCounter > 0) { // increase this to wait longer
@@ -335,7 +335,7 @@ public class GameTracker extends GTBEvents.Module {
                         player.scoreMismatchCounter++;
                     }
                 }
-                converted.add(new Utils.Pair<>(player, trueScore.b()));
+                converted.add(new Utils.Pair<>(player, trueScore.points()));
             }
 
             latestTrueScore = converted;

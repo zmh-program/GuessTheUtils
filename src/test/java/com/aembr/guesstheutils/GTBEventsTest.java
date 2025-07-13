@@ -372,47 +372,37 @@ public class GTBEventsTest {
 
     @Test
     void testGetTrueScoresFromScoreboard() {
-        List<Utils.Pair<String, Integer>> a1 = events.getTrueScoresFromScoreboard(List.of(
-                "GUESS THE BUILD",
-                "12/26/24  m94B",
-                "Builder:",
-                " Yria",
-                "GlowingYoshi: 0",
-                "_PolarBearz_: 0",
-                "Nescafe755: 0",
-                "...",
-                "Yria: 0",
-                "Starts In: 00:10",
-                "Theme:",
-                " ???",
-                "www.hypixel.net"
-        ));
+        TestRunner runner = new TestRunner(new File("src/test/java/resources/tests/events/TestGetTrueScores.json"));
 
-        List<Utils.Pair<String, Integer>> e1 = List.of(
-                new Utils.Pair<>("GlowingYoshi", 0),
-                new Utils.Pair<>("_PolarBearz_", 0),
-                new Utils.Pair<>("Nescafe755", 0),
-                new Utils.Pair<>("Yria", 0));
+        List<GTBEvents.TrueScore> a1 = events.getTrueScoresFromScoreboard(runner.next().scoreboardLines);
 
-       assert a1.equals(e1) : "Expected: " + e1 + "\nActual: " + a1;
+        List<GTBEvents.TrueScore> e1 = List.of(
+                new GTBEvents.TrueScore("_emmy", Formatting.GOLD, 3),
+                new GTBEvents.TrueScore("theofficialwater", Formatting.AQUA, 3),
+                new GTBEvents.TrueScore("Nescafe755", Formatting.GOLD, 2),
+                new GTBEvents.TrueScore("Yria", Formatting.GOLD, 1)
+        );
 
-        assert events.getTrueScoresFromScoreboard(List.of(
-                "GUESS THE BUILD",
-                "12/26/24  m94B",
-                "Builder:",
-                " Yria",
-                "Nescafe755: 3",
-                "Yria: 3",
-                "DarkkBlue: 2",
-                "Next Round: 00:05",
-                "Theme:",
-                " Ice Cream Cone",
-                "www.hypixel.net"
-        )).equals(List.of(
-                new Utils.Pair<>("Nescafe755", 3),
-                new Utils.Pair<>("Yria", 3),
-                new Utils.Pair<>("DarkkBlue", 2)
-        ));
+        assert a1.equals(e1) : "Actual:\n" + a1 + "\nExpected:\n" + e1;
+
+        List<GTBEvents.TrueScore> a2 = events.getTrueScoresFromScoreboard(runner.next().scoreboardLines);
+
+        List<GTBEvents.TrueScore> e2 = List.of(
+                new GTBEvents.TrueScore("Yria", Formatting.GOLD, 0),
+                new GTBEvents.TrueScore("Nescafe755", Formatting.GOLD, 0)
+        );
+
+        assert a2.equals(e2) : "Actual:\n" + a2 + "\nExpected:\n" + e2;
+
+        List<GTBEvents.TrueScore> a3 = events.getTrueScoresFromScoreboard(runner.next().scoreboardLines);
+
+        List<GTBEvents.TrueScore> e3 = List.of(
+                new GTBEvents.TrueScore("_emmy", Formatting.GOLD, 9),
+                new GTBEvents.TrueScore("theofficialwater", Formatting.AQUA, 5),
+                new GTBEvents.TrueScore("Yria", Formatting.GOLD, 4)
+        );
+
+        assert a3.equals(e3) : "Actual:\n" + a3 + "\nExpected:\n" + e3;
     }
 
     @Test

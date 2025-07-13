@@ -4,6 +4,7 @@ import net.minecraft.text.Text;
 import net.minecraft.text.TextColor;
 import net.minecraft.util.Formatting;
 import org.apache.commons.lang3.NotImplementedException;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.*;
 import java.util.function.Consumer;
@@ -32,7 +33,7 @@ public class GTBEvents {
     public record StateChangeEvent(GameState previous, GameState current) implements BaseEvent {}
     /// Emitted when the true scores, as seen on the vanilla scoreboard, have updated.
     /// The first 3 elements are reserved for the top 3 players, and the 4th for the user (if not in top 3).
-    public record TrueScoresUpdateEvent(List<Utils.Pair<String, Integer>> scores) implements BaseEvent {}
+    public record TrueScoresUpdateEvent(List<TrueScore> scores) implements BaseEvent {}
     ///  Emitted when the user leaves a game that's in progress.
     public record UserLeaveEvent() implements BaseEvent {}
     /// Emitted when the user rejoins a game that's in progress.
@@ -69,8 +70,8 @@ public class GTBEvents {
 
     /// We only consider a true score entry valid if it remains the same for at least 2 ticks.
     /// Random corruption that only lasts a tick is surprisingly common, as is slight de-sync between server and tracker.
-    private final Utils.FixedSizeBuffer<List<Utils.Pair<String, Integer>>> trueScoreHistory = new Utils.FixedSizeBuffer<>(2);
-    private List<Utils.Pair<String, Integer>> trueScores = null;
+    private final Utils.FixedSizeBuffer<List<TrueScore>> trueScoreHistory = new Utils.FixedSizeBuffer<>(2);
+    private List<TrueScore> trueScores = null;
 
     private Tick currentTick;
     public GameState gameState = GameState.NONE;
@@ -153,7 +154,7 @@ public class GTBEvents {
 
         // Extract true scores
         if (gameState.equals(GameState.ROUND_BUILD) || gameState.equals(GameState.ROUND_PRE) || gameState.equals(GameState.ROUND_END)) {
-            List<Utils.Pair<String, Integer>> trueScoreEntries = getTrueScoresFromScoreboard(stringLines);
+            List<TrueScore> trueScoreEntries = getTrueScoresFromScoreboard(scoreboardLines);
             //System.out.println("Got true scores from scoreboard: " + trueScoreEntries);
             //System.out.println("True score history is " + trueScoreHistory.size());
             if (trueScoreHistory.size() == 2) {
@@ -430,20 +431,21 @@ public class GTBEvents {
         return null;
     }
 
-    public List<Utils.Pair<String, Integer>> getTrueScoresFromScoreboard(List<String> scoreboardLines) {
-        List<Utils.Pair<String, Integer>> trueScores = new ArrayList<>();
+    public List<TrueScore> getTrueScoresFromScoreboard(List<Text> scoreboardLines) {
+        List<TrueScore> trueScores = new ArrayList<>();
+        List<String> stringLines = scoreboardLines.stream().map(line -> Formatting.strip(line.getString())).toList();
 
-        scoreboardLines.stream()
-                .filter(line -> line.split(":").length == 2)
-                .map(line -> line.split(": "))
-                .filter(parts -> parts.length == 2)
-                .forEach(parts -> {
-                    if (!parts[0].contains(" ") && parts[1].matches("\\d{1,2}")) {
-                        trueScores.add(new Utils.Pair<>(parts[0], Integer.parseInt(parts[1])));
-                    } else {
-                        trueScores.add(null);
-                    }
-                });
+        for (int i = 0; i < stringLines.size(); i++) {
+            String[] parts = stringLines.get(i).split(": ");
+            if (parts.length != 2) continue;
+            if (!parts[0].contains(" ") && parts[1].matches("\\d{1,2}")) {
+                Text line = scoreboardLines.get(i);
+                Formatting rank = Formatting.byName(Objects.requireNonNull(
+                        line.getSiblings().get(0).getSiblings().get(0).getStyle().getColor()).getName());
+                trueScores.add(new TrueScore(parts[0], rank, Integer.parseInt(parts[1])));
+            }
+        }
+
         return trueScores;
     }
 
@@ -592,7 +594,7 @@ public class GTBEvents {
         }
 
         @Override
-        public String toString() {
+        public @NotNull String toString() {
             return "InitialPlayerData{" + "name='" + name + '\'' + ", title=" + title + ", emblem=" + emblem +
                     ", rankColor=" + rankColor + ", isUser=" + isUser + '}';
         }
@@ -612,7 +614,7 @@ public class GTBEvents {
         }
 
         @Override
-        public String toString() {
+        public @NotNull String toString() {
             return "PlayerChatMessage{" +
                     "name='" + name + '\'' +
                     ", title=" + title +
@@ -639,6 +641,29 @@ public class GTBEvents {
         // Default error action is DISABLE
         public ErrorAction getErrorAction() {
             return ErrorAction.STOP;
+        }
+    }
+
+    public record TrueScore(String name, Formatting rankColor, int points) {
+        @Override
+        public boolean equals(Object o) {
+            if (o == null || getClass() != o.getClass()) return false;
+            TrueScore trueScore = (TrueScore) o;
+            return points == trueScore.points && Objects.equals(name, trueScore.name) && rankColor == trueScore.rankColor;
+        }
+
+        @Override
+        public int hashCode() {
+            return Objects.hash(name, rankColor, points);
+        }
+
+        @Override
+        public @NotNull String toString() {
+            return "TrueScore{" +
+                    "name='" + name + '\'' +
+                    ", rankColor=" + rankColor +
+                    ", points=" + points +
+                    '}';
         }
     }
 }
