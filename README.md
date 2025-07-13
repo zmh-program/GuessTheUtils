@@ -6,6 +6,7 @@ GuessTheUtils is a Fabric 1.21.6 utility mod for the Guess The Build game mode o
 - **Builder Notifier:** If it's your turn to build, but Minecraft is minimized or not in focus, a desktop notification will call you back.
 - **Name Autocomplete:** Now all player's names can be autocompleted with the TAB key, not just the current builder.
 - **Disallowed Item Hider:** Disallowed items from versions 1.9 and above will be hidden from the creative menu, only in Guess The Build.
+- **Chat Cooldown Timer:** If you have a chat cooldown, a timer will appear on your screen, and a bell sound will play when you're allowed to guess again.
 
 ## Requirements
 - Minecraft 1.21.6
