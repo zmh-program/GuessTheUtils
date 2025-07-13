@@ -32,6 +32,7 @@ public class GuessTheUtils implements ClientModInitializer {
     public static ShortcutReminder shortcutReminder = new ShortcutReminder(events);
     @SuppressWarnings("unused")
     public static BuilderNotification builderNotification = new BuilderNotification(events);
+    public static ChatCooldownTimer chatCooldown = new ChatCooldownTimer(events);
 
     public static boolean testing = false;
     public static LiveE2ERunner liveE2ERunner;

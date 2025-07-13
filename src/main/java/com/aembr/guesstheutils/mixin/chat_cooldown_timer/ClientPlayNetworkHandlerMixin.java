@@ -1,5 +1,6 @@
-package com.aembr.guesstheutils.mixin;
+package com.aembr.guesstheutils.mixin.chat_cooldown_timer;
 
+import com.aembr.guesstheutils.GuessTheUtils;
 import net.minecraft.client.gui.screen.ChatScreen;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
@@ -11,6 +12,6 @@ public class ClientPlayNetworkHandlerMixin {
     @Inject(method = "sendMessage", at = @At("HEAD"))
     private void onSendMessage(String chatText, boolean addToHistory, CallbackInfo ci) {
         if (chatText.startsWith("/")) return;
-        //GuessTheUtils.chatCooldown.onMessageSent();
+        GuessTheUtils.chatCooldown.onMessageSent();
     }
 }

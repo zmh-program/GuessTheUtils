@@ -47,6 +47,8 @@ public class GTBEvents {
     public record OneSecondAlertEvent() implements BaseEvent {}
     /// Emitted when the timer updates.
     public record TimerUpdateEvent(String timer) implements BaseEvent {}
+    /// Emitted when the user guesses correctly.
+    public record UserCorrectGuessEvent() implements BaseEvent {}
 
     private final Map<Consumer<?>, Module> modules = new HashMap<>();
     private final Map<Class<? extends BaseEvent>, List<Consumer<?>>> subscribers = new HashMap<>();
@@ -349,6 +351,10 @@ public class GTBEvents {
                 String name = strMessage.replace(" correctly guessed the theme!", "");
                 Formatting rank = Formatting.byName(Objects.requireNonNull(message.getSiblings().get(0).getStyle().getColor()).getName());
                 correctGuessers.add(new FormattedName(name, rank));
+            }
+
+            if (gameState.equals(GameState.ROUND_BUILD) && strMessage.startsWith("+") && strMessage.endsWith("(Correct Guess)")) {
+                emit(new UserCorrectGuessEvent());
             }
 
             if (Arrays.asList(roundSkipMessages).contains(strMessage)) {
