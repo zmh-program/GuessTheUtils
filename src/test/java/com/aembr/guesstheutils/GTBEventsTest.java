@@ -213,11 +213,14 @@ public class GTBEventsTest {
         assert listener.receivedEvents.size() == 2;
         GTBEvents.BaseEvent event = listener.receivedEvents.get(0);
         assert event instanceof GTBEvents.CorrectGuessEvent;
-        assert ((GTBEvents.CorrectGuessEvent) event).players().equals(List.of("TroyBoy105"));
+        assert ((GTBEvents.CorrectGuessEvent) event).players().equals(List.of(
+                new GTBEvents.FormattedName("TroyBoy105", Formatting.GRAY)));
 
         event = listener.receivedEvents.get(1);
         assert event instanceof GTBEvents.CorrectGuessEvent;
-        assert ((GTBEvents.CorrectGuessEvent) event).players().equals(List.of("Yria", "nikIII123"));
+        assert ((GTBEvents.CorrectGuessEvent) event).players().equals(List.of(
+                new GTBEvents.FormattedName("Yria", Formatting.AQUA),
+                new GTBEvents.FormattedName("nikIII123", Formatting.GRAY)));
     }
 
     @Test

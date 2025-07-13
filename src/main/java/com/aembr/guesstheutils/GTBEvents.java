@@ -20,7 +20,7 @@ public class GTBEvents {
     /// Emitted once the builder has picked a theme.
     public record RoundStartEvent(int currentRound, int totalRounds) implements BaseEvent {}
     /// Emitted when one or more players guess correctly. Contains all players that guessed during the same tick.
-    public record CorrectGuessEvent(List<String> players) implements BaseEvent {}
+    public record CorrectGuessEvent(List<FormattedName> players) implements BaseEvent {}
     /// Emitted when the building and guessing part of the round has concluded.
     public record RoundEndEvent(boolean skipped) implements BaseEvent {}
     /// Emitted when the builder leaves before picking a theme. Always followed by `BuilderChangeEvent`.
@@ -315,7 +315,7 @@ public class GTBEvents {
     }
 
     private void onChatMessages(List<Text> chatMessages) {
-        List<String> correctGuessers = new ArrayList<>();
+        List<FormattedName> correctGuessers = new ArrayList<>();
         for (Text message : chatMessages) {
             String strMessage = Formatting.strip(message.getString());
             if (strMessage == null || strMessage.isEmpty()) continue;
@@ -346,7 +346,9 @@ public class GTBEvents {
 
             if (gameState.equals(GameState.ROUND_BUILD) && !strMessage.contains(":")
                     && strMessage.endsWith(" correctly guessed the theme!")) {
-                correctGuessers.add(strMessage.replace(" correctly guessed the theme!", ""));
+                String name = strMessage.replace(" correctly guessed the theme!", "");
+                Formatting rank = Formatting.byName(Objects.requireNonNull(message.getSiblings().get(0).getStyle().getColor()).getName());
+                correctGuessers.add(new FormattedName(name, rank));
             }
 
             if (Arrays.asList(roundSkipMessages).contains(strMessage)) {

@@ -259,11 +259,11 @@ public class GameTracker extends GTBEvents.Module {
             skippedRounds++;
         }
 
-        public void onCorrectGuess(List<String> players) {
-            for (String playerName : players) {
-                Player player = getPlayerFromName(playerName);
+        public void onCorrectGuess(List<GTBEvents.FormattedName> players) {
+            for (GTBEvents.FormattedName fName : players) {
+                Player player = getPlayerFromName(fName.name());
                 if (player == null) {
-                    tracker.clearGameWithError("Player " + playerName + " not found in player list!");
+                    tracker.clearGameWithError("Player " + fName.name() + " not found in player list!");
                     return;
                 }
                 player.points[currentRound - 1] = Math.max(1, 3 - correctGuessesThisRound);
