@@ -606,7 +606,6 @@
   ],
   "camino": [
     "Chimney",
-    "Fireplace",
     "Pathway"
   ],
   "cin": [
@@ -3313,5 +3312,8 @@
   ],
   "grappin": [
     "Grappling Hook"
+  ],
+  "krb": [
+    "Fireplace"
   ]
 }
