@@ -19,5 +19,5 @@ GuessTheUtils is a Fabric 1.21.6 utility mod for the Guess The Build game mode o
 A: Not planned. I only plan to support latest, and only port it to newer versions when Hypixel stops supporting the current one. If you have the skills however, feel free to use my bad code however you wish.
 ### Q: I found a bug!
 A: Open a new issue, or contact me, `aembr`, on Discord directly.
-### Can you add X feature?
+### Q: Can you add X feature?
 A: If you do have an idea you think could be useful, that I haven't implemented yet, open a new issue or DM `aembr` on Discord.
