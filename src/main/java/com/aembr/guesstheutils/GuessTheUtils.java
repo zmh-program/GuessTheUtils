@@ -1,5 +1,6 @@
 package com.aembr.guesstheutils;
 
+import com.aembr.guesstheutils.config.GuessTheUtilsConfig;
 import com.aembr.guesstheutils.modules.*;
 import net.fabricmc.api.ClientModInitializer;
 import net.fabricmc.fabric.api.client.command.v2.ClientCommandRegistrationCallback;
@@ -62,6 +63,8 @@ public class GuessTheUtils implements ClientModInitializer {
         replay.initialize();
         shortcutReminder.init();
         liveE2ERunner = new LiveE2ERunner(Replay.load(GuessTheUtils.class.getResourceAsStream("/assets/live_tests/yur25_space_between_name_and_emblem_too_big.json")));
+
+        GuessTheUtilsConfig.CONFIG.load();
     }
 
     private void onStartTick(MinecraftClient client) {

@@ -17,15 +17,19 @@
 	"entrypoints": {
 		"client": [
 			"com.aembr.guesstheutils.GuessTheUtils"
+		],
+		"modmenu": [
+			"com.aembr.guesstheutils.config.ModMenuIntegration"
 		]
 	},
 	"mixins": [
 		"guesstheutils.mixins.json"
 	],
 	"depends": {
-		"fabricloader": ">=0.16.14",
+		"fabricloader": ">=0.16.10",
 		"minecraft": "~1.21.6",
 		"java": ">=21",
-		"fabric-api": "*"
+		"fabric-api": "*",
+		"yet_another_config_lib_v3": ">=3.7.1+1.21.6-fabric"
 	}
 }
