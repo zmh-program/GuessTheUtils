@@ -1,11 +1,13 @@
 package com.aembr.guesstheutils.config;
 
 import com.aembr.guesstheutils.GuessTheUtils;
+import com.aembr.guesstheutils.Utils;
 import dev.isxander.yacl3.config.v2.api.ConfigClassHandler;
 import dev.isxander.yacl3.config.v2.api.SerialEntry;
 import dev.isxander.yacl3.config.v2.api.autogen.*;
 import dev.isxander.yacl3.config.v2.api.serializer.GsonConfigSerializerBuilder;
 import dev.isxander.yacl3.platform.YACLPlatform;
+import net.fabricmc.loader.api.FabricLoader;
 import net.minecraft.client.gui.screen.Screen;
 import net.minecraft.util.Identifier;
 import org.jetbrains.annotations.Nullable;
@@ -123,6 +125,11 @@ public class GuessTheUtilsConfig {
     public boolean enableNameAutocompleteModule = true;
 
     public static Screen createScreen(@Nullable Screen parent) {
-        return CONFIG.generateGui().generateScreen(parent);
+        if (FabricLoader.getInstance().isModLoaded("yet_another_config_lib_v3")) {
+            return CONFIG.generateGui().generateScreen(parent);
+        } else {
+            Utils.sendMessage("YetAnotherConfigLib must be installed to use config menu!");
+            return null;
+        }
     }
 }

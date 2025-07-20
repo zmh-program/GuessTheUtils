@@ -7,6 +7,7 @@ import net.fabricmc.fabric.api.client.command.v2.ClientCommandRegistrationCallba
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents;
 import net.fabricmc.fabric.api.client.message.v1.ClientReceiveMessageEvents;
 import net.minecraft.client.MinecraftClient;
+import net.minecraft.client.gui.screen.Screen;
 import net.minecraft.text.MutableText;
 import net.minecraft.text.Text;
 import net.minecraft.util.Formatting;
@@ -44,6 +45,8 @@ public class GuessTheUtils implements ClientModInitializer {
     private Text previousActionBarMessage = Text.empty();
     private Text previousScreenTitle = Text.empty();
 
+    public static boolean openConfig = false;
+
     @Override
     public void onInitializeClient() {
         ClientCommandRegistrationCallback.EVENT.register(
@@ -68,6 +71,12 @@ public class GuessTheUtils implements ClientModInitializer {
     }
 
     private void onStartTick(MinecraftClient client) {
+        if (openConfig) {
+            Screen configScreen = GuessTheUtilsConfig.createScreen(client.currentScreen);
+            client.setScreen(configScreen);
+            openConfig = false;
+        }
+
         if (client.player == null || events == null) return;
         if (currentTick == null) currentTick = new Tick();
 
