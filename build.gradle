@@ -11,6 +11,8 @@ base {
 }
 
 repositories {
+	mavenCentral()
+
 	// YACL
 	maven {
 		name 'Xander Maven'
@@ -29,6 +31,10 @@ dependencies {
 
 	// Fabric API. This is technically optional, but you probably want it anyway.
 	modImplementation "net.fabricmc.fabric-api:fabric-api:${project.fabric_version}"
+
+	// SnakeYAML
+	implementation 'org.yaml:snakeyaml:2.4'
+	include 'org.yaml:snakeyaml:2.4'
 
 	// Unit testing
 	testImplementation "net.fabricmc:fabric-loader-junit:${project.loader_version}"

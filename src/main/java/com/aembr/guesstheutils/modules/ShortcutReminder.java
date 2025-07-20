@@ -4,15 +4,13 @@ import com.aembr.guesstheutils.GTBEvents;
 import com.aembr.guesstheutils.GuessTheUtils;
 import com.aembr.guesstheutils.Utils;
 import com.aembr.guesstheutils.config.GuessTheUtilsConfig;
-import com.google.common.reflect.TypeToken;
-import com.google.gson.Gson;
 import net.fabricmc.loader.api.FabricLoader;
 import net.minecraft.text.MutableText;
 import net.minecraft.text.Text;
 import net.minecraft.util.Formatting;
+import org.yaml.snakeyaml.Yaml;
 
 import java.io.*;
-import java.lang.reflect.Type;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -20,7 +18,7 @@ import java.util.List;
 import java.util.Map;
 
 public class ShortcutReminder extends GTBEvents.Module {
-    public static final String SHORTCUTS_FILENAME = "guesstheutils-shortcuts.json";
+    public static final String SHORTCUTS_FILENAME = "guesstheutils-shortcuts.yml";
     private Map<String, List<String>> shortcuts = new HashMap<>();
 
     String currentTheme = "";
@@ -123,12 +121,11 @@ public class ShortcutReminder extends GTBEvents.Module {
     }
 
     private HashMap<String, List<String>> loadConfig(File configFile) {
-        Gson gson = new Gson();
+        Yaml yaml = new Yaml();
         HashMap<String, List<String>> config = new HashMap<>();
 
         try (FileReader reader = new FileReader(configFile)) {
-            Type type = new TypeToken<HashMap<String, List<String>>>() {}.getType();
-            config = gson.fromJson(reader, type);
+            config = yaml.load(reader);
         } catch (IOException e) {
             e.printStackTrace();
         }
