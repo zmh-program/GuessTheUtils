@@ -1,13 +1,8 @@
 package com.aembr.guesstheutils;
 
-import com.aembr.guesstheutils.config.GuessTheUtilsConfig;
 import com.mojang.brigadier.CommandDispatcher;
 import net.fabricmc.fabric.api.client.command.v2.ClientCommandManager;
 import net.fabricmc.fabric.api.client.command.v2.FabricClientCommandSource;
-import net.minecraft.client.MinecraftClient;
-import net.minecraft.client.gui.screen.Screen;
-
-import java.lang.ref.Cleaner;
 
 public class Commands {
     public static void register(CommandDispatcher<FabricClientCommandSource> dispatcher) {

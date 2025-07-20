@@ -236,7 +236,8 @@ public class CustomScoreboard implements HudElement {
             boolean isRoundPre = GameTracker.state.equals(GTBEvents.GameState.ROUND_PRE);
             int pointsThisRound = isRoundPre ? 0 : player.points[game.currentRound - 1];
 
-            int fgColor = !player.leaverState.equals(GameTracker.Player.LeaverState.NORMAL) ? textColorInactive : textColor;
+            int fgColor = (!player.leaverState.equals(GameTracker.Player.LeaverState.NORMAL)
+                    || player.inactiveTicks > INACTIVE_PLAYER_THRESHOLD_SECONDS * 20) ? textColorInactive : textColor;
             int bottom = y + renderer.fontHeight - 2 + linePadding * 2;
 
             // Highlight
