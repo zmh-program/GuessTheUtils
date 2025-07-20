@@ -3,6 +3,7 @@ package com.aembr.guesstheutils.modules;
 import com.aembr.guesstheutils.GTBEvents;
 import com.aembr.guesstheutils.GuessTheUtils;
 import com.aembr.guesstheutils.Utils;
+import com.aembr.guesstheutils.config.GuessTheUtilsConfig;
 import com.google.common.reflect.TypeToken;
 import com.google.gson.Gson;
 import net.fabricmc.loader.api.FabricLoader;
@@ -37,6 +38,9 @@ public class ShortcutReminder extends GTBEvents.Module {
 
     public void onThemeUpdate(GTBEvents.ThemeUpdateEvent event) {
         currentTheme = event.theme();
+
+        if (!GuessTheUtilsConfig.CONFIG.instance().enableShortcutReminderModule) return;
+
         currentShortcuts = getShortcuts(currentTheme);
 
         if (currentShortcuts.isEmpty()) return;

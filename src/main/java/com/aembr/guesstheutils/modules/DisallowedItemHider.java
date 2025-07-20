@@ -1,7 +1,7 @@
 package com.aembr.guesstheutils.modules;
 
-import com.aembr.guesstheutils.GTBEvents;
 import com.aembr.guesstheutils.GuessTheUtils;
+import com.aembr.guesstheutils.config.GuessTheUtilsConfig;
 import net.minecraft.item.Item;
 
 import java.util.List;
@@ -576,7 +576,7 @@ public class DisallowedItemHider {
     );
 
     public static boolean isAllowed(Item item) {
-        if (!GuessTheUtils.events.isInGtb()) return true;
+        if (!GuessTheUtils.events.isInGtb() || !GuessTheUtilsConfig.CONFIG.instance().enableDisallowedItemHiderModule) return true;
         return ALLOWED_ITEMS.contains(item);
     }
 }

@@ -2,6 +2,7 @@ package com.aembr.guesstheutils.modules;
 
 import com.aembr.guesstheutils.GTBEvents;
 import com.aembr.guesstheutils.GuessTheUtils;
+import com.aembr.guesstheutils.config.GuessTheUtilsConfig;
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents;
 import net.fabricmc.fabric.api.client.rendering.v1.hud.HudElement;
 import net.fabricmc.fabric.api.client.rendering.v1.hud.HudElementRegistry;
@@ -42,7 +43,8 @@ public class ChatCooldownTimer extends GTBEvents.Module implements HudElement {
     }
 
     public void render(DrawContext ctx, RenderTickCounter tickCounter) {
-        if (cooldown == 3000 || cooldown <= 0) return;
+        if (cooldown == 3000 || cooldown <= 0 || !GuessTheUtilsConfig.CONFIG.instance().enableChatCooldownModule
+                || !GuessTheUtilsConfig.CONFIG.instance().chatCooldownTimer) return;
         String timerText = formatCooldown(cooldown);
         TextRenderer renderer = MinecraftClient.getInstance().textRenderer;
         int x1 = ctx.getScaledWindowWidth() / 2 + 7;
@@ -71,7 +73,8 @@ public class ChatCooldownTimer extends GTBEvents.Module implements HudElement {
     }
 
     private void playSound() {
-        if (!enabled) return;
+        if (!enabled || !GuessTheUtilsConfig.CONFIG.instance().enableChatCooldownModule
+                || GuessTheUtilsConfig.CONFIG.instance().chatCooldownPingVolume == 0) return;
         if (GuessTheUtils.CLIENT.player == null || GuessTheUtils.CLIENT.world == null) return; {
             GuessTheUtils.CLIENT.execute(() -> {
                 Entity camera = GuessTheUtils.CLIENT.cameraEntity;
@@ -79,7 +82,7 @@ public class ChatCooldownTimer extends GTBEvents.Module implements HudElement {
                 double y = (camera != null) ? camera.getPos().y : GuessTheUtils.CLIENT.player.getY();
                 double z = (camera != null) ? camera.getPos().z : GuessTheUtils.CLIENT.player.getZ();
                 GuessTheUtils.CLIENT.world.playSound(camera, x, y, z, sound, SoundCategory.PLAYERS,
-                        volume * 0.01F, pitch * 0.1F);
+                        GuessTheUtilsConfig.CONFIG.instance().chatCooldownPingVolume * 0.01F, pitch * 0.1F);
             });
         }
     }

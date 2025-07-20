@@ -21,10 +21,6 @@ public class Commands {
                             if (GuessTheUtils.testing) GuessTheUtils.liveE2ERunner.currentTick = 0;
                             return 1;
                         }))
-                .then(ClientCommandManager.literal("config")
-                        .executes((command) -> {
-                            return 1;
-                        }))
         );
     }
 }

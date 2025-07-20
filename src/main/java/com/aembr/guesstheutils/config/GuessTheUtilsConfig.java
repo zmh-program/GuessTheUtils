@@ -4,7 +4,6 @@ import com.aembr.guesstheutils.GuessTheUtils;
 import dev.isxander.yacl3.config.v2.api.ConfigClassHandler;
 import dev.isxander.yacl3.config.v2.api.SerialEntry;
 import dev.isxander.yacl3.config.v2.api.autogen.*;
-import dev.isxander.yacl3.config.v2.api.autogen.Boolean;
 import dev.isxander.yacl3.config.v2.api.serializer.GsonConfigSerializerBuilder;
 import dev.isxander.yacl3.platform.YACLPlatform;
 import net.minecraft.client.gui.screen.Screen;
@@ -46,7 +45,7 @@ public class GuessTheUtilsConfig {
     @SerialEntry
     @AutoGen(category = "modules", group = "custom_scoreboard")
     @EnumCycler
-    CustomScoreboardOption customScoreboardShowEmblems = CustomScoreboardOption.ON;
+    public CustomScoreboardOption customScoreboardShowEmblems = CustomScoreboardOption.ON;
 
     @SerialEntry
     @AutoGen(category = "modules", group = "custom_scoreboard")

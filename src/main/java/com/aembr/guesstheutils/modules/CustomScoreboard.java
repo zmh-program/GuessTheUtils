@@ -2,6 +2,7 @@ package com.aembr.guesstheutils.modules;
 
 import com.aembr.guesstheutils.GTBEvents;
 import com.aembr.guesstheutils.GuessTheUtils;
+import com.aembr.guesstheutils.config.GuessTheUtilsConfig;
 import net.fabricmc.fabric.api.client.rendering.v1.hud.HudElement;
 import net.fabricmc.fabric.api.client.rendering.v1.hud.HudElementRegistry;
 import net.minecraft.client.MinecraftClient;
@@ -33,7 +34,6 @@ public class CustomScoreboard implements HudElement {
     public static final int INACTIVE_PLAYER_THRESHOLD_SECONDS = 180;
     public static int tickCounter = 0;
 
-    public static boolean shadow = true;
     public static Formatting backgroundColor = Formatting.BLACK;
     public static float backgroundOpacity = 0.5f;
     public static Formatting textColor = Formatting.WHITE;
@@ -60,11 +60,7 @@ public class CustomScoreboard implements HudElement {
     public static Formatting unknownThemeColor = Formatting.RED;
     public static String unknownThemeString = "???";
 
-    public static int lineSpacing = 0;
     public static int lineItemSpacing = 4;
-    public static int defaultSeparatorHeight = 6;
-    public static boolean drawSeparatorBg = true;
-    public static int linePadding = 1;
     public static int heightOffset = 20;
     public static int playerNameRightPad = 4;
 
@@ -72,7 +68,8 @@ public class CustomScoreboard implements HudElement {
     Identifier identifier = Identifier.of("guess_the_utils_scoreboard");
 
     public static boolean isRendering() {
-        return tracker != null && tracker.game != null && GuessTheUtils.events.isInGtb();
+        return tracker != null && tracker.game != null && GuessTheUtils.events.isInGtb()
+                && GuessTheUtilsConfig.CONFIG.instance().enableCustomScoreboardModule;
     }
 
     public CustomScoreboard(GameTracker tracker) {
@@ -92,15 +89,26 @@ public class CustomScoreboard implements HudElement {
     @SuppressWarnings({"DataFlowIssue"})
     @Override
     public void render(DrawContext context, RenderTickCounter tickCounter) {
-        if (tracker == null || tracker.game == null || !events.isInGtb()) return;
+        if (tracker == null || tracker.game == null || !events.isInGtb()
+                || !GuessTheUtilsConfig.CONFIG.instance().enableCustomScoreboardModule) return;
 
-        boolean extended = CLIENT.options.playerListKey.isPressed();
+        boolean shadow = GuessTheUtilsConfig.CONFIG.instance().customScoreboardTextShadow;
+        int lineSpacing = GuessTheUtilsConfig.CONFIG.instance().customScoreboardLineSpacing;
+        int linePadding = GuessTheUtilsConfig.CONFIG.instance().customScoreboardLinePadding;
+        boolean drawSeparatorBg = GuessTheUtilsConfig.CONFIG.instance().customScoreboardDrawSeparatorBackground;
+        int defaultSeparatorHeight = GuessTheUtilsConfig.CONFIG.instance().customScoreboardSeparatorHeight;
+
+        boolean expanded = CLIENT.options.playerListKey.isPressed();
         TextRenderer renderer = MinecraftClient.getInstance().textRenderer;
 
-        boolean includePlaces = extended;
-        boolean includeTitles = extended;
-        boolean includeEmblems = true;
-
+        boolean includePlaces = GuessTheUtilsConfig.CONFIG.instance().customScoreboardShowPlaces.equals(GuessTheUtilsConfig.CustomScoreboardOption.EXPANDED) ? expanded
+                : GuessTheUtilsConfig.CONFIG.instance().customScoreboardShowPlaces.equals(GuessTheUtilsConfig.CustomScoreboardOption.ON);
+        boolean includeTitles = GuessTheUtilsConfig.CONFIG.instance().customScoreboardShowTitles.equals(GuessTheUtilsConfig.CustomScoreboardOption.EXPANDED) ? expanded
+                : GuessTheUtilsConfig.CONFIG.instance().customScoreboardShowTitles.equals(GuessTheUtilsConfig.CustomScoreboardOption.ON);
+        boolean includeEmblems = GuessTheUtilsConfig.CONFIG.instance().customScoreboardShowEmblems.equals(GuessTheUtilsConfig.CustomScoreboardOption.EXPANDED) ? expanded
+                : GuessTheUtilsConfig.CONFIG.instance().customScoreboardShowEmblems.equals(GuessTheUtilsConfig.CustomScoreboardOption.ON);
+        boolean includePointsGained = GuessTheUtilsConfig.CONFIG.instance().customScoreboardShowPoinsGainedInRound.equals(GuessTheUtilsConfig.CustomScoreboardOption.EXPANDED) ? expanded
+                : GuessTheUtilsConfig.CONFIG.instance().customScoreboardShowPoinsGainedInRound.equals(GuessTheUtilsConfig.CustomScoreboardOption.ON);
 
         // Technically, round starts when the theme is picked, but I think it's confusing
         int visualCurrentRound = tracker.game.currentRound;
@@ -161,8 +169,8 @@ public class CustomScoreboard implements HudElement {
                         ((SeparatorLine) l).height() : renderer.fontHeight - 2 + linePadding * 2 + lineSpacing))
         );
 
-        int width = getTotalWidth(renderer, lines, linePadding, includeTitles, includeEmblems, lineItemSpacing,
-                playerNameRightPad, includePlaces, tracker.game);
+        int width = getTotalWidth(renderer, lines, linePadding, includeTitles, includeEmblems, includePointsGained,
+                lineItemSpacing, playerNameRightPad, includePlaces, tracker.game);
 
         int x = context.getScaledWindowWidth() - width;
         int y = context.getScaledWindowHeight() / 2 - height.get() / 2 - heightOffset;
@@ -176,7 +184,7 @@ public class CustomScoreboard implements HudElement {
 
         int playerPlace = 1;
         for (ScoreboardLine line : lines) {
-            int lineHeight = drawLine(context, renderer, line, x, y, width, linePadding, includeTitles, includeEmblems,
+            int lineHeight = drawLine(context, renderer, line, x, y, width, linePadding, includeTitles, includeEmblems, includePointsGained
                     lineItemSpacing, lineSpacing, bgColor, fgColor, textColor, fgColorInactive, fgColorPointsThisRound,
                     accentColor, accentColorBuilder, backgroundHighlightColor, backgroundHighlightColorBuilder,
                     notBuiltIconColor, notBuiltIconOpacity, inactiveIconColor, leaverIconColor, pointsThisRoundColor1, pointsThisRoundColor2,
@@ -199,8 +207,8 @@ public class CustomScoreboard implements HudElement {
     @SuppressWarnings({"unused", "SameParameterValue", "DuplicateExpressions"})
     private static int drawLine(DrawContext context, TextRenderer renderer, ScoreboardLine line, int x, int y,
                                 int width, int linePadding, boolean includeTitles, boolean includeEmblems,
-                                int lineItemSpacing, int lineSpacing, int backgroundColor, int textColor,
-                                Formatting textColorFormatting, int textColorInactive, int textColorPointsThisRound,
+                                boolean includeRoundPoints, int lineItemSpacing, int lineSpacing, int backgroundColor,
+                                int textColor, Formatting textColorFormatting, int textColorInactive, int textColorPointsThisRound,
                                 Formatting accentColor, Formatting accentColorBuilder, int backgroundHighlightColor,
                                 int backgroundHighlightColorBuilder, Formatting notBuiltIconColor,
                                 float notBuildIconOpacity, Formatting inactiveIconColor, Formatting leaverIconColor,
@@ -299,7 +307,7 @@ public class CustomScoreboard implements HudElement {
             drawTextRightAligned(context, renderer, points, itemX, itemY, fgColor, shadow);
 
             // Points this round
-            if (!isRoundPre && pointsThisRound > 0) {
+            if (!isRoundPre && pointsThisRound > 0 && includeRoundPoints) {
                 itemX -= pointsWidth + lineItemSpacing;
                 MutableText pointsThisRoundIcon = Text.literal(POINTS_ICONS[pointsThisRound - 1]);
                 Formatting pointsThisRoundColor;
@@ -344,8 +352,8 @@ public class CustomScoreboard implements HudElement {
     }
 
     private static int getTotalWidth(TextRenderer renderer, List<ScoreboardLine> lines, int linePadding,
-                                     boolean includeTitles, boolean includeEmblems, int lineItemSpacing,
-                                     int playerNameRightPad, boolean includePlaces, GameTracker.Game game) {
+                                     boolean includeTitles, boolean includeEmblems, boolean includePointsGainedInRound,
+                                     int lineItemSpacing, int playerNameRightPad, boolean includePlaces, GameTracker.Game game) {
         int width = 0;
         for (ScoreboardLine line : lines) {
             if (line instanceof SeparatorLine) continue;
@@ -371,7 +379,13 @@ public class CustomScoreboard implements HudElement {
                     nameWidth += renderer.getWidth(Text.literal(" ").append(player.title));
                 }
 
-                int pointsThisRoundWidth = renderer.getWidth("+3") + lineItemSpacing;
+                int pointsThisRoundWidth;
+                if (includePointsGainedInRound) {
+                    pointsThisRoundWidth = renderer.getWidth("+3") + lineItemSpacing;
+                } else {
+                    pointsThisRoundWidth = 0;
+                }
+
                 int pointsWidth = player.getTotalPoints() >= 10 ? renderer.getWidth("00") : renderer.getWidth("0");
 
                 int totalWidth = linePadding * 2 + placeWidth + leaverBadgeWidth + nameWidth + pointsThisRoundWidth + pointsWidth;

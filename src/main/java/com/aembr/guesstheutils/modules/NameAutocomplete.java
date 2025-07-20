@@ -1,6 +1,7 @@
 package com.aembr.guesstheutils.modules;
 
 import com.aembr.guesstheutils.GTBEvents;
+import com.aembr.guesstheutils.config.GuessTheUtilsConfig;
 
 import java.util.Collection;
 import java.util.HashSet;
@@ -19,7 +20,7 @@ public class NameAutocomplete extends GTBEvents.Module {
     }
 
     public Collection<String> getNames() {
-        if (events.isInGtb()) return names;
+        if (events.isInGtb() && GuessTheUtilsConfig.CONFIG.instance().enableNameAutocompleteModule) return names;
         return new HashSet<>();
     }
 }
