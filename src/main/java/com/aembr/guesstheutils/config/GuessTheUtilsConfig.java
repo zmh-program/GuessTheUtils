@@ -75,7 +75,7 @@ public class GuessTheUtilsConfig {
     @SerialEntry
     @AutoGen(category = "modules", group = "custom_scoreboard")
     @TickBox
-    public boolean customScoreboardDrawSeparatorBackground = false;
+    public boolean customScoreboardDrawSeparatorBackground = true;
 
     // SHORTCUT REMINDER
 

@@ -184,7 +184,7 @@ public class CustomScoreboard implements HudElement {
 
         int playerPlace = 1;
         for (ScoreboardLine line : lines) {
-            int lineHeight = drawLine(context, renderer, line, x, y, width, linePadding, includeTitles, includeEmblems, includePointsGained
+            int lineHeight = drawLine(context, renderer, line, x, y, width, linePadding, includeTitles, includeEmblems, includePointsGained,
                     lineItemSpacing, lineSpacing, bgColor, fgColor, textColor, fgColorInactive, fgColorPointsThisRound,
                     accentColor, accentColorBuilder, backgroundHighlightColor, backgroundHighlightColorBuilder,
                     notBuiltIconColor, notBuiltIconOpacity, inactiveIconColor, leaverIconColor, pointsThisRoundColor1, pointsThisRoundColor2,
