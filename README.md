@@ -13,8 +13,12 @@ GuessTheUtils is a Fabric 1.21.6 utility mod for the Guess The Build game mode o
 - [Fabric Loader](https://fabricmc.net/): 0.16.14
 - [Fabric API](https://modrinth.com/mod/fabric-api): 0.128.1+1.21.6
 - [YetAnotherConfigLib (YACL)](https://modrinth.com/mod/yacl): 3.7.1+1.21.6-fabric
-  - [If you want to configure the mod with a nice menu] [Mod Menu](https://modrinth.com/mod/modmenu): v15.0.0-beta.3
 - **Hypixel language MUST be set to English!**
+
+## Configuration
+Use [Mod Menu](https://modrinth.com/mod/modmenu) or the `/guesstheutils config` command.
+
+To edit the shortcuts list, you must manually edit the `<minecraft>/config/guesstheutils-shortcuts.json` file. 
 
 ## FAQ
 ### Q: 1.8?
