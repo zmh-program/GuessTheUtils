@@ -18,7 +18,7 @@ GuessTheUtils is a Fabric 1.21.6 utility mod for the Guess The Build game mode o
 ## Configuration
 Use [Mod Menu](https://modrinth.com/mod/modmenu) or the `/guesstheutils config` command.
 
-To edit the shortcuts list, you must manually edit the `<minecraft>/config/guesstheutils-shortcuts.json` file. 
+To edit the shortcuts list, you must manually edit the `<minecraft>/config/guesstheutils-shortcuts.yml` file. 
 
 ## FAQ
 ### Q: 1.8?
