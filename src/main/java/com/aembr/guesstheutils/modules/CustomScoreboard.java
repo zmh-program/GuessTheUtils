@@ -89,108 +89,114 @@ public class CustomScoreboard implements HudElement {
     @SuppressWarnings({"DataFlowIssue"})
     @Override
     public void render(DrawContext context, RenderTickCounter tickCounter) {
-        if (tracker == null || tracker.game == null || !events.isInGtb()
-                || !GuessTheUtilsConfig.CONFIG.instance().enableCustomScoreboardModule) return;
+        try {
+            if (tracker == null || tracker.game == null || !events.isInGtb()
+                    || !GuessTheUtilsConfig.CONFIG.instance().enableCustomScoreboardModule) return;
 
-        boolean shadow = GuessTheUtilsConfig.CONFIG.instance().customScoreboardTextShadow;
-        int lineSpacing = GuessTheUtilsConfig.CONFIG.instance().customScoreboardLineSpacing;
-        int linePadding = GuessTheUtilsConfig.CONFIG.instance().customScoreboardLinePadding;
-        boolean drawSeparatorBg = GuessTheUtilsConfig.CONFIG.instance().customScoreboardDrawSeparatorBackground;
-        int defaultSeparatorHeight = GuessTheUtilsConfig.CONFIG.instance().customScoreboardSeparatorHeight;
+            boolean shadow = GuessTheUtilsConfig.CONFIG.instance().customScoreboardTextShadow;
+            int lineSpacing = GuessTheUtilsConfig.CONFIG.instance().customScoreboardLineSpacing;
+            int linePadding = GuessTheUtilsConfig.CONFIG.instance().customScoreboardLinePadding;
+            boolean drawSeparatorBg = GuessTheUtilsConfig.CONFIG.instance().customScoreboardDrawSeparatorBackground;
+            int defaultSeparatorHeight = GuessTheUtilsConfig.CONFIG.instance().customScoreboardSeparatorHeight;
 
-        boolean expanded = CLIENT.options.playerListKey.isPressed();
-        TextRenderer renderer = MinecraftClient.getInstance().textRenderer;
+            boolean expanded = CLIENT.options.playerListKey.isPressed();
+            TextRenderer renderer = MinecraftClient.getInstance().textRenderer;
 
-        boolean includePlaces = GuessTheUtilsConfig.CONFIG.instance().customScoreboardShowPlaces.equals(GuessTheUtilsConfig.CustomScoreboardOption.EXPANDED) ? expanded
-                : GuessTheUtilsConfig.CONFIG.instance().customScoreboardShowPlaces.equals(GuessTheUtilsConfig.CustomScoreboardOption.ON);
-        boolean includeTitles = GuessTheUtilsConfig.CONFIG.instance().customScoreboardShowTitles.equals(GuessTheUtilsConfig.CustomScoreboardOption.EXPANDED) ? expanded
-                : GuessTheUtilsConfig.CONFIG.instance().customScoreboardShowTitles.equals(GuessTheUtilsConfig.CustomScoreboardOption.ON);
-        boolean includeEmblems = GuessTheUtilsConfig.CONFIG.instance().customScoreboardShowEmblems.equals(GuessTheUtilsConfig.CustomScoreboardOption.EXPANDED) ? expanded
-                : GuessTheUtilsConfig.CONFIG.instance().customScoreboardShowEmblems.equals(GuessTheUtilsConfig.CustomScoreboardOption.ON);
-        boolean includePointsGained = GuessTheUtilsConfig.CONFIG.instance().customScoreboardShowPoinsGainedInRound.equals(GuessTheUtilsConfig.CustomScoreboardOption.EXPANDED) ? expanded
-                : GuessTheUtilsConfig.CONFIG.instance().customScoreboardShowPoinsGainedInRound.equals(GuessTheUtilsConfig.CustomScoreboardOption.ON);
+            boolean includePlaces = GuessTheUtilsConfig.CONFIG.instance().customScoreboardShowPlaces.equals(GuessTheUtilsConfig.CustomScoreboardOption.EXPANDED) ? expanded
+                    : GuessTheUtilsConfig.CONFIG.instance().customScoreboardShowPlaces.equals(GuessTheUtilsConfig.CustomScoreboardOption.ON);
+            boolean includeTitles = GuessTheUtilsConfig.CONFIG.instance().customScoreboardShowTitles.equals(GuessTheUtilsConfig.CustomScoreboardOption.EXPANDED) ? expanded
+                    : GuessTheUtilsConfig.CONFIG.instance().customScoreboardShowTitles.equals(GuessTheUtilsConfig.CustomScoreboardOption.ON);
+            boolean includeEmblems = GuessTheUtilsConfig.CONFIG.instance().customScoreboardShowEmblems.equals(GuessTheUtilsConfig.CustomScoreboardOption.EXPANDED) ? expanded
+                    : GuessTheUtilsConfig.CONFIG.instance().customScoreboardShowEmblems.equals(GuessTheUtilsConfig.CustomScoreboardOption.ON);
+            boolean includePointsGained = GuessTheUtilsConfig.CONFIG.instance().customScoreboardShowPoinsGainedInRound.equals(GuessTheUtilsConfig.CustomScoreboardOption.EXPANDED) ? expanded
+                    : GuessTheUtilsConfig.CONFIG.instance().customScoreboardShowPoinsGainedInRound.equals(GuessTheUtilsConfig.CustomScoreboardOption.ON);
 
-        // Technically, round starts when the theme is picked, but I think it's confusing
-        int visualCurrentRound = tracker.game.currentRound;
-        if (GameTracker.state.equals(GTBEvents.GameState.ROUND_PRE)) visualCurrentRound++;
+            // Technically, round starts when the theme is picked, but I think it's confusing
+            int visualCurrentRound = tracker.game.currentRound;
+            if (GameTracker.state.equals(GTBEvents.GameState.ROUND_PRE)) visualCurrentRound++;
 
-        List<ScoreboardLine> lines = new ArrayList<>();
+            List<ScoreboardLine> lines = new ArrayList<>();
 
-        // Round line
-        lines.add(new TextLine(
-                List.of(Text.literal("Round").formatted(textColor)),
-                List.of(),
-                List.of(Text.literal(String.valueOf(visualCurrentRound)).formatted(accentColor)
-                        .append(Text.literal("/").formatted(textColor))
-                        .append(Text.literal(String.valueOf(tracker.game.totalRounds)).formatted(accentColor)))));
+            // Round line
+            lines.add(new TextLine(
+                    List.of(Text.literal("Round").formatted(textColor)),
+                    List.of(),
+                    List.of(Text.literal(String.valueOf(visualCurrentRound)).formatted(accentColor)
+                            .append(Text.literal("/").formatted(textColor))
+                            .append(Text.literal(String.valueOf(tracker.game.totalRounds)).formatted(accentColor)))));
 
-        // Timer line
-        String timerState = GameTracker.state.equals(GTBEvents.GameState.ROUND_PRE) ? "Starts In" :
-                GameTracker.state.equals(GTBEvents.GameState.ROUND_BUILD) ? "Time Left" : "Next Round";
+            // Timer line
+            String timerState = GameTracker.state.equals(GTBEvents.GameState.ROUND_PRE) ? "Starts In" :
+                    GameTracker.state.equals(GTBEvents.GameState.ROUND_BUILD) ? "Time Left" : "Next Round";
 
-        lines.add(new TextLine(
-                List.of(Text.literal(timerState).formatted(textColor)),
-                List.of(),
-                List.of(Text.literal(tracker.game.currentTimer.substring(1)).formatted(accentColor))));
+            String timer = tracker.game.currentTimer;
+            if (timer.isEmpty()) timer = "00:00";
 
-        // Separator
-        lines.add(new SeparatorLine(defaultSeparatorHeight));
+            lines.add(new TextLine(
+                    List.of(Text.literal(timerState).formatted(textColor)),
+                    List.of(),
+                    List.of(Text.literal(timer.substring(1)).formatted(accentColor))));
 
-        // Player Lines
-        List<GameTracker.Player> sortedPlayers = List.copyOf(tracker.game.players).stream()
-                .sorted(Comparator.comparingInt(GameTracker.Player::getTotalPoints).reversed()).toList();
+            // Separator
+            lines.add(new SeparatorLine(defaultSeparatorHeight));
 
-        sortedPlayers.forEach(p -> lines.add(new PlayerLine(p)));
+            // Player Lines
+            List<GameTracker.Player> sortedPlayers = List.copyOf(tracker.game.players).stream()
+                    .sorted(Comparator.comparingInt(GameTracker.Player::getTotalPoints).reversed()).toList();
 
-        // Separator
-        lines.add(new SeparatorLine(defaultSeparatorHeight));
+            sortedPlayers.forEach(p -> lines.add(new PlayerLine(p)));
 
-        // Theme title
-        lines.add(new TextLine(
-                List.of(),
-                List.of(tracker.game.currentTheme.isEmpty() ? Text.literal("Theme:").formatted(textColor)
-                        : Text.literal("Theme [").formatted(textColor)
-                        .append(Text.literal(String.valueOf(tracker.game.currentTheme.length()))
-                                .formatted(accentColor).append(Text.literal("]:").formatted(textColor)))),
-                List.of()));
+            // Separator
+            lines.add(new SeparatorLine(defaultSeparatorHeight));
 
-        // Theme line
-        lines.add(new TextLine(
-                List.of(),
-                List.of(tracker.game.currentTheme.isEmpty() ? Text.literal(unknownThemeString)
-                        .formatted(unknownThemeColor) : Text.literal(tracker.game.currentTheme).formatted(accentColor)),
-                List.of()));
+            // Theme title
+            lines.add(new TextLine(
+                    List.of(),
+                    List.of(tracker.game.currentTheme.isEmpty() ? Text.literal("Theme:").formatted(textColor)
+                            : Text.literal("Theme [").formatted(textColor)
+                            .append(Text.literal(String.valueOf(tracker.game.currentTheme.length()))
+                                    .formatted(accentColor).append(Text.literal("]:").formatted(textColor)))),
+                    List.of()));
 
-        // TODO: maybe if the theme length is short enough, single line would work
-        AtomicInteger height = new AtomicInteger();
+            // Theme line
+            lines.add(new TextLine(
+                    List.of(),
+                    List.of(tracker.game.currentTheme.isEmpty() ? Text.literal(unknownThemeString)
+                            .formatted(unknownThemeColor) : Text.literal(tracker.game.currentTheme).formatted(accentColor)),
+                    List.of()));
 
-        lines.forEach(l -> height.addAndGet(
-                (l instanceof SeparatorLine ?
-                        ((SeparatorLine) l).height() : renderer.fontHeight - 2 + linePadding * 2 + lineSpacing))
-        );
+            // TODO: maybe if the theme length is short enough, single line would work
+            AtomicInteger height = new AtomicInteger();
 
-        int width = getTotalWidth(renderer, lines, linePadding, includeTitles, includeEmblems, includePointsGained,
-                lineItemSpacing, playerNameRightPad, includePlaces, tracker.game);
+            lines.forEach(l -> height.addAndGet(
+                    (l instanceof SeparatorLine ?
+                            ((SeparatorLine) l).height() : renderer.fontHeight - 2 + linePadding * 2 + lineSpacing))
+            );
 
-        int x = context.getScaledWindowWidth() - width;
-        int y = context.getScaledWindowHeight() / 2 - height.get() / 2 - heightOffset;
+            int width = getTotalWidth(renderer, lines, linePadding, includeTitles, includeEmblems, includePointsGained,
+                    lineItemSpacing, playerNameRightPad, includePlaces, tracker.game);
 
-        int bgColor = rgbToArgb(TextColor.fromFormatting(backgroundColor).getRgb(), backgroundOpacity);
-        int fgColor = rgbToArgb(0xFFFFFF, foregroundOpacity);
-        int fgColorInactive = rgbToArgb(0xFFFFFF, foregroundOpacityInactive);
-        int fgColorPointsThisRound = rgbToArgb(0xFFFFFF, pointsThisRoundOpacity);
-        int backgroundHighlightColor = rgbToArgb(TextColor.fromFormatting(accentColor).getRgb(), backgroundHighlightOpacity);
-        int backgroundHighlightColorBuilder = rgbToArgb(TextColor.fromFormatting(accentColorBuilder).getRgb(), backgroundHighlightOpacity);
+            int x = context.getScaledWindowWidth() - width;
+            int y = context.getScaledWindowHeight() / 2 - height.get() / 2 - heightOffset;
 
-        int playerPlace = 1;
-        for (ScoreboardLine line : lines) {
-            int lineHeight = drawLine(context, renderer, line, x, y, width, linePadding, includeTitles, includeEmblems, includePointsGained,
-                    lineItemSpacing, lineSpacing, bgColor, fgColor, textColor, fgColorInactive, fgColorPointsThisRound,
-                    accentColor, accentColorBuilder, backgroundHighlightColor, backgroundHighlightColorBuilder,
-                    notBuiltIconColor, notBuiltIconOpacity, inactiveIconColor, leaverIconColor, pointsThisRoundColor1, pointsThisRoundColor2,
-                    pointsThisRoundColor3, pointsColor, pointsColorHighlight, tracker.game, playerPlace, shadow, drawSeparatorBg, includePlaces);
-            if (line instanceof PlayerLine) playerPlace++;
-            y += lineHeight;
+            int bgColor = rgbToArgb(TextColor.fromFormatting(backgroundColor).getRgb(), backgroundOpacity);
+            int fgColor = rgbToArgb(0xFFFFFF, foregroundOpacity);
+            int fgColorInactive = rgbToArgb(0xFFFFFF, foregroundOpacityInactive);
+            int fgColorPointsThisRound = rgbToArgb(0xFFFFFF, pointsThisRoundOpacity);
+            int backgroundHighlightColor = rgbToArgb(TextColor.fromFormatting(accentColor).getRgb(), backgroundHighlightOpacity);
+            int backgroundHighlightColorBuilder = rgbToArgb(TextColor.fromFormatting(accentColorBuilder).getRgb(), backgroundHighlightOpacity);
+
+            int playerPlace = 1;
+            for (ScoreboardLine line : lines) {
+                int lineHeight = drawLine(context, renderer, line, x, y, width, linePadding, includeTitles, includeEmblems, includePointsGained,
+                        lineItemSpacing, lineSpacing, bgColor, fgColor, textColor, fgColorInactive, fgColorPointsThisRound,
+                        accentColor, accentColorBuilder, backgroundHighlightColor, backgroundHighlightColorBuilder,
+                        notBuiltIconColor, notBuiltIconOpacity, inactiveIconColor, leaverIconColor, pointsThisRoundColor1, pointsThisRoundColor2,
+                        pointsThisRoundColor3, pointsColor, pointsColorHighlight, tracker.game, playerPlace, shadow, drawSeparatorBg, includePlaces);
+                if (line instanceof PlayerLine) playerPlace++;
+                y += lineHeight;
+            }
+        } catch (Exception ignored) {
         }
     }
 
