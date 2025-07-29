@@ -13,12 +13,12 @@ public class Commands {
                             return 1;
                         }))
 
-//                .then(ClientCommandManager.literal("livetest")
-//                        .executes((command) -> {
-//                            GuessTheUtils.testing = !GuessTheUtils.testing;
-//                            if (GuessTheUtils.testing) GuessTheUtils.liveE2ERunner.currentTick = 0;
-//                            return 1;
-//                        }))
+                .then(ClientCommandManager.literal("livetest")
+                        .executes((command) -> {
+                            GuessTheUtils.testing = !GuessTheUtils.testing;
+                            if (GuessTheUtils.testing) GuessTheUtils.liveE2ERunner.currentTick = 0;
+                            return 1;
+                        }))
 
                 .then(ClientCommandManager.literal("config")
                         .executes((command) -> {
