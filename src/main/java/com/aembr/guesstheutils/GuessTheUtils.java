@@ -65,7 +65,7 @@ public class GuessTheUtils implements ClientModInitializer {
 
         replay.initialize();
         shortcutReminder.init();
-        liveE2ERunner = new LiveE2ERunner(Replay.load(GuessTheUtils.class.getResourceAsStream("/assets/live_tests/yur25_space_between_name_and_emblem_too_big.json")));
+        liveE2ERunner = new LiveE2ERunner(Replay.load(GuessTheUtils.class.getResourceAsStream("/assets/live_tests/TestBuggyLeaverDetection.json")));
 
         GuessTheUtilsConfig.CONFIG.load();
     }

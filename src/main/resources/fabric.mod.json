@@ -27,11 +27,10 @@
 		"guesstheutils.mixins.json"
 	],
 	"depends": {
-		"fabricloader": ">=0.16.10",
-		"minecraft": "1.21.6",
-		"java": ">=21",
+		"fabricloader": "*",
+		"minecraft": "${minecraft}",
 		"fabric-api": "*",
-		"yet_another_config_lib_v3": ">=3.7.1+1.21.6-fabric"
+		"yet_another_config_lib_v3": "*"
 	},
 	"suggests": {
 		"modmenu": "*"

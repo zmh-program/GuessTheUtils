@@ -21,7 +21,7 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 public class GameTrackerTest {
-    private final String e2eTestsDir = "src/test/java/resources/tests/e2e/";
+    private final String e2eTestsDir = "../../src/test/java/resources/tests/e2e/";
     private GTBEvents events;
     private GameTracker tracker;
 

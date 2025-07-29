@@ -10,7 +10,7 @@ public class TestRunner {
     Iterator<JsonObject> tickObjects;
 
     public TestRunner(File test) {
-        tickObjects = Replay.load(test).iterator();
+        tickObjects = Replay.load(new File("../../" + test)).iterator();
     }
 
     public void play(GTBEvents events) {

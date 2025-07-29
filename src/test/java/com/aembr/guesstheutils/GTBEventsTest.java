@@ -31,6 +31,7 @@ public class GTBEventsTest {
     @Test
     void testGameStartEventSeparateTicks() {
         events.subscribe(GTBEvents.GameStartEvent.class, event -> listener.onEvent(event), listener);
+        System.out.println("Current working directory: " + new File(".").getAbsolutePath());
         TestRunner runner = new TestRunner(new File("src/test/java/resources/tests/events/TestGameStartEventSeparateTicks.json"));
         runner.play(events);
 
