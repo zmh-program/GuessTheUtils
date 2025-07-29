@@ -1,6 +1,7 @@
 package com.aembr.guesstheutils.proxy;
 
 import com.aembr.guesstheutils.GuessTheUtils;
+import com.aembr.guesstheutils.hooks.HudHooks;
 import net.minecraftforge.common.MinecraftForge;
 
 public class ClientProxy extends CommonProxy {
@@ -13,8 +14,9 @@ public class ClientProxy extends CommonProxy {
     public void init() {
         super.init();
         
-        // Register event handlers - will be added as modules are created
+        // Register event handlers
         MinecraftForge.EVENT_BUS.register(new GuessTheUtils());
+        MinecraftForge.EVENT_BUS.register(new HudHooks());
     }
 
     @Override

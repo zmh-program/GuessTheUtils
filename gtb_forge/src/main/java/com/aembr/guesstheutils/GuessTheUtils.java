@@ -1,5 +1,7 @@
 package com.aembr.guesstheutils;
 
+import com.aembr.guesstheutils.config.GuessTheUtilsConfig;
+import com.aembr.guesstheutils.modules.*;
 import com.aembr.guesstheutils.proxy.CommonProxy;
 import net.minecraft.client.Minecraft;
 import net.minecraftforge.fml.common.Mod;
@@ -30,16 +32,25 @@ public class GuessTheUtils {
     public static final Replay replay = new Replay();
     public static GTBEvents events = new GTBEvents();
 
+    public static GameTracker gameTracker = new GameTracker(events);
+    public static NameAutocomplete nameAutocomplete = new NameAutocomplete(events);
+    public static ShortcutReminder shortcutReminder = new ShortcutReminder(events);
+    public static BuilderNotification builderNotification = new BuilderNotification(events);
+    public static ChatCooldownTimer chatCooldown = new ChatCooldownTimer(events);
+
     public static boolean testing = false;
 
     private static Tick currentTick;
     private List<String> previousScoreboardLines = new ArrayList<String>();
     private List<String> previousPlayerListEntries = new ArrayList<String>();
     private String previousActionBarMessage = "";
+    private String previousScreenTitle = "";
 
     @Mod.EventHandler
     public void preInit(FMLPreInitializationEvent event) {
         LOGGER.info("GuessTheUtils preInit");
+        
+        GuessTheUtilsConfig.init(event.getSuggestedConfigurationFile());
         proxy.preInit();
     }
 
@@ -49,6 +60,9 @@ public class GuessTheUtils {
         proxy.init();
         
         replay.initialize();
+        shortcutReminder.init();
+        
+        net.minecraftforge.client.ClientCommandHandler.instance.registerCommand(new Commands());
     }
 
     @Mod.EventHandler
@@ -86,6 +100,9 @@ public class GuessTheUtils {
 
         onScoreboardUpdate(Utils.getScoreboardLines());
         onPlayerListUpdate(Utils.collectTabListEntries());
+        
+        gameTracker.onTick();
+        chatCooldown.onTick();
     }
 
     public void onScoreboardUpdate(List<String> lines) {

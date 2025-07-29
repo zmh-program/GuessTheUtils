@@ -38,6 +38,12 @@ for %%i in ("%APP_HOME%") do set APP_HOME=%%~fi
 @rem Add default JVM options here. You can also use JAVA_OPTS and GRADLE_OPTS to pass JVM options to this script.
 set DEFAULT_JVM_OPTS="-Xmx64m" "-Xms64m"
 
+@rem Force Java 8 for Forge 1.8.9 compatibility - Auto-detect OpenLogic Java 8
+if exist "C:\Program Files\OpenLogic\jdk-8.0.432.06-hotspot\bin\java.exe" (
+    set "JAVA_HOME=C:\Program Files\OpenLogic\jdk-8.0.432.06-hotspot"
+    echo [GuessTheUtils] Using OpenLogic Java 8: %JAVA_HOME%
+)
+
 @rem Find java.exe
 if defined JAVA_HOME goto findJavaFromJavaHome
 

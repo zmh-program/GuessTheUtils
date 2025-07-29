@@ -47,6 +47,10 @@ public class Utils {
             lines.add(EnumChatFormatting.getTextWithoutFormattingCodes(line));
         }
         
+        if (objective.getDisplayName() != null) {
+            lines.add(0, EnumChatFormatting.getTextWithoutFormattingCodes(objective.getDisplayName()));
+        }
+        
         return lines;
     }
     
@@ -65,6 +69,41 @@ public class Utils {
         }
         
         return entries;
+    }
+    
+    public static String stripFormatting(String text) {
+        return EnumChatFormatting.getTextWithoutFormattingCodes(text);
+    }
+    
+    public static class FixedSizeBuffer<T> {
+        private final int maxSize;
+        private final List<T> buffer;
+
+        public FixedSizeBuffer(int maxSize) {
+            if (maxSize <= 0) {
+                throw new IllegalArgumentException("Max size must be greater than 0");
+            }
+            this.maxSize = maxSize;
+            this.buffer = new ArrayList<T>(maxSize);
+        }
+
+        public void add(T element) {
+            buffer.add(0, element);
+            if (buffer.size() > maxSize) {
+                buffer.remove(buffer.size() - 1);
+            }
+        }
+
+        public T get(int index) {
+            if (index < 0 || index >= buffer.size()) {
+                throw new IndexOutOfBoundsException("Index: " + index + ", Size: " + buffer.size());
+            }
+            return buffer.get(index);
+        }
+
+        public int size() {
+            return buffer.size();
+        }
     }
     
     public static String getStackTraceAsString(Throwable throwable) {
