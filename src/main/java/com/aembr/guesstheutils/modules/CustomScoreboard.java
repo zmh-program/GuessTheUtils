@@ -3,16 +3,20 @@ package com.aembr.guesstheutils.modules;
 import com.aembr.guesstheutils.GTBEvents;
 import com.aembr.guesstheutils.GuessTheUtils;
 import com.aembr.guesstheutils.config.GuessTheUtilsConfig;
+//? if >=1.21.6 {
 import net.fabricmc.fabric.api.client.rendering.v1.hud.HudElement;
 import net.fabricmc.fabric.api.client.rendering.v1.hud.HudElementRegistry;
+//?}
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.font.TextRenderer;
 import net.minecraft.client.gui.DrawContext;
+//? if >=1.21.6
 import net.minecraft.client.render.RenderTickCounter;
 import net.minecraft.text.MutableText;
 import net.minecraft.text.Text;
 import net.minecraft.text.TextColor;
 import net.minecraft.util.Formatting;
+//? if >=1.21.6
 import net.minecraft.util.Identifier;
 
 import java.util.*;
@@ -22,7 +26,7 @@ import java.util.stream.Stream;
 import static com.aembr.guesstheutils.GuessTheUtils.CLIENT;
 import static com.aembr.guesstheutils.GuessTheUtils.events;
 
-public class CustomScoreboard implements HudElement {
+public class CustomScoreboard /*? >=1.21.6 {*/ implements HudElement /*?}*/ {
     public static final String[] BUILDING_SPINNER = new String[] {"\uea00", "\uea01", "\uea02", "\uea03", "\uea04",
             "\uea05", "\uea06", "\uea07", "\uea08", "\uea09", "\uea10", "\uea11", "\uea12", "\uea13", "\uea14", "\uea15"};
     public static final String[] POINTS_ICONS = new String[] {"+1", "+2", "+3"};
@@ -65,6 +69,7 @@ public class CustomScoreboard implements HudElement {
     public static int playerNameRightPad = 4;
 
     static GameTracker tracker;
+    //? if >=1.21.6
     Identifier identifier = Identifier.of("guess_the_utils_scoreboard");
 
     public static boolean isRendering() {
@@ -74,11 +79,13 @@ public class CustomScoreboard implements HudElement {
 
     public CustomScoreboard(GameTracker tracker) {
         CustomScoreboard.tracker = tracker;
+        //? if >=1.21.6 {
         try {
             HudElementRegistry.attachElementAfter(Identifier.ofVanilla("chat"), identifier, this);
         } catch (Exception e) {
             HudElementRegistry.replaceElement(identifier, hudElement -> this);
         }
+        //?}
     }
 
     public static String getSpinnerFrame(String[] frames, int ticksPerFrame, int tickCounter) {
@@ -87,8 +94,9 @@ public class CustomScoreboard implements HudElement {
     }
 
     @SuppressWarnings({"DataFlowIssue"})
+    //? if >=1.21.6
     @Override
-    public void render(DrawContext context, RenderTickCounter tickCounter) {
+    public void render(DrawContext context /*? >=1.21.6 {*/ , RenderTickCounter tickCounter /*?}*/) {
         try {
             if (tracker == null || tracker.game == null || !events.isInGtb()
                     || !GuessTheUtilsConfig.CONFIG.instance().enableCustomScoreboardModule) return;

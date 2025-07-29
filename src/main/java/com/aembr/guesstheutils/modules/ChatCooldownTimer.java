@@ -4,19 +4,23 @@ import com.aembr.guesstheutils.GTBEvents;
 import com.aembr.guesstheutils.GuessTheUtils;
 import com.aembr.guesstheutils.config.GuessTheUtilsConfig;
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents;
+//? if >=1.21.6 {
 import net.fabricmc.fabric.api.client.rendering.v1.hud.HudElement;
 import net.fabricmc.fabric.api.client.rendering.v1.hud.HudElementRegistry;
+//?}
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.font.TextRenderer;
 import net.minecraft.client.gui.DrawContext;
+//? if >=1.21.6
 import net.minecraft.client.render.RenderTickCounter;
 import net.minecraft.entity.Entity;
 import net.minecraft.sound.SoundCategory;
 import net.minecraft.sound.SoundEvent;
 import net.minecraft.sound.SoundEvents;
+//? if >=1.21.6
 import net.minecraft.util.Identifier;
 
-public class ChatCooldownTimer extends GTBEvents.Module implements HudElement {
+public class ChatCooldownTimer extends GTBEvents.Module /*? >=1.21.6 {*/ implements HudElement /*?}*/ {
     private final SoundEvent sound = SoundEvents.BLOCK_NOTE_BLOCK_BELL.value();
     private final int volume = 100; // 0 - 100
     private final int pitch = 12; // 1 - 20
@@ -25,15 +29,18 @@ public class ChatCooldownTimer extends GTBEvents.Module implements HudElement {
     private long cooldown = 0;
     private long cooldownEndTime = 0;
 
+    //? if >=1.21.6
     Identifier identifier = Identifier.of("guess_the_utils_chat_cooldown_timer");
 
     public ChatCooldownTimer(GTBEvents events) {
         super(events);
+        //? if >=1.21.6 {
         try {
             HudElementRegistry.attachElementAfter(Identifier.ofVanilla("chat"), identifier, this);
         } catch (Exception e) {
             HudElementRegistry.replaceElement(identifier, hudElement -> this);
         }
+        //?}
 
         ClientTickEvents.START_CLIENT_TICK.register(e -> update());
         events.subscribe(GTBEvents.UserCorrectGuessEvent.class, e -> disable(), this);
@@ -42,7 +49,7 @@ public class ChatCooldownTimer extends GTBEvents.Module implements HudElement {
         events.subscribe(GTBEvents.UserLeaveEvent.class, e -> disable(), this);
     }
 
-    public void render(DrawContext ctx, RenderTickCounter tickCounter) {
+    public void render(DrawContext ctx /*? >=1.21.6 {*/ , RenderTickCounter tickCounter /*?}*/) {
         if (cooldown == 3000 || cooldown <= 0 || !GuessTheUtilsConfig.CONFIG.instance().enableChatCooldownModule
                 || !GuessTheUtilsConfig.CONFIG.instance().chatCooldownTimer) return;
         String timerText = formatCooldown(cooldown);

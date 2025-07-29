@@ -6,6 +6,8 @@ import net.fabricmc.api.ClientModInitializer;
 import net.fabricmc.fabric.api.client.command.v2.ClientCommandRegistrationCallback;
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents;
 import net.fabricmc.fabric.api.client.message.v1.ClientReceiveMessageEvents;
+import net.fabricmc.fabric.api.client.rendering.v1.HudLayerRegistrationCallback;
+import net.fabricmc.fabric.api.client.rendering.v1.HudRenderCallback;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.gui.screen.Screen;
 import net.minecraft.text.MutableText;
@@ -59,9 +61,13 @@ public class GuessTheUtils implements ClientModInitializer {
             if (overlay) onActionBarMessage(message);
             else onChatMessage(message);
         });
-//        HudLayerRegistrationCallback.EVENT.register((drawContext, v) -> {
-//            gameTracker.drawScoreboard(drawContext);
-//        });
+        //? if <1.21.6 {
+        /*//noinspection deprecation
+        HudRenderCallback.EVENT.register((drawContext, renderTickCounter) -> {
+            chatCooldown.render(drawContext);
+            gameTracker.scoreboard.render(drawContext);
+        });
+        *///?}
 
         replay.initialize();
         shortcutReminder.init();

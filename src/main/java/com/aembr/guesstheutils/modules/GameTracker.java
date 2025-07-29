@@ -14,7 +14,7 @@ public class GameTracker extends GTBEvents.Module {
     public static GTBEvents.GameState state = GTBEvents.GameState.NONE;
 
     Game game;
-    CustomScoreboard scoreboard;
+    public CustomScoreboard scoreboard;
 
     public GameTracker(GTBEvents events) {
         super(events);
