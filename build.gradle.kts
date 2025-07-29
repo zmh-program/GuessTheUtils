@@ -1,7 +1,6 @@
 plugins {
 	`maven-publish`
 	id("fabric-loom")
-	// id("me.modmuss50.mod-publish-plugin")
 }
 
 version = "${property("mod.version")}+${stonecutter.current.version}"
@@ -115,59 +114,3 @@ tasks {
 		dependsOn("build")
 	}
 }
-
-/*
-publishMods {
-    file = tasks.remapJar.get().archiveFile
-    additionalFiles.from(tasks.remapSourcesJar.get().archiveFile)
-    displayName = "${mod.name} ${mod.version} for $mcVersion"
-    version = mod.version
-    changelog = rootProject.file("CHANGELOG.md").readText()
-    type = STABLE
-    modLoaders.add("fabric")
-
-    dryRun = providers.environmentVariable("MODRINTH_TOKEN")
-        .getOrNull() == null || providers.environmentVariable("CURSEFORGE_TOKEN").getOrNull() == null
-
-    modrinth {
-        projectId = property("publish.modrinth").toString()
-        accessToken = providers.environmentVariable("MODRINTH_TOKEN")
-        minecraftVersions.add(mcVersion)
-        requires {
-            slug = "fabric-api"
-        }
-    }
-
-    curseforge {
-        projectId = property("publish.curseforge").toString()
-        accessToken = providers.environmentVariable("CURSEFORGE_TOKEN")
-        minecraftVersions.add(mcVersion)
-        requires {
-            slug = "fabric-api"
-        }
-    }
-}
-*/
-/*
-publishing {
-    repositories {
-        maven("...") {
-            name = "..."
-            credentials(PasswordCredentials::class.java)
-            authentication {
-                create<BasicAuthentication>("basic")
-            }
-        }
-    }
-
-    publications {
-        create<MavenPublication>("mavenJava") {
-            groupId = "${property("mod.group")}.${mod.id}"
-            artifactId = mod.version
-            version = mcVersion
-
-            from(components["java"])
-        }
-    }
-}
-*/
