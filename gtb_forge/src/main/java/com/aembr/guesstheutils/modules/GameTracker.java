@@ -150,7 +150,7 @@ public class GameTracker extends GTBEvents.Module {
         public void onGameEnd(Map<String, Integer> scores) {
         }
 
-        public void onTrueScoresUpdate(Map<String, Integer> scores) {
+        public void onTrueScoresUpdate(List<GTBEvents.TrueScore> scores) {
         }
 
         public void onUserLeave() {

@@ -1,7 +1,6 @@
 package com.aembr.guesstheutils;
 
 import net.minecraft.util.EnumChatFormatting;
-import org.jetbrains.annotations.NotNull;
 
 import java.util.*;
 import java.util.function.Consumer;
@@ -9,24 +8,87 @@ import java.util.function.Consumer;
 public class GTBEvents {
     public interface BaseEvent {}
     
-    public static record GameStartEvent(Set<InitialPlayerData> players) implements BaseEvent {}
-    public static record BuilderChangeEvent(String previous, String current) implements BaseEvent {}
-    public static record UserBuilderEvent() implements BaseEvent {}
-    public static record RoundStartEvent(int currentRound, int totalRounds) implements BaseEvent {}
-    public static record CorrectGuessEvent(List<String> players) implements BaseEvent {}
-    public static record RoundEndEvent(boolean skipped) implements BaseEvent {}
-    public static record RoundSkipEvent() implements BaseEvent {}
-    public static record ThemeUpdateEvent(String theme) implements BaseEvent {}
-    public static record GameEndEvent(Map<String, Integer> scores) implements BaseEvent {}
-    public static record StateChangeEvent(GameState previous, GameState current) implements BaseEvent {}
-    public static record TrueScoresUpdateEvent(List<TrueScore> scores) implements BaseEvent {}
-    public static record UserLeaveEvent() implements BaseEvent {}
-    public static record UserRejoinEvent() implements BaseEvent {}
-    public static record TickUpdateEvent() implements BaseEvent {}
-    public static record PlayerChatEvent(String player, String message) implements BaseEvent {}
-    public static record OneSecondAlertEvent() implements BaseEvent {}
-    public static record TimerUpdateEvent(String timer) implements BaseEvent {}
-    public static record UserCorrectGuessEvent() implements BaseEvent {}
+    public static class GameStartEvent implements BaseEvent {
+        private final Set<InitialPlayerData> players;
+        public GameStartEvent(Set<InitialPlayerData> players) { this.players = players; }
+        public Set<InitialPlayerData> players() { return players; }
+    }
+    
+    public static class BuilderChangeEvent implements BaseEvent {
+        private final String previous, current;
+        public BuilderChangeEvent(String previous, String current) { this.previous = previous; this.current = current; }
+        public String previous() { return previous; }
+        public String current() { return current; }
+    }
+    
+    public static class UserBuilderEvent implements BaseEvent {}
+    
+    public static class RoundStartEvent implements BaseEvent {
+        private final int currentRound, totalRounds;
+        public RoundStartEvent(int currentRound, int totalRounds) { this.currentRound = currentRound; this.totalRounds = totalRounds; }
+        public int currentRound() { return currentRound; }
+        public int totalRounds() { return totalRounds; }
+    }
+    
+    public static class CorrectGuessEvent implements BaseEvent {
+        private final List<String> players;
+        public CorrectGuessEvent(List<String> players) { this.players = players; }
+        public List<String> players() { return players; }
+    }
+    
+    public static class RoundEndEvent implements BaseEvent {
+        private final boolean skipped;
+        public RoundEndEvent(boolean skipped) { this.skipped = skipped; }
+        public boolean skipped() { return skipped; }
+    }
+    
+    public static class RoundSkipEvent implements BaseEvent {}
+    
+    public static class ThemeUpdateEvent implements BaseEvent {
+        private final String theme;
+        public ThemeUpdateEvent(String theme) { this.theme = theme; }
+        public String theme() { return theme; }
+    }
+    
+    public static class GameEndEvent implements BaseEvent {
+        private final Map<String, Integer> scores;
+        public GameEndEvent(Map<String, Integer> scores) { this.scores = scores; }
+        public Map<String, Integer> scores() { return scores; }
+    }
+    
+    public static class StateChangeEvent implements BaseEvent {
+        private final GameState previous, current;
+        public StateChangeEvent(GameState previous, GameState current) { this.previous = previous; this.current = current; }
+        public GameState previous() { return previous; }
+        public GameState current() { return current; }
+    }
+    
+    public static class TrueScoresUpdateEvent implements BaseEvent {
+        private final List<TrueScore> scores;
+        public TrueScoresUpdateEvent(List<TrueScore> scores) { this.scores = scores; }
+        public List<TrueScore> scores() { return scores; }
+    }
+    
+    public static class UserLeaveEvent implements BaseEvent {}
+    public static class UserRejoinEvent implements BaseEvent {}
+    public static class TickUpdateEvent implements BaseEvent {}
+    
+    public static class PlayerChatEvent implements BaseEvent {
+        private final String player, message;
+        public PlayerChatEvent(String player, String message) { this.player = player; this.message = message; }
+        public String player() { return player; }
+        public String message() { return message; }
+    }
+    
+    public static class OneSecondAlertEvent implements BaseEvent {}
+    
+    public static class TimerUpdateEvent implements BaseEvent {
+        private final String timer;
+        public TimerUpdateEvent(String timer) { this.timer = timer; }
+        public String timer() { return timer; }
+    }
+    
+    public static class UserCorrectGuessEvent implements BaseEvent {}
 
     private final Map<Consumer<?>, Module> modules = new HashMap<>();
     private final Map<Class<? extends BaseEvent>, List<Consumer<?>>> subscribers = new HashMap<>();
@@ -36,7 +98,7 @@ public class GTBEvents {
     private final Utils.FixedSizeBuffer<List<String>> scoreboardLineHistory = new Utils.FixedSizeBuffer<>(3);
     private final Utils.FixedSizeBuffer<List<String>> playerListEntryHistory = new Utils.FixedSizeBuffer<>(3);
 
-    private final String[] validEmblems = new String[]{"≈", "α", "Ω", "$", "π", "ƒ"};
+    private final String[] validEmblems = new String[]{"~", "a", "O", "$", "p", "f"};
     private final String[] validTitles = new String[]{"Rookie", "Untrained", "Amateur", "Prospect", "Apprentice",
             "Experienced", "Seasoned", "Trained", "Skilled", "Talented", "Professional", "Artisan", "Expert",
             "Master", "Legend", "Grandmaster", "Celestial", "Divine", "Ascended"};
@@ -85,7 +147,7 @@ public class GTBEvents {
     }
 
     private void onScoreboardUpdate(List<String> scoreboardLines) {
-        List<String> stringLines = scoreboardLines.stream().map(line -> EnumChatFormatting.getTextWithoutFormattingCodes(line)).toList();
+        List<String> stringLines = scoreboardLines.stream().map(line -> EnumChatFormatting.getTextWithoutFormattingCodes(line)).collect(java.util.stream.Collectors.toList());
         GameState state = getStateFromScoreboard(stringLines);
 
         if (gameState.equals(GameState.LOBBY) && state == null) {

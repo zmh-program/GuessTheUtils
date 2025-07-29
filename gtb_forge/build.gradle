@@ -1,20 +1,15 @@
 buildscript {
     repositories {
-        mavenCentral()
+        jcenter()
         maven {
-            name = 'forge'
-            url = 'https://maven.minecraftforge.net/'
-        }
-        maven {
-            name = 'sonatype'
-            url = 'https://oss.sonatype.org/content/repositories/snapshots/'
+            name = "forge"
+            url = "http://files.minecraftforge.net/maven"
         }
     }
     dependencies {
         classpath 'net.minecraftforge.gradle:ForgeGradle:2.1-SNAPSHOT'
     }
 }
-
 apply plugin: 'net.minecraftforge.gradle.forge'
 
 version = "0.9.5"
@@ -22,19 +17,24 @@ group = "com.aembr.guesstheutils"
 archivesBaseName = "guesstheutils"
 
 minecraft {
-    version = "1.8.9-11.15.1.1722"
+    version = "1.8.9-11.15.1.2318-1.8.9"
     runDir = "run"
-    mappings = "stable_22"
-    makeObfSourceJar = false
+    mappings = "stable_20"
 }
 
 sourceCompatibility = targetCompatibility = "1.8"
-compileJava {
-    sourceCompatibility = targetCompatibility = "1.8"
+
+configurations {
+    embed
+    compile.extendsFrom embed
 }
 
 dependencies {
-    compile 'org.yaml:snakeyaml:1.18'
+    embed 'org.yaml:snakeyaml:1.18'
+}
+
+jar {
+    from configurations.embed.collect { it.isDirectory() ? it : zipTree(it) }
 }
 
 processResources {
@@ -45,7 +45,7 @@ processResources {
         include 'mcmod.info'
         expand 'version':project.version, 'mcversion':project.minecraft.version
     }
-        
+    
     from(sourceSets.main.resources.srcDirs) {
         exclude 'mcmod.info'
     }
