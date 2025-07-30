@@ -15,7 +15,8 @@ import java.util.Comparator;
 import java.util.List;
 
 public class CustomScoreboard {
-    private static final String[] BUILDING_SPINNER = new String[] {"|", "/", "-", "\\", "|", "/", "-", "\\"};
+    // Fixed-width spinner characters to prevent visual flickering
+    private static final String[] BUILDING_SPINNER = new String[] {"o", "O", "0", "@"};
     public static int tickCounter = 0;
     
     private GameTracker gameTracker;
@@ -45,72 +46,82 @@ public class CustomScoreboard {
 
         FontRenderer fontRenderer = mc.fontRendererObj;
 
-        // Calculate scoreboard position (right side of screen)
-        int maxWidth = 150;
-        int x = screenWidth - maxWidth - 10;
-        int y = 30;
+        // Calculate scoreboard position (further right side of screen)
+        int maxWidth = 140;
+        int x = screenWidth - maxWidth - 5;
+        int y = 20;
 
         GlStateManager.pushMatrix();
         GlStateManager.enableBlend();
 
-        // Title
-        String title = "Guess the Build";
-        int titleWidth = fontRenderer.getStringWidth(title);
-        int titleX = x + (maxWidth - titleWidth) / 2;
+        // Main info section with background
+        int startY = y;
+        int infoHeight = 0;
         
-        // Title background
-        Gui.drawRect(titleX - 2, y - 2, titleX + titleWidth + 2, y + fontRenderer.FONT_HEIGHT + 2, 0x80000000);
-        fontRenderer.drawStringWithShadow(title, titleX, y, 0xFFFFFFFF);
-        y += fontRenderer.FONT_HEIGHT + 6;
-
-        // Game state
-        String stateText = "State: " + GameTracker.state.name();
-        fontRenderer.drawStringWithShadow(stateText, x, y, 0xFFAAAAAA);
+        // Calculate total height needed for info section
+        infoHeight += fontRenderer.FONT_HEIGHT + 2; // State
+        if (game.currentRound > 0) infoHeight += fontRenderer.FONT_HEIGHT + 2; // Round
+        if (!game.currentTheme.isEmpty()) infoHeight += fontRenderer.FONT_HEIGHT + 2; // Theme
+        if (!game.currentTimer.isEmpty()) infoHeight += fontRenderer.FONT_HEIGHT + 2; // Timer
+        if (game.currentBuilder != null) infoHeight += fontRenderer.FONT_HEIGHT + 4; // Builder
+        
+        // Draw info background
+        Gui.drawRect(x - 3, y - 2, x + maxWidth + 1, y + infoHeight + 2, 0x40000000);
+        
+        // Game state - simplified display
+        String stateText = GameTracker.state.name().replace("_", " ");
+        fontRenderer.drawStringWithShadow(stateText, x, y, 0xFF88CCFF);
         y += fontRenderer.FONT_HEIGHT + 2;
 
-        // Round info
+        // Round info with better formatting
         if (game.currentRound > 0) {
-            String roundText = "Round: " + game.currentRound + "/" + game.totalRounds;
-            fontRenderer.drawStringWithShadow(roundText, x, y, 0xFFAAAAAA);
+            String roundText = "Round " + game.currentRound + "/" + game.totalRounds;
+            fontRenderer.drawStringWithShadow(roundText, x, y, 0xFFFFDD88);
             y += fontRenderer.FONT_HEIGHT + 2;
         }
 
-        // Theme
+        // Theme with prefix
         if (!game.currentTheme.isEmpty()) {
-            String themeText = "Theme: " + game.currentTheme;
-            fontRenderer.drawStringWithShadow(themeText, x, y, 0xFF55FF55);
+            fontRenderer.drawStringWithShadow("> " + game.currentTheme, x, y, 0xFF88FF88);
             y += fontRenderer.FONT_HEIGHT + 2;
         }
 
-        // Timer
+        // Timer with symbol
         if (!game.currentTimer.isEmpty()) {
-            String timerText = "Timer: " + game.currentTimer;
-            fontRenderer.drawStringWithShadow(timerText, x, y, 0xFFFFFF55);
+            fontRenderer.drawStringWithShadow("T " + game.currentTimer, x, y, 0xFFFFFF88);
             y += fontRenderer.FONT_HEIGHT + 2;
         }
 
-        // Current builder
+        // Current builder with spinner
         if (game.currentBuilder != null) {
-            String builderText = "Builder: " + game.currentBuilder.name;
             String spinnerFrame = getSpinnerFrame();
-            fontRenderer.drawStringWithShadow(spinnerFrame + " " + builderText, x, y, 0xFF55FFFF);
+            fontRenderer.drawStringWithShadow(spinnerFrame + " " + game.currentBuilder.name, x, y, 0xFF88FFFF);
             y += fontRenderer.FONT_HEIGHT + 4;
         }
 
-        // Players list
+        // Players section
         List<GameTracker.Player> sortedPlayers = getSortedPlayers(game);
         
-        fontRenderer.drawStringWithShadow("Players:", x, y, 0xFFFFFFFF);
+        // Players header with background
+        int playersStartY = y;
+        int playersHeight = (sortedPlayers.size() + 1) * (fontRenderer.FONT_HEIGHT + 1) + 4;
+        Gui.drawRect(x - 3, y - 2, x + maxWidth + 1, y + playersHeight, 0x40000000);
+        
+        fontRenderer.drawStringWithShadow("Players (" + sortedPlayers.size() + ")", x, y, 0xFFFFFFFF);
         y += fontRenderer.FONT_HEIGHT + 2;
 
         for (GameTracker.Player player : sortedPlayers) {
             String playerLine = renderPlayerLine(player, game);
             int color = getPlayerColor(player, game);
             
-            // Background for current user
+            // Enhanced background for current user
             if (player.isUser) {
-                int lineWidth = fontRenderer.getStringWidth(playerLine);
-                Gui.drawRect(x - 2, y - 1, x + lineWidth + 2, y + fontRenderer.FONT_HEIGHT + 1, 0x40555555);
+                Gui.drawRect(x - 1, y - 1, x + maxWidth - 2, y + fontRenderer.FONT_HEIGHT + 1, 0x60FFFF88);
+            }
+            
+            // Highlight builder with subtle background
+            if (player.equals(game.currentBuilder)) {
+                Gui.drawRect(x - 1, y - 1, x + maxWidth - 2, y + fontRenderer.FONT_HEIGHT + 1, 0x4088FFFF);
             }
             
             fontRenderer.drawStringWithShadow(playerLine, x, y, color);
@@ -124,12 +135,12 @@ public class CustomScoreboard {
     private String renderPlayerLine(GameTracker.Player player, GameTracker.Game game) {
         StringBuilder line = new StringBuilder();
         
-        // Status icon
+        // Better status icons
         if (player.leaverState == GameTracker.Player.LeaverState.LEAVER) {
             line.append("X ");
         } else if (player.leaverState == GameTracker.Player.LeaverState.POTENTIAL_LEAVER) {
             line.append("? ");
-        } else if (player.inactiveTicks > 3600) { // 3 minutes inactive
+        } else if (player.inactiveTicks > 3600) {
             line.append("o ");
         } else {
             line.append("* ");
@@ -138,11 +149,11 @@ public class CustomScoreboard {
         // Player name
         line.append(player.name);
         
-        // Points
+        // Points with better formatting
         int totalPoints = player.getTotalPoints();
         line.append(" (").append(totalPoints).append(")");
         
-        // Current round points
+        // Current round points with + symbol
         if (game.currentRound > 0 && game.currentRound <= player.points.length) {
             int currentRoundPoints = player.points[game.currentRound - 1];
             if (currentRoundPoints > 0) {
@@ -150,10 +161,7 @@ public class CustomScoreboard {
             }
         }
         
-        // Builder indicator
-        if (player.equals(game.currentBuilder)) {
-            line.append(" [B]");
-        }
+        // Builder indicator - removed since we show it with background color and spinner
         
         return line.toString();
     }
