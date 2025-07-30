@@ -15,7 +15,7 @@ import java.util.Comparator;
 import java.util.List;
 
 public class CustomScoreboard {
-    private static final String[] BUILDING_SPINNER = new String[] {"🔨", "🧱", "🏗️", "⚒️", "🔧", "🪚", "🏠", "🔩", "⛏️", "🧰"};
+    private static final String[] BUILDING_SPINNER = new String[] {"⠋", "⠙", "⠹", "⠸", "⠼", "⠴", "⠦", "⠧", "⠇", "⠏"};
     public static int tickCounter = 0;
     
     private GameTracker gameTracker;
@@ -82,13 +82,13 @@ public class CustomScoreboard {
 
         // Theme with prefix
         if (!game.currentTheme.isEmpty()) {
-            fontRenderer.drawStringWithShadow("🎯 " + game.currentTheme, x, y, 0xFF88FF88);
+            fontRenderer.drawStringWithShadow("> " + game.currentTheme, x, y, 0xFF88FF88);
             y += fontRenderer.FONT_HEIGHT + 3;
         }
 
         // Timer with symbol
         if (!game.currentTimer.isEmpty()) {
-            fontRenderer.drawStringWithShadow("⏰ " + game.currentTimer, x, y, 0xFFFFFF88);
+            fontRenderer.drawStringWithShadow("[T] " + game.currentTimer, x, y, 0xFFFFFF88);
             y += fontRenderer.FONT_HEIGHT + 3;
         }
 
@@ -140,13 +140,13 @@ public class CustomScoreboard {
         
         // Better status icons
         if (player.leaverState == GameTracker.Player.LeaverState.LEAVER) {
-            line.append("❌ ");
+            line.append("X ");
         } else if (player.leaverState == GameTracker.Player.LeaverState.POTENTIAL_LEAVER) {
-            line.append("❓ ");
+            line.append("? ");
         } else if (player.inactiveTicks > 3600) {
-            line.append("😴 ");
+            line.append("~ ");
         } else {
-            line.append("🟢 ");
+            line.append("+ ");
         }
         
         // Player name
