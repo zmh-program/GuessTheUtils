@@ -11,7 +11,6 @@ import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.scoreboard.Score;
 import net.minecraft.scoreboard.Scoreboard;
 import net.minecraft.scoreboard.ScoreObjective;
-import net.minecraft.scoreboard.Team;
 import net.minecraft.util.ChatComponentText;
 import net.minecraft.util.EnumChatFormatting;
 
@@ -332,24 +331,6 @@ public class Commands extends CommandBase {
                 }
             } else {
                 sendMessage(player, "Below Name: None");
-            }
-            
-            // Display teams information
-            Team playerTeam = scoreboard.getPlayersTeam(player.getName());
-            if (playerTeam != null) {
-                sendMessage(player, "Your team: " + playerTeam.getRegisteredName());
-                if (playerTeam.getMembershipCollection().size() > 1) {
-                    StringBuilder memberList = new StringBuilder();
-                    boolean first = true;
-                    for (Object member : playerTeam.getMembershipCollection()) {
-                        if (!first) memberList.append(", ");
-                        memberList.append(member.toString());
-                        first = false;
-                    }
-                    sendMessage(player, "  Members (" + playerTeam.getMembershipCollection().size() + "): " + memberList.toString());
-                }
-            } else {
-                sendMessage(player, "Your team: None");
             }
             
         } catch (Exception e) {

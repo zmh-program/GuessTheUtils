@@ -24,6 +24,14 @@ minecraft {
 
 sourceCompatibility = targetCompatibility = "1.8"
 
+tasks.withType(JavaCompile) {
+    options.encoding = 'UTF-8'
+}
+
+tasks.withType(Test) {
+    systemProperty "file.encoding", "UTF-8"
+}
+
 configurations {
     embed
     compile.extendsFrom embed
@@ -40,6 +48,8 @@ jar {
 processResources {
     inputs.property "version", project.version
     inputs.property "mcversion", project.minecraft.version
+    
+    filteringCharset = 'UTF-8'
 
     from(sourceSets.main.resources.srcDirs) {
         include 'mcmod.info'

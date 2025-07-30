@@ -127,7 +127,6 @@ public class GTBEvents {
     public void processTickUpdate(Tick tick) {
         currentTick = tick;
         emit(new TickUpdateEvent());
-
         if (tick.scoreboardLines != null) scoreboardLineHistory.add(tick.scoreboardLines);
         if (tick.playerListEntries != null) playerListEntryHistory.add(tick.playerListEntries);
 
