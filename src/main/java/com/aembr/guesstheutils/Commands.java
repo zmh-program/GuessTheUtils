@@ -62,6 +62,13 @@ public class Commands extends CommandBase {
                 sendMessage(player, "Builder Notification: " + getStatus(GuessTheUtilsConfig.enableBuilderNotification));
                 
                 sendMessage(player, "");
+                sendMessage(player, "=== Game Detection ===");
+                boolean inGtb = GuessTheUtils.events.isInGtb();
+                sendMessage(player, "In Guess The Build: " + (inGtb ? 
+                    EnumChatFormatting.GREEN + "Yes" : 
+                    EnumChatFormatting.RED + "No"));
+                
+                sendMessage(player, "");
                 sendMessage(player, "=== Vanilla Scoreboard Info ===");
                 showVanillaScoreboardInfo(player);
                 break;
@@ -275,6 +282,8 @@ public class Commands extends CommandBase {
     private String getStatus(boolean enabled) {
         return enabled ? EnumChatFormatting.GREEN + "Enabled" : EnumChatFormatting.RED + "Disabled";
     }
+    
+
     
     private String getScoreboardLineText(Scoreboard scoreboard, String playerName, int scorePoints) {
         try {

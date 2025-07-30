@@ -1,6 +1,8 @@
 package com.aembr.guesstheutils;
 
 import net.minecraft.client.Minecraft;
+import net.minecraft.scoreboard.Scoreboard;
+import net.minecraft.scoreboard.ScoreObjective;
 import net.minecraft.util.EnumChatFormatting;
 
 import java.util.*;
@@ -452,6 +454,30 @@ public class GTBEvents {
     }
 
     public boolean isInGtb() {
-        return true; // Simplified for MC 1.8.9
+        try {
+            Minecraft mc = Minecraft.getMinecraft();
+            if (mc.theWorld == null) {
+                return false;
+            }
+            
+            Scoreboard scoreboard = mc.theWorld.getScoreboard();
+            if (scoreboard == null) {
+                return false;
+            }
+            
+            // Check sidebar scoreboard (slot 1)
+            ScoreObjective sidebarObjective = scoreboard.getObjectiveInDisplaySlot(1);
+            if (sidebarObjective != null) {
+                String displayName = sidebarObjective.getDisplayName();
+                if (displayName != null) {
+                    // Check if sidebar title contains "Guess The Build" (case insensitive)
+                    return displayName.toLowerCase().contains("guess the build");
+                }
+            }
+            
+            return false;
+        } catch (Exception e) {
+            return false;
+        }
     }
 } 
