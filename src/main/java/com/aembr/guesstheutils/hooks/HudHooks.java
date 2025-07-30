@@ -17,62 +17,48 @@ public class HudHooks {
     private static ScoreObjective savedObjective = null;
     private static ScoreObjective sidebarObjectiveBackup = null;
     
+    // For Hypixel compatibility - use render-time interception instead of data clearing
+    private static boolean isRenderingCustom = false;
+    
     @SubscribeEvent
     public void onRenderGameOverlay(RenderGameOverlayEvent.Pre event) {
         // Handle vanilla scoreboard hiding when our custom one is active
         if (com.aembr.guesstheutils.modules.CustomScoreboard.isRendering()) {
+            isRenderingCustom = true;
             
             // For MC 1.8.9, we need to intercept the TEXT element which renders the scoreboard
             if (event.type == RenderGameOverlayEvent.ElementType.TEXT) {
-                // More aggressive approach: cancel the entire TEXT event to prevent vanilla scoreboard rendering
-                Minecraft mc = Minecraft.getMinecraft();
-                if (mc.thePlayer != null && mc.theWorld != null) {
-                    ScoreObjective objective = mc.theWorld.getScoreboard().getObjectiveInDisplaySlot(1);
-                    if (objective != null) {
-                        // Temporarily clear the sidebar objective during text rendering
-                        disableVanillaScoreboard();
-                        
-                        // Cancel the event to prevent vanilla scoreboard from rendering
-                        // This is more effective than just clearing objectives since server can restore them
-                        event.setCanceled(true);
-                        return;
-                    }
-                }
+                // Temporarily hide vanilla scoreboard only during this exact render frame
+                temporarilyHideVanillaScoreboard();
             }
             
-            // Also disable during player list rendering to prevent any potential sidebar display there
+            // Also hide during player list rendering
             if (event.type == RenderGameOverlayEvent.ElementType.PLAYER_LIST) {
-                Minecraft mc = Minecraft.getMinecraft();
-                if (mc.thePlayer != null && mc.theWorld != null) {
-                    ScoreObjective objective = mc.theWorld.getScoreboard().getObjectiveInDisplaySlot(1);
-                    if (objective != null) {
-                        event.setCanceled(true);
-                        return;
-                    }
-                }
+                temporarilyHideVanillaScoreboard();
             }
+        } else {
+            isRenderingCustom = false;
         }
     }
     
     @SubscribeEvent
     public void onRenderGameOverlay(RenderGameOverlayEvent.Post event) {
+        // Immediately restore any temporarily hidden scoreboard elements after each render type
+        if (isRenderingCustom && (event.type == RenderGameOverlayEvent.ElementType.TEXT || 
+                                 event.type == RenderGameOverlayEvent.ElementType.PLAYER_LIST)) {
+            restoreTemporaryHidden();
+        }
+        
         if (event.type != RenderGameOverlayEvent.ElementType.ALL) return;
         
         Minecraft mc = Minecraft.getMinecraft();
         if (mc.currentScreen != null) return;
         
-        // Additional safety check: ensure vanilla scoreboard stays hidden during custom rendering
-        if (com.aembr.guesstheutils.modules.CustomScoreboard.isRendering()) {
-            // Final pass to ensure vanilla scoreboard is hidden
-            // This catches any server packets that might have restored it between Pre and Post events
-            ensureVanillaScoreboardHidden();
-        }
-        
         // Render custom scoreboard if enabled
         if (GuessTheUtils.gameTracker != null && GuessTheUtils.gameTracker.scoreboard != null) {
             GuessTheUtils.gameTracker.scoreboard.render();
-        } else {
-            // Restore vanilla scoreboard if custom one is not active
+        } else if (!isRenderingCustom) {
+            // Only restore vanilla scoreboard if we're not rendering custom one
             restoreVanillaScoreboard();
         }
         
@@ -80,17 +66,22 @@ public class HudHooks {
         if (GuessTheUtils.chatCooldown != null) {
             GuessTheUtils.chatCooldown.render();
         }
+        
+        // Reset the rendering flag
+        isRenderingCustom = false;
     }
     
+
+    
     /**
-     * Disables vanilla scoreboard by clearing the overlay objective
-     * Enhanced for third-party servers where objectives may be restored by server packets
+     * Temporarily hides vanilla scoreboard for this exact render frame only
+     * Designed for Hypixel compatibility - no data persistence issues
      */
-    private void disableVanillaScoreboard() {
+    private void temporarilyHideVanillaScoreboard() {
         try {
             Minecraft mc = Minecraft.getMinecraft();
             
-            // Method 1: Try to clear GUI field (most reliable method)
+            // Method 1: Temporarily clear GUI overlay objective
             if (!fieldInitialized) {
                 initializeScoreboardField();
             }
@@ -99,72 +90,61 @@ public class HudHooks {
                 overlayObjectiveField.setAccessible(true);
                 GuiIngame gui = mc.ingameGUI;
                 
-                // Always clear the overlay objective, even if already cleared
-                // This ensures it stays cleared even if server packets restore it
-                ScoreObjective currentObjective = (ScoreObjective) overlayObjectiveField.get(gui);
-                if (currentObjective != null) {
-                    // Save for restoration only if we haven't saved one yet
-                    if (savedObjective == null) {
-                        savedObjective = currentObjective;
-                    }
-                    overlayObjectiveField.set(gui, null);
+                // Only save if we haven't already
+                if (savedObjective == null) {
+                    savedObjective = (ScoreObjective) overlayObjectiveField.get(gui);
                 }
+                
+                // Temporarily clear for this render frame
+                overlayObjectiveField.set(gui, null);
             }
             
-            // Method 2: Clear sidebar objective from world scoreboard
-            // Apply every time to counter server packet updates
+            // Method 2: Temporarily clear world scoreboard sidebar
             if (mc.theWorld != null) {
                 Scoreboard worldScoreboard = mc.theWorld.getScoreboard();
                 if (worldScoreboard != null) {
-                    ScoreObjective currentSidebarObjective = worldScoreboard.getObjectiveInDisplaySlot(1);
-                    if (currentSidebarObjective != null) {
-                        // Save for restoration only if we haven't saved one yet
-                        if (sidebarObjectiveBackup == null) {
-                            sidebarObjectiveBackup = currentSidebarObjective;
-                        }
-                        // Always clear it to counter server updates
+                    if (sidebarObjectiveBackup == null) {
+                        sidebarObjectiveBackup = worldScoreboard.getObjectiveInDisplaySlot(1);
+                    }
+                    if (sidebarObjectiveBackup != null) {
                         worldScoreboard.setObjectiveInDisplaySlot(1, null);
                     }
                 }
             }
             
         } catch (Exception e) {
-            GuessTheUtils.LOGGER.error("Failed to disable vanilla scoreboard", e);
+            // Silent fail to avoid log spam
         }
     }
     
     /**
-     * Ensures vanilla scoreboard stays hidden by quickly clearing any restored objectives
-     * Used as a safety net against server packet interference
+     * Immediately restores temporarily hidden scoreboard elements
+     * Called after each render frame to prevent persistence issues
      */
-    private void ensureVanillaScoreboardHidden() {
+    private void restoreTemporaryHidden() {
         try {
             Minecraft mc = Minecraft.getMinecraft();
             
-            // Quick check and clear GUI overlay objective if present
-            if (overlayObjectiveField != null) {
+            // Restore GUI overlay objective
+            if (overlayObjectiveField != null && savedObjective != null) {
                 overlayObjectiveField.setAccessible(true);
-                ScoreObjective currentObjective = (ScoreObjective) overlayObjectiveField.get(mc.ingameGUI);
-                if (currentObjective != null) {
-                    overlayObjectiveField.set(mc.ingameGUI, null);
-                }
+                overlayObjectiveField.set(mc.ingameGUI, savedObjective);
             }
             
-            // Quick check and clear world scoreboard sidebar if present
-            if (mc.theWorld != null) {
+            // Restore world scoreboard sidebar
+            if (mc.theWorld != null && sidebarObjectiveBackup != null) {
                 Scoreboard worldScoreboard = mc.theWorld.getScoreboard();
                 if (worldScoreboard != null) {
-                    ScoreObjective sidebarObjective = worldScoreboard.getObjectiveInDisplaySlot(1);
-                    if (sidebarObjective != null) {
-                        worldScoreboard.setObjectiveInDisplaySlot(1, null);
-                    }
+                    worldScoreboard.setObjectiveInDisplaySlot(1, sidebarObjectiveBackup);
                 }
             }
             
         } catch (Exception e) {
-            // Silent fail to avoid spam in logs since this is called frequently
+            // Silent fail to avoid log spam
         }
     }
+    
+
     
     /**
      * Restores vanilla scoreboard by setting back the saved objective

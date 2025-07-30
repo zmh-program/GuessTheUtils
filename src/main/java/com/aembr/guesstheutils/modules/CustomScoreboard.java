@@ -27,15 +27,43 @@ public class CustomScoreboard {
     }
 
     public static boolean isRendering() {
-        return GuessTheUtils.gameTracker != null && GuessTheUtils.gameTracker.game != null 
-                && GuessTheUtils.events.isInGtb() && GuessTheUtilsConfig.enableCustomScoreboard;
+        // Check if custom scoreboard should be active
+        if (!GuessTheUtilsConfig.enableCustomScoreboard) {
+            return false;
+        }
+        
+        // We need gameTracker to exist
+        if (GuessTheUtils.gameTracker == null) {
+            return false;
+        }
+        
+        // Check if we're in GTB
+        boolean inGtb = GuessTheUtils.events.isInGtb();
+        if (!inGtb) {
+            return false;
+        }
+        
+        // If we have a game object, definitely render
+        if (GuessTheUtils.gameTracker.game != null) {
+            return true;
+        }
+        
+        // Even if we don't have a game object yet, if we're in GTB, 
+        // we should still try to render to hide vanilla scoreboard
+        // This prevents vanilla scoreboard from showing during game start delay
+        return true;
     }
 
     public void render() {
         if (!isRendering() || mc.currentScreen != null) return;
 
         GameTracker.Game game = gameTracker.game;
-        if (game == null) return;
+        
+        // If no game object yet, show a simple "Waiting for game..." message
+        if (game == null) {
+            renderWaitingMessage();
+            return;
+        }
 
         tickCounter++;
         
@@ -231,5 +259,39 @@ public class CustomScoreboard {
             case "TRANSITIONING": return "Next Round";
             default: return stateName.replace("_", " ");
         }
+    }
+    
+    private void renderWaitingMessage() {
+        tickCounter++;
+        
+        ScaledResolution scaledRes = new ScaledResolution(mc);
+        int screenWidth = scaledRes.getScaledWidth();
+        int screenHeight = scaledRes.getScaledHeight();
+
+        FontRenderer fontRenderer = mc.fontRendererObj;
+
+        // Calculate position
+        int maxWidth = 110;
+        int x = screenWidth - maxWidth - 8;
+        int y = 20;
+        int padding = 3;
+
+        GlStateManager.pushMatrix();
+        GlStateManager.enableBlend();
+
+        // Simple waiting message
+        String spinnerFrame = getSpinnerFrame();
+        String waitingText = spinnerFrame + " Waiting for game...";
+        
+        int textHeight = fontRenderer.FONT_HEIGHT + 6;
+        
+        // Draw background
+        Gui.drawRect(x - padding, y - 2, x + maxWidth, y + textHeight, 0x50000000);
+        
+        // Draw text
+        fontRenderer.drawStringWithShadow(waitingText, x, y + 2, 0xFF88CCFF);
+
+        GlStateManager.disableBlend();
+        GlStateManager.popMatrix();
     }
 }
