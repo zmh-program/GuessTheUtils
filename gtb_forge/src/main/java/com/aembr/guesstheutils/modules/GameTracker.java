@@ -121,20 +121,20 @@ public class GameTracker extends GTBEvents.Module {
         return GTBEvents.Module.ErrorAction.LOG_AND_CONTINUE;
     }
 
-    static class Player {
-        enum LeaverState { NORMAL, POTENTIAL_LEAVER, LEAVER }
-        String name;
-        EnumChatFormatting rank;
-        String title;
-        String emblem;
-        int[] points;
-        int buildRound;
-        boolean isUser;
-        int scoreMismatchCounter = 0;
-        int inactiveTicks = 0;
-        LeaverState leaverState = LeaverState.NORMAL;
+    public static class Player {
+        public enum LeaverState { NORMAL, POTENTIAL_LEAVER, LEAVER }
+        public String name;
+        public EnumChatFormatting rank;
+        public String title;
+        public String emblem;
+        public int[] points;
+        public int buildRound;
+        public boolean isUser;
+        public int scoreMismatchCounter = 0;
+        public int inactiveTicks = 0;
+        public LeaverState leaverState = LeaverState.NORMAL;
 
-        Player(String name, String rankColor, String title, String emblem, boolean isUser) {
+        public Player(String name, String rankColor, String title, String emblem, boolean isUser) {
             this.name = name;
             this.rank = EnumChatFormatting.getValueByName(rankColor.toLowerCase());
             if (this.rank == null) this.rank = EnumChatFormatting.WHITE;
@@ -143,6 +143,11 @@ public class GameTracker extends GTBEvents.Module {
             this.isUser = isUser;
             this.points = new int[]{0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
             this.buildRound = 0;
+        }
+        
+        // Simplified constructor for testing
+        public Player(String name) {
+            this(name, "white", "", "", false);
         }
 
         int getTotalPoints() {
@@ -174,20 +179,20 @@ public class GameTracker extends GTBEvents.Module {
         }
     }
 
-    static class Game {
+    public static class Game {
         GameTracker tracker;
-        Set<Player> players;
+        public Set<Player> players;
 
-        int currentRound = 0;
-        int totalRounds;
-        int skippedRounds = 0;
-        int potentialLeaverAmount = 0;
-        boolean userRoundSkipped = false;
+        public int currentRound = 0;
+        public int totalRounds;
+        public int skippedRounds = 0;
+        public int potentialLeaverAmount = 0;
+        public boolean userRoundSkipped = false;
 
-        String currentTheme = "";
-        String currentTimer = "";
-        Player currentBuilder = null;
-        int correctGuessesThisRound = 0;
+        public String currentTheme = "";
+        public String currentTimer = "";
+        public Player currentBuilder = null;
+        public int correctGuessesThisRound = 0;
         boolean oneSecondAlertReached = false;
 
         List<Utils.Pair<Player, Integer>> latestTrueScore;
@@ -200,6 +205,11 @@ public class GameTracker extends GTBEvents.Module {
             this.tracker = tracker;
             this.players = players;
             this.totalRounds = players.size();
+        }
+        
+        // Constructor for testing
+        public Game() {
+            this.players = new java.util.HashSet<>();
         }
 
         public void onBuilderChange(String builderName) {
