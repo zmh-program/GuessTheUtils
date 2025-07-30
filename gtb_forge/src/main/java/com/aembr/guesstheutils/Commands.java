@@ -52,7 +52,6 @@ public class Commands extends CommandBase {
                 sendMessage(player, "Game Tracker: " + getStatus(GuessTheUtilsConfig.enableGameTracker));
                 sendMessage(player, "Custom Scoreboard: " + getStatus(GuessTheUtilsConfig.enableCustomScoreboard));
                 sendMessage(player, "Chat Cooldown: " + getStatus(GuessTheUtilsConfig.enableChatCooldownTimer));
-                sendMessage(player, "Name Autocomplete: " + getStatus(GuessTheUtilsConfig.enableNameAutocomplete));
                 sendMessage(player, "Shortcut Reminder: " + getStatus(GuessTheUtilsConfig.enableShortcutReminder));
                 sendMessage(player, "Builder Notification: " + getStatus(GuessTheUtilsConfig.enableBuilderNotification));
                 break;
@@ -96,10 +95,6 @@ public class Commands extends CommandBase {
                 GuessTheUtilsConfig.enableChatCooldownTimer = !GuessTheUtilsConfig.enableChatCooldownTimer;
                 sendMessage(player, "Chat Cooldown: " + getStatus(GuessTheUtilsConfig.enableChatCooldownTimer));
                 break;
-            case "nameautocomplete":
-                GuessTheUtilsConfig.enableNameAutocomplete = !GuessTheUtilsConfig.enableNameAutocomplete;
-                sendMessage(player, "Name Autocomplete: " + getStatus(GuessTheUtilsConfig.enableNameAutocomplete));
-                break;
             case "shortcutreminder":
                 GuessTheUtilsConfig.enableShortcutReminder = !GuessTheUtilsConfig.enableShortcutReminder;
                 sendMessage(player, "Shortcut Reminder: " + getStatus(GuessTheUtilsConfig.enableShortcutReminder));
@@ -110,7 +105,7 @@ public class Commands extends CommandBase {
                 break;
             default:
                 sendMessage(player, "Unknown module: " + module);
-                sendMessage(player, "Available modules: gametracker, scoreboard, chatcooldown, nameautocomplete, shortcutreminder, buildernotification");
+                sendMessage(player, "Available modules: gametracker, scoreboard, chatcooldown, shortcutreminder, buildernotification");
                 break;
         }
     }

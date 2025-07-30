@@ -36,7 +36,6 @@ public class GuessTheUtils {
     public static GTBEvents events = new GTBEvents();
 
     public static GameTracker gameTracker = new GameTracker(events);
-    public static NameAutocomplete nameAutocomplete = new NameAutocomplete(events);
     public static ShortcutReminder shortcutReminder = new ShortcutReminder(events);
     public static BuilderNotification builderNotification = new BuilderNotification(events);
     public static ChatCooldownTimer chatCooldown = new ChatCooldownTimer(events);

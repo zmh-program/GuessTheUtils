@@ -14,7 +14,6 @@ public class GuessTheUtilsConfig {
     public static boolean enableGameTracker = true;
     public static boolean enableCustomScoreboard = true;
     public static boolean enableChatCooldownTimer = true;
-    public static boolean enableNameAutocomplete = true;
     public static boolean enableShortcutReminder = true;
     public static boolean enableBuilderNotification = true;
     
@@ -37,8 +36,6 @@ public class GuessTheUtilsConfig {
                 "Enable custom scoreboard display");
             enableChatCooldownTimer = config.getBoolean("enableChatCooldownTimer", "modules", true, 
                 "Enable chat cooldown timer display");
-            enableNameAutocomplete = config.getBoolean("enableNameAutocomplete", "modules", true, 
-                "Enable name autocompletion");
             enableShortcutReminder = config.getBoolean("enableShortcutReminder", "modules", true, 
                 "Enable shortcut reminder system");
             enableBuilderNotification = config.getBoolean("enableBuilderNotification", "modules", true, 
