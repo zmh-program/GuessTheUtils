@@ -281,46 +281,18 @@ public class Commands extends CommandBase {
             net.minecraft.scoreboard.Team team = scoreboard.getPlayersTeam(playerName);
             
             if (team != null) {
-                // Try to get team prefix/suffix using known 1.8.9 method names
-                String prefix = "";
-                String suffix = "";
-                
-                try {
-                    // Get prefix and suffix using known 1.8.9 method names
-                    java.lang.reflect.Method[] methods = team.getClass().getMethods();
-                    
-                    for (java.lang.reflect.Method method : methods) {
-                        if (method.getParameterCount() == 0 && method.getReturnType() == String.class) {
-                            String name = method.getName();
-                            try {
-                                Object result = method.invoke(team);
-                                if (result instanceof String) {
-                                    String resultStr = (String) result;
-                                    
-                                    // func_96668_e is the prefix in Hypixel
-                                    if (name.equals("func_96668_e") && !resultStr.isEmpty()) {
-                                        prefix = resultStr;
-                                    }
-                                    // func_96663_f is the suffix in Hypixel
-                                    else if (name.equals("func_96663_f") && !resultStr.isEmpty()) {
-                                        suffix = resultStr;
-                                    }
-                                }
-                            } catch (Exception ignored) {}
-                        }
-                    }
-                } catch (Exception ignored) {}
+                TeamTextInfo textInfo = getTeamTextInfo(team);
                 
                 // Construct the full display text
                 StringBuilder displayText = new StringBuilder();
-                if (prefix != null && !prefix.isEmpty()) {
-                    displayText.append(prefix);
+                if (textInfo.prefix != null && !textInfo.prefix.isEmpty()) {
+                    displayText.append(textInfo.prefix);
                 }
                 if (playerName != null && !playerName.isEmpty()) {
                     displayText.append(playerName);
                 }
-                if (suffix != null && !suffix.isEmpty()) {
-                    displayText.append(suffix);
+                if (textInfo.suffix != null && !textInfo.suffix.isEmpty()) {
+                    displayText.append(textInfo.suffix);
                 }
                 
                 String finalText = displayText.toString();
@@ -340,6 +312,49 @@ public class Commands extends CommandBase {
         } catch (Exception e) {
             return (playerName == null ? "[NULL]" : playerName) + ": " + scorePoints;
         }
+    }
+    
+    private static class TeamTextInfo {
+        public String prefix = "";
+        public String suffix = "";
+        
+        public TeamTextInfo(String prefix, String suffix) {
+            this.prefix = prefix != null ? prefix : "";
+            this.suffix = suffix != null ? suffix : "";
+        }
+    }
+    
+    private TeamTextInfo getTeamTextInfo(net.minecraft.scoreboard.Team team) {
+        String prefix = "";
+        String suffix = "";
+        
+        try {
+            // Get prefix and suffix using known 1.8.9 method names
+            java.lang.reflect.Method[] methods = team.getClass().getMethods();
+            
+            for (java.lang.reflect.Method method : methods) {
+                if (method.getParameterCount() == 0 && method.getReturnType() == String.class) {
+                    String name = method.getName();
+                    try {
+                        Object result = method.invoke(team);
+                        if (result instanceof String) {
+                            String resultStr = (String) result;
+                            
+                            // func_96668_e is the prefix in Hypixel (1.8.9)
+                            if (name.equals("func_96668_e") && !resultStr.isEmpty()) {
+                                prefix = resultStr;
+                            }
+                            // func_96663_f is the suffix in Hypixel (1.8.9)  
+                            else if (name.equals("func_96663_f") && !resultStr.isEmpty()) {
+                                suffix = resultStr;
+                            }
+                        }
+                    } catch (Exception ignored) {}
+                }
+            }
+        } catch (Exception ignored) {}
+        
+        return new TeamTextInfo(prefix, suffix);
     }
     
 
