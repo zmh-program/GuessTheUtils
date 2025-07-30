@@ -1,6 +1,7 @@
 package com.aembr.guesstheutils;
 
 import com.aembr.guesstheutils.config.GuessTheUtilsConfig;
+import com.aembr.guesstheutils.modules.BuilderNotification;
 import net.minecraft.command.CommandBase;
 import net.minecraft.command.CommandException;
 import net.minecraft.command.ICommandSender;
@@ -17,7 +18,7 @@ public class Commands extends CommandBase {
     
     @Override
     public String getCommandUsage(ICommandSender sender) {
-        return "/gtu [reload|status|toggle|replay|livetest]";
+        return "/gtu [reload|status|toggle|replay|livetest|test]";
     }
     
     @Override
@@ -34,7 +35,7 @@ public class Commands extends CommandBase {
         if (args.length == 0) {
             sendMessage(player, "GuessTheUtils v" + GuessTheUtils.VERSION);
             sendMessage(player, "Use /gtu status to see module status");
-            sendMessage(player, "Available commands: reload, status, toggle, replay, livetest");
+            sendMessage(player, "Available commands: reload, status, toggle, replay, livetest, test");
             return;
         }
         
@@ -75,6 +76,15 @@ public class Commands extends CommandBase {
                 sendMessage(player, "Live testing: " + (GuessTheUtils.testing ? "Enabled" : "Disabled"));
                 break;
                 
+            case "test":
+                if (args.length < 2) {
+                    sendMessage(player, "Usage: /gtu test <module>");
+                    sendMessage(player, "Available tests: cooldown, shortcut, notification");
+                    return;
+                }
+                runTest(player, args[1]);
+                break;
+                
             default:
                 sendMessage(player, "Unknown command. Use /gtu for help.");
                 break;
@@ -108,6 +118,73 @@ public class Commands extends CommandBase {
                 sendMessage(player, "Available modules: gametracker, scoreboard, chatcooldown, shortcutreminder, buildernotification");
                 break;
         }
+    }
+    
+    private void runTest(EntityPlayer player, String testType) {
+        switch (testType.toLowerCase()) {
+            case "cooldown":
+                testCooldown(player);
+                break;
+            case "shortcut":
+                testShortcut(player);
+                break;
+            case "notification":
+                testNotification(player);
+                break;
+            default:
+                sendMessage(player, "Unknown test: " + testType);
+                sendMessage(player, "Available tests: cooldown, shortcut, notification");
+                break;
+        }
+    }
+    
+    private void testCooldown(EntityPlayer player) {
+        if (!GuessTheUtilsConfig.enableChatCooldownTimer) {
+            sendMessage(player, "Chat Cooldown Timer is disabled. Enable it first with: /gtu toggle chatcooldown");
+            return;
+        }
+        
+        sendMessage(player, "Testing Chat Cooldown Timer...");
+        
+        GuessTheUtils.chatCooldown.enable();
+        sendMessage(player, "Cooldown timer enabled - check the screen for timer display");
+        
+        new Thread(() -> {
+            try {
+                Thread.sleep(3000);
+                GuessTheUtils.chatCooldown.disable();
+                player.addChatMessage(new ChatComponentText("[GTU] Cooldown timer disabled"));
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+        }).start();
+    }
+    
+    private void testShortcut(EntityPlayer player) {
+        if (!GuessTheUtilsConfig.enableShortcutReminder) {
+            sendMessage(player, "Shortcut Reminder is disabled. Enable it first with: /gtu toggle shortcutreminder");
+            return;
+        }
+        
+        sendMessage(player, "Testing Shortcut Reminder...");
+        sendMessage(player, "Simulating theme update with 'trash can'");
+        
+        GTBEvents.ThemeUpdateEvent testEvent = new GTBEvents.ThemeUpdateEvent("trash can");
+        GuessTheUtils.shortcutReminder.onThemeUpdate(testEvent);
+        sendMessage(player, "Theme update sent - check for shortcut reminders in chat");
+    }
+    
+    private void testNotification(EntityPlayer player) {
+        if (!GuessTheUtilsConfig.enableBuilderNotification) {
+            sendMessage(player, "Builder Notification is disabled. Enable it first with: /gtu toggle buildernotification");
+            return;
+        }
+        
+        sendMessage(player, "Testing Builder Notification...");
+        sendMessage(player, "Sending test notification - you should receive a system notification");
+        
+        BuilderNotification.NotificationUtil.sendNotification("Guess the Build Test", "This is a test notification from GuessTheUtils!");
+        sendMessage(player, "Test notification sent - check for system notification");
     }
     
     private String getStatus(boolean enabled) {
