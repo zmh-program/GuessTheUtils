@@ -18,6 +18,8 @@ import org.apache.logging.log4j.Logger;
 import java.util.ArrayList;
 import java.util.List;
 
+import net.minecraft.client.gui.GuiScreen;
+
 @Mod(modid = GuessTheUtils.MOD_ID, name = GuessTheUtils.MOD_NAME, version = GuessTheUtils.VERSION, clientSideOnly = true)
 public class GuessTheUtils {
     public static final String MOD_ID = "guesstheutils";
@@ -106,6 +108,11 @@ public class GuessTheUtils {
         // Register HUD hooks for rendering
         net.minecraftforge.common.MinecraftForge.EVENT_BUS.register(new HudHooks());
         LOGGER.info("Registered HudHooks for rendering events");
+        
+        // Register chat interceptor for chat cooldown
+        net.minecraftforge.common.MinecraftForge.EVENT_BUS.register(new ChatInterceptor());
+        ChatInterceptor.init();
+        LOGGER.info("Registered ChatInterceptor for chat message interception");
         
         // Enable chat cooldown for testing (normally enabled by game events)
         if (chatCooldown != null) {
