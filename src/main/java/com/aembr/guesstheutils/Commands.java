@@ -23,7 +23,7 @@ public class Commands extends CommandBase {
     
     @Override
     public String getCommandUsage(ICommandSender sender) {
-        return "/gtu [reload|status|toggle|replay|livetest|test]";
+        return "/gtu [reload|status|debug|toggle|replay|livetest|test]";
     }
     
     @Override
@@ -40,7 +40,7 @@ public class Commands extends CommandBase {
         if (args.length == 0) {
             sendMessage(player, "GuessTheUtils v" + GuessTheUtils.VERSION);
             sendMessage(player, "Use /gtu status to see module status");
-            sendMessage(player, "Available commands: reload, status, toggle, replay, livetest, test");
+            sendMessage(player, "Available commands: reload, status, debug, toggle, replay, livetest, test");
             return;
         }
         
@@ -54,20 +54,20 @@ public class Commands extends CommandBase {
                 break;
                 
             case "status":
-                sendMessage(player, "=== GuessTheUtils Status ===");
                 sendMessage(player, "Game Tracker: " + getStatus(GuessTheUtilsConfig.enableGameTracker));
                 sendMessage(player, "Custom Scoreboard: " + getStatus(GuessTheUtilsConfig.enableCustomScoreboard));
                 sendMessage(player, "Chat Cooldown: " + getStatus(GuessTheUtilsConfig.enableChatCooldownTimer));
                 sendMessage(player, "Shortcut Reminder: " + getStatus(GuessTheUtilsConfig.enableShortcutReminder));
                 sendMessage(player, "Builder Notification: " + getStatus(GuessTheUtilsConfig.enableBuilderNotification));
+                break;
                 
-                sendMessage(player, "");
+            case "debug":
                 sendMessage(player, "=== Game Detection ===");
                 boolean inGtb = GuessTheUtils.events.isInGtb();
                 sendMessage(player, "In Guess The Build: " + (inGtb ? 
                     EnumChatFormatting.GREEN + "Yes" : 
                     EnumChatFormatting.RED + "No"));
-                
+            
                 sendMessage(player, "");
                 sendMessage(player, "=== Vanilla Scoreboard Info ===");
                 showVanillaScoreboardInfo(player);
@@ -210,6 +210,11 @@ public class Commands extends CommandBase {
     private void testScoreboard(EntityPlayer player) {
         if (!GuessTheUtilsConfig.enableCustomScoreboard) {
             sendMessage(player, "Custom Scoreboard is disabled. Enable it first with: /gtu toggle scoreboard");
+            return;
+        }
+
+        if (!GuessTheUtils.events.isInGtb()) {
+            sendMessage(player, "You are not in Guess The Build, so the scoreboard will not be visible.");
             return;
         }
         
