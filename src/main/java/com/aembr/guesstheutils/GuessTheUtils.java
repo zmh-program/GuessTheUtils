@@ -109,6 +109,10 @@ public class GuessTheUtils {
         net.minecraftforge.common.MinecraftForge.EVENT_BUS.register(new HudHooks());
         LOGGER.info("Registered HudHooks for rendering events");
         
+        // Register scoreboard interceptor for direct scoreboard modification
+        net.minecraftforge.common.MinecraftForge.EVENT_BUS.register(new com.aembr.guesstheutils.modules.ScoreboardInterceptor());
+        LOGGER.info("Registered ScoreboardInterceptor for scoreboard content modification");
+        
         // Register chat interceptor for chat cooldown
         net.minecraftforge.common.MinecraftForge.EVENT_BUS.register(new ChatInterceptor());
         ChatInterceptor.init();

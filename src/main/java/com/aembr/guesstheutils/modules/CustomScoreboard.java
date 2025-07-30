@@ -55,112 +55,9 @@ public class CustomScoreboard {
     }
 
     public void render() {
-        if (!isRendering() || mc.currentScreen != null) return;
-
-        GameTracker.Game game = gameTracker.game;
-        
-        // If no game object yet, show a simple "Waiting for game..." message
-        if (game == null) {
-            renderWaitingMessage();
-            return;
-        }
-
-        tickCounter++;
-        
-        ScaledResolution scaledRes = new ScaledResolution(mc);
-        int screenWidth = scaledRes.getScaledWidth();
-        int screenHeight = scaledRes.getScaledHeight();
-
-        FontRenderer fontRenderer = mc.fontRendererObj;
-
-        // Calculate scoreboard position
-        int maxWidth = 110;
-        int x = screenWidth - maxWidth - 8;
-        int y = 20;
-        int padding = 3;
-
-        GlStateManager.pushMatrix();
-        GlStateManager.enableBlend();
-
-        // Main info section with background
-        int startY = y;
-        int infoHeight = 0;
-        
-        // Calculate total height needed for info section with proper spacing
-        infoHeight += fontRenderer.FONT_HEIGHT + 3; // State
-        if (game.currentRound > 0) infoHeight += fontRenderer.FONT_HEIGHT + 3; // Round
-        if (!game.currentTheme.isEmpty()) infoHeight += fontRenderer.FONT_HEIGHT + 3; // Theme
-        if (!game.currentTimer.isEmpty()) infoHeight += fontRenderer.FONT_HEIGHT + 3; // Timer
-        if (game.currentBuilder != null) infoHeight += fontRenderer.FONT_HEIGHT + 5; // Builder
-        
-        // Draw info background with vanilla alpha
-        Gui.drawRect(x - padding, y - 2, x + maxWidth, y + infoHeight + 1, 0x50000000);
-        
-        // Game state - simplified display with better formatting
-        String stateText = formatStateName(GameTracker.state.name());
-        fontRenderer.drawStringWithShadow(stateText, x, y, 0xFF88CCFF);
-        y += fontRenderer.FONT_HEIGHT + 3;
-
-        // Round info with better formatting
-        if (game.currentRound > 0) {
-            String roundText = "Round " + game.currentRound + "/" + game.totalRounds;
-            fontRenderer.drawStringWithShadow(roundText, x, y, 0xFFFFDD88);
-            y += fontRenderer.FONT_HEIGHT + 3;
-        }
-
-        // Theme with prefix
-        if (!game.currentTheme.isEmpty()) {
-            fontRenderer.drawStringWithShadow("> " + game.currentTheme, x, y, 0xFF88FF88);
-            y += fontRenderer.FONT_HEIGHT + 3;
-        }
-
-        // Timer with symbol
-        if (!game.currentTimer.isEmpty()) {
-            fontRenderer.drawStringWithShadow("[T] " + game.currentTimer, x, y, 0xFFFFFF88);
-            y += fontRenderer.FONT_HEIGHT + 3;
-        }
-
-        // Current builder with spinner
-        if (game.currentBuilder != null) {
-            String spinnerFrame = getSpinnerFrame();
-            fontRenderer.drawStringWithShadow(spinnerFrame + " " + game.currentBuilder.name, x, y, 0xFF88FFFF);
-            y += fontRenderer.FONT_HEIGHT + 5;
-        }
-
-        // Gap between cards for professional look
-        y += 6;
-
-        // Players section
-        List<GameTracker.Player> sortedPlayers = getSortedPlayers(game);
-        
-        // Players header with background - proper spacing calculation
-        int playersStartY = y;
-        int playersHeight = (fontRenderer.FONT_HEIGHT + 4) + (sortedPlayers.size() * (fontRenderer.FONT_HEIGHT + 3)) + 2;
-        Gui.drawRect(x - padding, y - 2, x + maxWidth, y + playersHeight, 0x50000000);
-        
-        fontRenderer.drawStringWithShadow("Players (" + sortedPlayers.size() + ")", x, y, 0xFFFFFFFF);
-        y += fontRenderer.FONT_HEIGHT + 4;
-
-        for (GameTracker.Player player : sortedPlayers) {
-            String playerLine = renderPlayerLine(player, game);
-            int color = getPlayerColor(player, game);
-            
-            // Enhanced background for current user - more subtle
-            if (player.isUser) {
-                Gui.drawRect(x - 1, y - 1, x + maxWidth - padding, y + fontRenderer.FONT_HEIGHT + 1, 0x30FFFF88);
-            }
-            
-            // Highlight builder with subtle background - more subtle
-            if (player.equals(game.currentBuilder)) {
-                Gui.drawRect(x - 1, y - 1, x + maxWidth - padding, y + fontRenderer.FONT_HEIGHT + 1, 0x2088FFFF);
-            }
-            
-            fontRenderer.drawStringWithShadow(playerLine, x, y, color);
-            y += fontRenderer.FONT_HEIGHT + 3; // Increased spacing to prevent overlap
-        }
-
-        GlStateManager.disableBlend();
-        GlStateManager.popMatrix();
+        // NOTE: Rendering is now handled by ScoreboardInterceptor
+        // This method is kept for compatibility but does nothing
+        return;
     }
 
     private String renderPlayerLine(GameTracker.Player player, GameTracker.Game game) {
@@ -262,36 +159,8 @@ public class CustomScoreboard {
     }
     
     private void renderWaitingMessage() {
-        tickCounter++;
-        
-        ScaledResolution scaledRes = new ScaledResolution(mc);
-        int screenWidth = scaledRes.getScaledWidth();
-        int screenHeight = scaledRes.getScaledHeight();
-
-        FontRenderer fontRenderer = mc.fontRendererObj;
-
-        // Calculate position
-        int maxWidth = 110;
-        int x = screenWidth - maxWidth - 8;
-        int y = 20;
-        int padding = 3;
-
-        GlStateManager.pushMatrix();
-        GlStateManager.enableBlend();
-
-        // Simple waiting message
-        String spinnerFrame = getSpinnerFrame();
-        String waitingText = spinnerFrame + " Waiting for game...";
-        
-        int textHeight = fontRenderer.FONT_HEIGHT + 6;
-        
-        // Draw background
-        Gui.drawRect(x - padding, y - 2, x + maxWidth, y + textHeight, 0x50000000);
-        
-        // Draw text
-        fontRenderer.drawStringWithShadow(waitingText, x, y + 2, 0xFF88CCFF);
-
-        GlStateManager.disableBlend();
-        GlStateManager.popMatrix();
+        // NOTE: Rendering is now handled by ScoreboardInterceptor
+        // This method is kept for compatibility but does nothing
+        return;
     }
 }
