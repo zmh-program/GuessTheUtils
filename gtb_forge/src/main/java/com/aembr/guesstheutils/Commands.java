@@ -147,11 +147,12 @@ public class Commands extends CommandBase {
         sendMessage(player, "Testing Chat Cooldown Timer...");
         
         GuessTheUtils.chatCooldown.enable();
-        sendMessage(player, "Cooldown timer enabled - check the screen for timer display");
+        GuessTheUtils.chatCooldown.onMessageSent();
+        sendMessage(player, "Cooldown timer started - check the screen for timer display");
         
         new Thread(() -> {
             try {
-                Thread.sleep(3000);
+                Thread.sleep(4000);
                 GuessTheUtils.chatCooldown.disable();
                 player.addChatMessage(new ChatComponentText("[GTU] Cooldown timer disabled"));
             } catch (InterruptedException e) {

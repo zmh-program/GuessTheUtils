@@ -1,6 +1,7 @@
 package com.aembr.guesstheutils;
 
 import com.aembr.guesstheutils.config.GuessTheUtilsConfig;
+import com.aembr.guesstheutils.hooks.HudHooks;
 import com.aembr.guesstheutils.modules.*;
 import com.aembr.guesstheutils.proxy.CommonProxy;
 import net.minecraft.client.Minecraft;
@@ -101,6 +102,10 @@ public class GuessTheUtils {
         // Register this mod instance for events
         net.minecraftforge.common.MinecraftForge.EVENT_BUS.register(this);
         LOGGER.info("Registered GuessTheUtils for events");
+        
+        // Register HUD hooks for rendering
+        net.minecraftforge.common.MinecraftForge.EVENT_BUS.register(new HudHooks());
+        LOGGER.info("Registered HudHooks for rendering events");
         
         // Enable chat cooldown for testing (normally enabled by game events)
         if (chatCooldown != null) {

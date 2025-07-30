@@ -43,17 +43,11 @@ public class ChatCooldownTimer extends GTBEvents.Module {
         int x2 = x1 + fontRenderer.getStringWidth(timerText);
         int y2 = y1 + fontRenderer.FONT_HEIGHT - 1;
         
-        GlStateManager.pushMatrix();
-        GlStateManager.enableBlend();
+        // Light transparent dark background
+        Gui.drawRect(x1 - 2, y1 - 2, x2 + 1, y2 + 1, 0x40333333);
         
-        // Background
-        Gui.drawRect(x1 - 2, y1 - 2, x2 + 1, y2 + 1, 0x66000000);
-        
-        // Text
+        // Classic yellow text
         fontRenderer.drawStringWithShadow(timerText, x1, y1, 0xFFFFFF00);
-        
-        GlStateManager.disableBlend();
-        GlStateManager.popMatrix();
     }
 
     public void onMessageSent() {
