@@ -146,7 +146,7 @@ public class ShortcutReminder extends GTBEvents.Module {
 
         try {
             FileReader reader = new FileReader(configFile);
-            config = yaml.load(reader);
+            config = (HashMap<String, List<String>>) yaml.load(reader);
             reader.close();
         } catch (IOException e) {
             e.printStackTrace();

@@ -43,7 +43,13 @@ public class GameTracker extends GTBEvents.Module {
         }, this);
 
         events.subscribe(GTBEvents.CorrectGuessEvent.class, e -> {
-            if (game != null) game.onCorrectGuess(e.players());
+            if (game != null) {
+                List<GTBEvents.FormattedName> formattedNames = new ArrayList<GTBEvents.FormattedName>();
+                for (String playerName : e.players()) {
+                    formattedNames.add(new GTBEvents.FormattedName(playerName));
+                }
+                game.onCorrectGuess(formattedNames);
+            }
         }, this);
 
         events.subscribe(GTBEvents.ThemeUpdateEvent.class, e -> {
@@ -89,7 +95,7 @@ public class GameTracker extends GTBEvents.Module {
 
     private void onGameStart(GTBEvents.GameStartEvent event) {
         Set<Player> players = new HashSet<Player>();
-        for (GTBEvents.Player p : event.players()) {
+        for (GTBEvents.InitialPlayerData p : event.players()) {
             players.add(new Player(p.name(), p.rankColor(), p.title(), p.emblem(), p.isUser()));
         }
         game = new Game(this, players);
@@ -111,8 +117,8 @@ public class GameTracker extends GTBEvents.Module {
     }
 
     @Override
-    public ErrorAction getErrorAction() {
-        return ErrorAction.LOG_AND_CONTINUE;
+    public GTBEvents.Module.ErrorAction getErrorAction() {
+        return GTBEvents.Module.ErrorAction.LOG_AND_CONTINUE;
     }
 
     static class Player {
@@ -310,20 +316,20 @@ public class GameTracker extends GTBEvents.Module {
             List<Utils.Pair<Player, Integer>> converted = new ArrayList<Utils.Pair<Player, Integer>>();
             for (GTBEvents.TrueScore trueScore : scores) {
                 if (trueScore == null) continue;
-                Player player = getPlayerFromName(trueScore.fName().name());
+                Player player = getPlayerFromName(trueScore.getPlayer());
                 if (player == null) {
-                    tracker.clearGameWithError("Player " + trueScore.fName().name() + " not found in player list!");
+                    tracker.clearGameWithError("Player " + trueScore.getPlayer() + " not found in player list!");
                     return;
                 }
 
                 onActivity(player);
 
-                if (verifyPoints(player, trueScore.points())) {
+                if (verifyPoints(player, trueScore.getScore())) {
                     player.scoreMismatchCounter = 0;
                 } else {
                     if (player.buildRound == currentRound && player.points[currentRound - 1] == 0
                             && correctGuessesThisRound != 0) {
-                        currentBuilder.points[currentRound - 1] = trueScore.points() - player.getTotalPoints();
+                        currentBuilder.points[currentRound - 1] = trueScore.getScore() - player.getTotalPoints();
                     } else {
                         if (player.scoreMismatchCounter > 0) {
                             tracker.clearGameWithError("Score mismatch!");
@@ -332,7 +338,7 @@ public class GameTracker extends GTBEvents.Module {
                         player.scoreMismatchCounter++;
                     }
                 }
-                converted.add(new Utils.Pair<Player, Integer>(player, trueScore.points()));
+                converted.add(new Utils.Pair<Player, Integer>(player, trueScore.getScore()));
             }
 
             latestTrueScore = converted;

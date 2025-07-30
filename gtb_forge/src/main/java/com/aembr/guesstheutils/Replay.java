@@ -27,7 +27,7 @@ public class Replay {
         GuessTheUtils.LOGGER.info("Replay system initialized: " + fileName);
     }
     
-    public void addTick(Tick tick) {
+        public void addTick(Tick tick) {
         if (tick != null && !tick.isEmpty()) {
             ticks.add(tick);
         }
@@ -86,32 +86,36 @@ public class Replay {
         }
     }
     
-    public static Replay load(InputStream stream) {
+    public static List<JsonObject> load(InputStream stream) {
+        List<JsonObject> jsonObjects = new ArrayList<JsonObject>();
         try {
             if (stream == null) {
                 GuessTheUtils.LOGGER.warn("Replay stream is null");
-                return new Replay();
+                return jsonObjects;
             }
             
-            try (InputStreamReader reader = new InputStreamReader(stream)) {
+            try {
+                InputStreamReader reader = new InputStreamReader(stream);
                 Gson gson = new Gson();
                 JsonObject[] jsonTicks = gson.fromJson(reader, JsonObject[].class);
                 
-                Replay replay = new Replay();
                 if (jsonTicks != null) {
                     for (JsonObject jsonTick : jsonTicks) {
-                        replay.ticks.add(new Tick(jsonTick));
+                        jsonObjects.add(jsonTick);
                     }
                 }
                 
-                GuessTheUtils.LOGGER.info("Replay loaded from stream (" + replay.ticks.size() + " ticks)");
-                return replay;
+                reader.close();
+                GuessTheUtils.LOGGER.info("Replay loaded from stream (" + jsonObjects.size() + " ticks)");
+            } catch (IOException e) {
+                GuessTheUtils.LOGGER.error("Failed to close reader", e);
             }
             
         } catch (Exception e) {
             GuessTheUtils.LOGGER.error("Failed to load replay from stream", e);
-            return new Replay();
         }
+        
+        return jsonObjects;
     }
     
     public List<Tick> getTicks() {

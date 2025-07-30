@@ -389,10 +389,20 @@ public class GTBEvents {
     }
 
     public static abstract class Module {
+        public enum ErrorAction {
+            STOP,
+            RESTART,
+            LOG_AND_CONTINUE
+        }
+
         protected GTBEvents events;
 
         public Module(GTBEvents events) {
             this.events = events;
+        }
+
+        public ErrorAction getErrorAction() {
+            return ErrorAction.STOP;
         }
     }
 
@@ -429,5 +439,19 @@ public class GTBEvents {
 
         public String getPlayer() { return player; }
         public int getScore() { return score; }
+    }
+
+    public static class FormattedName {
+        private final String name;
+
+        public FormattedName(String name) {
+            this.name = name;
+        }
+
+        public String name() { return name; }
+    }
+
+    public boolean isInGtb() {
+        return true; // Simplified for MC 1.8.9
     }
 } 

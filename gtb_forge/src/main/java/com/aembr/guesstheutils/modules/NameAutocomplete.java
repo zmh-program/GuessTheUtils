@@ -16,7 +16,7 @@ public class NameAutocomplete extends GTBEvents.Module {
 
     private void collectNames(GTBEvents.GameStartEvent event) {
         names.clear();
-        for (GTBEvents.Player player : event.players()) {
+        for (GTBEvents.InitialPlayerData player : event.players()) {
             names.add(player.name());
         }
     }

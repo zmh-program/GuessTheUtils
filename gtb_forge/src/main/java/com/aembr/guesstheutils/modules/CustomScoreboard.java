@@ -15,7 +15,7 @@ import java.util.Comparator;
 import java.util.List;
 
 public class CustomScoreboard {
-    private static final String[] BUILDING_SPINNER = new String[] {"⣾", "⣽", "⣻", "⢿", "⡿", "⣟", "⣯", "⣷"};
+    private static final String[] BUILDING_SPINNER = new String[] {"|", "/", "-", "\\", "|", "/", "-", "\\"};
     public static int tickCounter = 0;
     
     private GameTracker gameTracker;
@@ -126,13 +126,13 @@ public class CustomScoreboard {
         
         // Status icon
         if (player.leaverState == GameTracker.Player.LeaverState.LEAVER) {
-            line.append("✗ ");
+            line.append("X ");
         } else if (player.leaverState == GameTracker.Player.LeaverState.POTENTIAL_LEAVER) {
             line.append("? ");
         } else if (player.inactiveTicks > 3600) { // 3 minutes inactive
-            line.append("○ ");
+            line.append("o ");
         } else {
-            line.append("● ");
+            line.append("* ");
         }
         
         // Player name
@@ -152,7 +152,7 @@ public class CustomScoreboard {
         
         // Builder indicator
         if (player.equals(game.currentBuilder)) {
-            line.append(" ⚒");
+            line.append(" [B]");
         }
         
         return line.toString();

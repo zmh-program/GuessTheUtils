@@ -25,8 +25,8 @@ public class BuilderNotification extends GTBEvents.Module {
     }
 
     @Override
-    public ErrorAction getErrorAction() {
-        return ErrorAction.RESTART;
+    public GTBEvents.Module.ErrorAction getErrorAction() {
+        return GTBEvents.Module.ErrorAction.RESTART;
     }
 
     public static class NotificationUtil {
