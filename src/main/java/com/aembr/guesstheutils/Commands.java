@@ -276,6 +276,74 @@ public class Commands extends CommandBase {
         return enabled ? EnumChatFormatting.GREEN + "Enabled" : EnumChatFormatting.RED + "Disabled";
     }
     
+    private String getScoreboardLineText(Scoreboard scoreboard, String playerName, int scorePoints) {
+        try {
+            net.minecraft.scoreboard.Team team = scoreboard.getPlayersTeam(playerName);
+            
+            if (team != null) {
+                // Try to get team prefix/suffix using known 1.8.9 method names
+                String prefix = "";
+                String suffix = "";
+                
+                try {
+                    // Get prefix and suffix using known 1.8.9 method names
+                    java.lang.reflect.Method[] methods = team.getClass().getMethods();
+                    
+                    for (java.lang.reflect.Method method : methods) {
+                        if (method.getParameterCount() == 0 && method.getReturnType() == String.class) {
+                            String name = method.getName();
+                            try {
+                                Object result = method.invoke(team);
+                                if (result instanceof String) {
+                                    String resultStr = (String) result;
+                                    
+                                    // func_96668_e is the prefix in Hypixel
+                                    if (name.equals("func_96668_e") && !resultStr.isEmpty()) {
+                                        prefix = resultStr;
+                                    }
+                                    // func_96663_f is the suffix in Hypixel
+                                    else if (name.equals("func_96663_f") && !resultStr.isEmpty()) {
+                                        suffix = resultStr;
+                                    }
+                                }
+                            } catch (Exception ignored) {}
+                        }
+                    }
+                } catch (Exception ignored) {}
+                
+                // Construct the full display text
+                StringBuilder displayText = new StringBuilder();
+                if (prefix != null && !prefix.isEmpty()) {
+                    displayText.append(prefix);
+                }
+                if (playerName != null && !playerName.isEmpty()) {
+                    displayText.append(playerName);
+                }
+                if (suffix != null && !suffix.isEmpty()) {
+                    displayText.append(suffix);
+                }
+                
+                String finalText = displayText.toString();
+                if (!finalText.trim().isEmpty()) {
+                    return finalText.trim() + ": " + scorePoints;
+                }
+            }
+            
+            // Simple fallback
+            String displayName = playerName;
+            if (playerName == null || playerName.isEmpty()) {
+                displayName = "[EMPTY]";
+            }
+            
+            return displayName + ": " + scorePoints;
+            
+        } catch (Exception e) {
+            return (playerName == null ? "[NULL]" : playerName) + ": " + scorePoints;
+        }
+    }
+    
+
+
     private void showVanillaScoreboardInfo(EntityPlayer player) {
         try {
             Minecraft mc = Minecraft.getMinecraft();
@@ -296,12 +364,29 @@ public class Commands extends CommandBase {
                 // Get scores for sidebar
                 java.util.Collection scores = scoreboard.getSortedScores(sidebarObjective);
                 if (!scores.isEmpty()) {
-                    sendMessage(player, "  Scores:");
-                    int count = 0;
+                    sendMessage(player, "  Scores (sorted by score, descending):");
+                    
+                    // Convert to list and sort by score (descending)
+                    java.util.List<Score> scoreList = new java.util.ArrayList<Score>();
                     for (Object scoreObj : scores) {
+                        scoreList.add((Score) scoreObj);
+                    }
+                    
+                    // Sort by score points in descending order (high scores first)
+                    java.util.Collections.sort(scoreList, new java.util.Comparator<Score>() {
+                        @Override
+                        public int compare(Score s1, Score s2) {
+                            return Integer.compare(s2.getScorePoints(), s1.getScorePoints());
+                        }
+                    });
+                    
+                    int count = 0;
+                    for (Score score : scoreList) {
                         if (count >= 15) break; // Sidebar shows max 15 entries
-                        Score score = (Score) scoreObj;
-                        sendMessage(player, "    " + score.getPlayerName() + ": " + score.getScorePoints());
+                        String playerName = score.getPlayerName();
+                        String actualText = getScoreboardLineText(scoreboard, playerName, score.getScorePoints());
+                        
+                        sendMessage(player, "    " + actualText);
                         count++;
                     }
                 }
