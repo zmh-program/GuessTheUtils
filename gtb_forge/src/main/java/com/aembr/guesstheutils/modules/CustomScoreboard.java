@@ -66,8 +66,8 @@ public class CustomScoreboard {
         if (!game.currentTimer.isEmpty()) infoHeight += fontRenderer.FONT_HEIGHT + 3; // Timer
         if (game.currentBuilder != null) infoHeight += fontRenderer.FONT_HEIGHT + 5; // Builder
         
-        // Draw info background with lower alpha and rounded feel
-        Gui.drawRect(x - padding, y - 2, x + maxWidth, y + infoHeight + 1, 0x25000000);
+        // Draw info background with vanilla alpha
+        Gui.drawRect(x - padding, y - 2, x + maxWidth, y + infoHeight + 1, 0x50000000);
         
         // Game state - simplified display with better formatting
         String stateText = formatStateName(GameTracker.state.name());
@@ -109,7 +109,7 @@ public class CustomScoreboard {
         // Players header with background - proper spacing calculation
         int playersStartY = y;
         int playersHeight = (fontRenderer.FONT_HEIGHT + 4) + (sortedPlayers.size() * (fontRenderer.FONT_HEIGHT + 3)) + 2;
-        Gui.drawRect(x - padding, y - 2, x + maxWidth, y + playersHeight, 0x25000000);
+        Gui.drawRect(x - padding, y - 2, x + maxWidth, y + playersHeight, 0x50000000);
         
         fontRenderer.drawStringWithShadow("Players (" + sortedPlayers.size() + ")", x, y, 0xFFFFFFFF);
         y += fontRenderer.FONT_HEIGHT + 4;

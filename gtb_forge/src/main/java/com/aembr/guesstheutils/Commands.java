@@ -7,6 +7,9 @@ import net.minecraft.command.CommandBase;
 import net.minecraft.command.CommandException;
 import net.minecraft.command.ICommandSender;
 import net.minecraft.entity.player.EntityPlayer;
+import net.minecraft.scoreboard.Scoreboard;
+import net.minecraft.scoreboard.ScoreObjective;
+import net.minecraft.scoreboard.Team;
 import net.minecraft.util.ChatComponentText;
 import net.minecraft.util.EnumChatFormatting;
 
@@ -56,6 +59,10 @@ public class Commands extends CommandBase {
                 sendMessage(player, "Chat Cooldown: " + getStatus(GuessTheUtilsConfig.enableChatCooldownTimer));
                 sendMessage(player, "Shortcut Reminder: " + getStatus(GuessTheUtilsConfig.enableShortcutReminder));
                 sendMessage(player, "Builder Notification: " + getStatus(GuessTheUtilsConfig.enableBuilderNotification));
+                
+                sendMessage(player, "");
+                sendMessage(player, "=== Vanilla Scoreboard Info ===");
+                showVanillaScoreboardInfo(player);
                 break;
                 
             case "toggle":
@@ -266,6 +273,66 @@ public class Commands extends CommandBase {
     
     private String getStatus(boolean enabled) {
         return enabled ? EnumChatFormatting.GREEN + "Enabled" : EnumChatFormatting.RED + "Disabled";
+    }
+    
+    private void showVanillaScoreboardInfo(EntityPlayer player) {
+        try {
+            Scoreboard scoreboard = player.getWorldScoreboard();
+            
+            if (scoreboard == null) {
+                sendMessage(player, "No scoreboard available");
+                return;
+            }
+            
+            // Display objectives
+            sendMessage(player, "Objectives:");
+            boolean hasObjectives = false;
+            for (ScoreObjective objective : scoreboard.getScoreObjectives()) {
+                hasObjectives = true;
+                String displaySlot = "";
+                if (scoreboard.getObjectiveInDisplaySlot(0) == objective) displaySlot += " [list]";
+                if (scoreboard.getObjectiveInDisplaySlot(1) == objective) displaySlot += " [sidebar]";
+                if (scoreboard.getObjectiveInDisplaySlot(2) == objective) displaySlot += " [belowName]";
+                
+                sendMessage(player, "  " + objective.getName() + " (" + objective.getCriteria().getName() + ")" + displaySlot);
+            }
+            if (!hasObjectives) {
+                sendMessage(player, "  No objectives found");
+            }
+            
+            // Display teams
+            sendMessage(player, "Teams:");
+            boolean hasTeams = false;
+            for (Team team : scoreboard.getTeams()) {
+                hasTeams = true;
+                String teamInfo = "  " + team.getRegisteredName();
+                if (team.getMembershipCollection().size() > 0) {
+                    teamInfo += " (" + team.getMembershipCollection().size() + " members)";
+                }
+                sendMessage(player, teamInfo);
+            }
+            if (!hasTeams) {
+                sendMessage(player, "  No teams found");
+            }
+            
+            // Display player's scores
+            sendMessage(player, "Your scores:");
+            boolean hasScores = false;
+            for (ScoreObjective objective : scoreboard.getScoreObjectives()) {
+                if (scoreboard.entityHasObjective(player.getName(), objective)) {
+                    int score = scoreboard.getValueFromObjective(player.getName(), objective).getScorePoints();
+                    sendMessage(player, "  " + objective.getName() + ": " + score);
+                    hasScores = true;
+                }
+            }
+            if (!hasScores) {
+                sendMessage(player, "  No scores found");
+            }
+            
+        } catch (Exception e) {
+            sendMessage(player, "Error retrieving scoreboard info: " + e.getMessage());
+            GuessTheUtils.LOGGER.error("Error in showVanillaScoreboardInfo", e);
+        }
     }
     
     private void sendMessage(EntityPlayer player, String message) {
