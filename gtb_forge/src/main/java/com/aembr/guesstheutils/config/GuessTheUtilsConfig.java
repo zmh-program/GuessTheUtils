@@ -10,12 +10,17 @@ import java.io.File;
 public class GuessTheUtilsConfig {
     private static Configuration config;
     
+    // Module toggles
     public static boolean enableGameTracker = true;
     public static boolean enableCustomScoreboard = true;
     public static boolean enableChatCooldownTimer = true;
     public static boolean enableNameAutocomplete = true;
     public static boolean enableShortcutReminder = true;
     public static boolean enableBuilderNotification = true;
+    
+    // Chat cooldown settings
+    public static int chatCooldownPingVolume = 50;
+    public static boolean chatCooldownTimer = true;
     
     public static void init(File configFile) {
         config = new Configuration(configFile);
@@ -38,6 +43,12 @@ public class GuessTheUtilsConfig {
                 "Enable shortcut reminder system");
             enableBuilderNotification = config.getBoolean("enableBuilderNotification", "modules", true, 
                 "Enable builder change notifications");
+                
+            // Chat cooldown settings
+            chatCooldownPingVolume = config.getInt("chatCooldownPingVolume", "chat_cooldown", 50, 0, 100,
+                "Volume for chat cooldown notification sound (0-100)");
+            chatCooldownTimer = config.getBoolean("chatCooldownTimer", "chat_cooldown", true,
+                "Show chat cooldown timer overlay");
                 
         } catch (Exception e) {
             GuessTheUtils.LOGGER.error("Problem loading config file!", e);

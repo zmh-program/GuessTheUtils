@@ -17,7 +17,7 @@ public class Commands extends CommandBase {
     
     @Override
     public String getCommandUsage(ICommandSender sender) {
-        return "/gtu [reload|status|toggle]";
+        return "/gtu [reload|status|toggle|replay|livetest]";
     }
     
     @Override
@@ -57,6 +57,17 @@ public class Commands extends CommandBase {
                     return;
                 }
                 toggleModule(player, args[1]);
+                break;
+                
+            case "replay":
+                GuessTheUtils.replay.save();
+                sendMessage(player, "Replay saved!");
+                break;
+                
+            case "livetest":
+                GuessTheUtils.testing = !GuessTheUtils.testing;
+                if (GuessTheUtils.testing) GuessTheUtils.liveE2ERunner.currentTick = 0;
+                sendMessage(player, "Live testing: " + (GuessTheUtils.testing ? "Enabled" : "Disabled"));
                 break;
                 
             default:

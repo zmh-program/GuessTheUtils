@@ -39,6 +39,7 @@ public class GuessTheUtils {
     public static ChatCooldownTimer chatCooldown = new ChatCooldownTimer(events);
 
     public static boolean testing = false;
+    public static LiveE2ERunner liveE2ERunner;
 
     private static Tick currentTick;
     private List<String> previousScoreboardLines = new ArrayList<String>();
@@ -61,6 +62,7 @@ public class GuessTheUtils {
         
         replay.initialize();
         shortcutReminder.init();
+        liveE2ERunner = new LiveE2ERunner(Replay.load(GuessTheUtils.class.getResourceAsStream("/assets/live_tests/TestBuggyLeaverDetection.json")));
         
         net.minecraftforge.client.ClientCommandHandler.instance.registerCommand(new Commands());
     }
@@ -80,6 +82,10 @@ public class GuessTheUtils {
     private void onStartTick() {
         if (CLIENT.thePlayer == null || events == null) return;
         if (currentTick == null) currentTick = new Tick();
+
+        if (testing) {
+            currentTick = liveE2ERunner.getNext();
+        }
 
         if (!currentTick.isEmpty()) {
             replay.addTick(currentTick);

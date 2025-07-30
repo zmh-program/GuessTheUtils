@@ -3,13 +3,15 @@ package com.aembr.guesstheutils.modules;
 import com.aembr.guesstheutils.GTBEvents;
 import com.aembr.guesstheutils.Utils;
 import net.minecraft.client.Minecraft;
+import net.minecraft.util.EnumChatFormatting;
+import net.minecraft.util.IChatComponent;
 
 import java.util.*;
 
 public class GameTracker extends GTBEvents.Module {
     public static GTBEvents.GameState state = GTBEvents.GameState.NONE;
 
-    Game game;
+    public Game game;
     public CustomScoreboard scoreboard;
 
     public GameTracker(GTBEvents events) {
@@ -86,9 +88,10 @@ public class GameTracker extends GTBEvents.Module {
     }
 
     private void onGameStart(GTBEvents.GameStartEvent event) {
-        Set<Player> players = new HashSet<>();
-        event.players().forEach(p ->
-                players.add(new Player(p.name(), p.rankColor(), p.title(), p.emblem(), p.isUser())));
+        Set<Player> players = new HashSet<Player>();
+        for (GTBEvents.Player p : event.players()) {
+            players.add(new Player(p.name(), p.rankColor(), p.title(), p.emblem(), p.isUser()));
+        }
         game = new Game(this, players);
     }
 
@@ -98,76 +101,418 @@ public class GameTracker extends GTBEvents.Module {
         }
     }
 
-    public static class Player {
-        public final String name;
-        public final String rankColor;
-        public final String title;
-        public final String emblem;
-        public final boolean isUser;
+    public void clearGame() {
+        game = null;
+    }
 
-        public Player(String name, String rankColor, String title, String emblem, boolean isUser) {
+    public void clearGameWithError(String error) {
+        Utils.sendMessage("Error: " + error);
+        game = null;
+    }
+
+    @Override
+    public ErrorAction getErrorAction() {
+        return ErrorAction.LOG_AND_CONTINUE;
+    }
+
+    static class Player {
+        enum LeaverState { NORMAL, POTENTIAL_LEAVER, LEAVER }
+        String name;
+        EnumChatFormatting rank;
+        String title;
+        String emblem;
+        int[] points;
+        int buildRound;
+        boolean isUser;
+        int scoreMismatchCounter = 0;
+        int inactiveTicks = 0;
+        LeaverState leaverState = LeaverState.NORMAL;
+
+        Player(String name, String rankColor, String title, String emblem, boolean isUser) {
             this.name = name;
-            this.rankColor = rankColor;
+            this.rank = EnumChatFormatting.getValueByName(rankColor.toLowerCase());
+            if (this.rank == null) this.rank = EnumChatFormatting.WHITE;
             this.title = title;
             this.emblem = emblem;
             this.isUser = isUser;
+            this.points = new int[]{0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
+            this.buildRound = 0;
+        }
+
+        int getTotalPoints() {
+            int sum = 0;
+            for (int point : points) {
+                sum += point;
+            }
+            return sum;
+        }
+
+        public int getInactiveTicks() {
+            return inactiveTicks;
+        }
+
+        public LeaverState getLeaverState() {
+            return leaverState;
+        }
+
+        @Override
+        public String toString() {
+            return "Player{" +
+                    "name='" + name + '\'' +
+                    ", points=" + Arrays.toString(points) +
+                    ", buildRound=" + buildRound +
+                    ", isUser=" + isUser +
+                    ", inactiveTicks=" + inactiveTicks +
+                    ", leaverState=" + leaverState +
+                    '}';
         }
     }
 
-    public static class Game {
-        private GameTracker tracker;
-        private Set<Player> players;
-        public String currentTheme = "";
-        public String currentTimer = "";
-        public GTBEvents.GameState leaveState;
-        public int leaveRound = -1;
-        public String leaveBuilder;
+    static class Game {
+        GameTracker tracker;
+        Set<Player> players;
+
+        int currentRound = 0;
+        int totalRounds;
+        int skippedRounds = 0;
+        int potentialLeaverAmount = 0;
+        boolean userRoundSkipped = false;
+
+        String currentTheme = "";
+        String currentTimer = "";
+        Player currentBuilder = null;
+        int correctGuessesThisRound = 0;
+        boolean oneSecondAlertReached = false;
+
+        List<Utils.Pair<Player, Integer>> latestTrueScore;
+
+        GTBEvents.GameState leaveState;
+        int leaveRound = -1;
+        Player leaveBuilder;
 
         public Game(GameTracker tracker, Set<Player> players) {
             this.tracker = tracker;
             this.players = players;
+            this.totalRounds = players.size();
         }
 
-        public void onBuilderChange(String builder) {
+        public void onBuilderChange(String builderName) {
+            if (builderName != null) {
+                Player builder = getPlayerFromName(builderName);
+                if (builder == null) {
+                    tracker.clearGameWithError("Player " + builderName + " not found in player list!");
+                    return;
+                }
+                currentBuilder = builder;
+                onActivity(currentBuilder);
+                return;
+            }
+            currentBuilder = null;
         }
 
-        public void onRoundStart(int currentRound, int totalRounds) {
+        public void onRoundStart(int current, int total) {
+            currentRound = current;
+            oneSecondAlertReached = false;
+
+            if (leaveRound != -1) {
+                if (currentRound == leaveRound + 1) {
+                    Utils.sendMessage("Tracking data valid!");
+                    clearLeaveState();
+                } else {
+                    Utils.sendMessage("Tracking data invalid! Falling back to vanilla scoreboard.");
+                    tracker.clearGame();
+                    return;
+                }
+            }
+
+            if (currentBuilder == null) {
+                tracker.clearGameWithError("currentBuilder is null!");
+                return;
+            }
+            currentBuilder.buildRound = currentRound;
+            currentTheme = "";
+            correctGuessesThisRound = 0;
+
+            totalRounds = total;
+            int missing = players.size() - skippedRounds - total;
+            if (missing != potentialLeaverAmount) {
+                potentialLeaverAmount = missing;
+                updatePotentialLeavers();
+            }
         }
 
         public void onRoundEnd(boolean skipped) {
+            boolean actuallySkipped = (currentBuilder.isUser && userRoundSkipped) || skipped;
+            if (!actuallySkipped && !oneSecondAlertReached) {
+                for (Player p : players) {
+                    if (p.points[currentRound - 1] == 0) {
+                        p.leaverState = Player.LeaverState.LEAVER;
+                    }
+                }
+            }
+            userRoundSkipped = false;
         }
 
         public void onRoundSkipped() {
+            currentBuilder.buildRound = -1;
+            skippedRounds++;
         }
 
-        public void onCorrectGuess(List<String> players) {
+        public void onCorrectGuess(List<GTBEvents.FormattedName> players) {
+            for (GTBEvents.FormattedName fName : players) {
+                Player player = getPlayerFromName(fName.name());
+                if (player == null) {
+                    tracker.clearGameWithError("Player " + fName.name() + " not found in player list!");
+                    return;
+                }
+                player.points[currentRound - 1] = Math.max(1, 3 - correctGuessesThisRound);
+                onActivity(player);
+                correctGuessesThisRound++;
+            }
+
+            if (currentBuilder == null) {
+                tracker.clearGameWithError("currentBuilder is null!");
+                return;
+            }
+
+            if (currentBuilder.points[currentRound - 1] == 0 && !currentTheme.isEmpty()) {
+                currentBuilder.points[currentRound - 1] = getThemePointAward(currentTheme);
+            }
         }
 
         public void onThemeUpdate(String theme) {
-            this.currentTheme = theme;
+            currentTheme = theme;
+            if (currentBuilder == null) {
+                tracker.clearGameWithError("currentBuilder is null!");
+                return;
+            }
+            if (currentBuilder.points[currentRound - 1] == 0 && correctGuessesThisRound > 0) {
+                currentBuilder.points[currentRound - 1] = getThemePointAward(currentTheme);
+            }
         }
 
         public void onGameEnd(Map<String, Integer> scores) {
+            for (Map.Entry<String, Integer> expected : scores.entrySet()) {
+                Player player = getPlayerFromName(expected.getKey());
+                if (player == null) {
+                    continue;
+                }
+
+                if (!verifyPoints(player, expected.getValue())) {
+                    tracker.clearGameWithError("Scores do not match expected!");
+                    return;
+                }
+            }
+            tracker.clearGame();
         }
 
         public void onTrueScoresUpdate(List<GTBEvents.TrueScore> scores) {
+            List<Utils.Pair<Player, Integer>> converted = new ArrayList<Utils.Pair<Player, Integer>>();
+            for (GTBEvents.TrueScore trueScore : scores) {
+                if (trueScore == null) continue;
+                Player player = getPlayerFromName(trueScore.fName().name());
+                if (player == null) {
+                    tracker.clearGameWithError("Player " + trueScore.fName().name() + " not found in player list!");
+                    return;
+                }
+
+                onActivity(player);
+
+                if (verifyPoints(player, trueScore.points())) {
+                    player.scoreMismatchCounter = 0;
+                } else {
+                    if (player.buildRound == currentRound && player.points[currentRound - 1] == 0
+                            && correctGuessesThisRound != 0) {
+                        currentBuilder.points[currentRound - 1] = trueScore.points() - player.getTotalPoints();
+                    } else {
+                        if (player.scoreMismatchCounter > 0) {
+                            tracker.clearGameWithError("Score mismatch!");
+                            return;
+                        }
+                        player.scoreMismatchCounter++;
+                    }
+                }
+                converted.add(new Utils.Pair<Player, Integer>(player, trueScore.points()));
+            }
+
+            latestTrueScore = converted;
+
+            List<Player> playersSortedByPoints = new ArrayList<Player>();
+            for (Player p : players) {
+                if (!p.leaverState.equals(Player.LeaverState.LEAVER)) {
+                    playersSortedByPoints.add(p);
+                }
+            }
+            Collections.sort(playersSortedByPoints, new Comparator<Player>() {
+                @Override
+                public int compare(Player p1, Player p2) {
+                    return Integer.compare(p2.getTotalPoints(), p1.getTotalPoints());
+                }
+            });
+
+            List<Utils.Pair<Player, Integer>> topNames = new ArrayList<Utils.Pair<Player, Integer>>();
+            for (int i = 0; i < Math.min(3, latestTrueScore.size()); i++) {
+                if (latestTrueScore.get(i) == null) continue;
+                topNames.add(latestTrueScore.get(i));
+            }
+
+            if (topNames.isEmpty()) return;
+            List<Player> guaranteedToAppearInScoreboard = new ArrayList<Player>();
+            Map<Integer, List<Player>> pointsMap = new HashMap<Integer, List<Player>>();
+            for (Player player : playersSortedByPoints) {
+                if (!pointsMap.containsKey(player.getTotalPoints())) {
+                    pointsMap.put(player.getTotalPoints(), new ArrayList<Player>());
+                }
+                pointsMap.get(player.getTotalPoints()).add(player);
+            }
+
+            List<Integer> sortedPoints = new ArrayList<Integer>(pointsMap.keySet());
+            Collections.sort(sortedPoints, Collections.reverseOrder());
+
+            for (Integer points : sortedPoints) {
+                List<Player> pointsGroup = pointsMap.get(points);
+                if (pointsGroup.size() > topNames.size() - guaranteedToAppearInScoreboard.size()) break;
+                guaranteedToAppearInScoreboard.addAll(pointsGroup);
+            }
+
+            for (Player player : guaranteedToAppearInScoreboard) {
+                boolean found = false;
+                for (Utils.Pair<Player, Integer> p : topNames) {
+                    if (p.a().equals(player)) {
+                        found = true;
+                        break;
+                    }
+                }
+                if (!found) {
+                    player.leaverState = Player.LeaverState.LEAVER;
+                }
+            }
         }
 
         public void onUserLeave() {
-            this.leaveState = GameTracker.state;
-            this.leaveRound = 0; // TODO: track current round
+            leaveState = state;
+            leaveRound = currentRound;
+            leaveBuilder = currentBuilder;
+
+            if (leaveBuilder.isUser && leaveState.equals(GTBEvents.GameState.ROUND_BUILD)) {
+                userRoundSkipped = true;
+            }
         }
 
         public void onUserRejoin() {
+            if (currentBuilder.isUser) {
+                clearLeaveState();
+                return;
+            }
+
+            if (leaveState.equals(GTBEvents.GameState.ROUND_BUILD) || state.equals(GTBEvents.GameState.ROUND_BUILD)) {
+                Utils.sendMessage("Players may have gained points while you were absent. Falling back to vanilla scoreboard.");
+                tracker.clearGame();
+                return;
+            }
+
+            if (currentBuilder.equals(leaveBuilder)) {
+                if (!state.equals(leaveState)) {
+                    Utils.sendMessage("Players may have gained points while you were absent. Falling back to vanilla scoreboard.");
+                    tracker.clearGame();
+                    return;
+                }
+                clearLeaveState();
+
+            } else {
+                if (leaveState.equals(GTBEvents.GameState.ROUND_END) && state.equals(GTBEvents.GameState.ROUND_PRE)) {
+                    Utils.sendMessage("Checking if tracking data for this game is still valid...");
+                } else {
+                    Utils.sendMessage("Players may have gained points while you were absent. Falling back to vanilla scoreboard.");
+                    tracker.clearGame();
+                }
+            }
         }
 
-        public void onPlayerChat(String player, String message) {
+        public void onPlayerChat(String playerName, String message) {
+            Player player = getPlayerFromName(playerName);
+            if (player == null) {
+                tracker.clearGameWithError("Player " + playerName + " not found in player list!");
+                return;
+            }
+            onActivity(player);
         }
 
         public void onOneSecondAlert() {
+            oneSecondAlertReached = true;
         }
 
         public void onTick() {
+            for (Player player : players) {
+                if (!player.isUser && !player.leaverState.equals(Player.LeaverState.LEAVER)) {
+                    player.inactiveTicks++;
+                }
+            }
+        }
+
+        private boolean verifyPoints(Player player, Integer expectedPoints) {
+            return player.getTotalPoints() == expectedPoints;
+        }
+
+        private void clearLeaveState() {
+            leaveState = null;
+            leaveRound = -1;
+            leaveBuilder = null;
+        }
+
+        private void onActivity(Player player) {
+            player.inactiveTicks = 0;
+            if (player.leaverState.equals(Player.LeaverState.POTENTIAL_LEAVER)) {
+                updatePotentialLeavers();
+            } else if (player.leaverState.equals(Player.LeaverState.LEAVER)) {
+                player.leaverState = Player.LeaverState.NORMAL;
+                updatePotentialLeavers();
+            }
+        }
+
+        private void updatePotentialLeavers() {
+            for (Player player : players) {
+                if (player.leaverState.equals(Player.LeaverState.POTENTIAL_LEAVER)) {
+                    player.leaverState = Player.LeaverState.NORMAL;
+                }
+            }
+
+            List<Player> candidatePlayers = new ArrayList<Player>();
+            for (Player p : players) {
+                if (p.buildRound <= 0 && !p.isUser && !Objects.equals(p, currentBuilder)) {
+                    candidatePlayers.add(p);
+                }
+            }
+
+            Collections.sort(candidatePlayers, new Comparator<Player>() {
+                @Override
+                public int compare(Player p1, Player p2) {
+                    int leaverStateCompare = p2.getLeaverState().compareTo(p1.getLeaverState());
+                    if (leaverStateCompare != 0) return leaverStateCompare;
+                    return Integer.compare(p2.getInactiveTicks(), p1.getInactiveTicks());
+                }
+            });
+
+            for (int i = 0; i < Math.min(potentialLeaverAmount, candidatePlayers.size()); i++) {
+                Player p = candidatePlayers.get(i);
+                if (!p.leaverState.equals(Player.LeaverState.LEAVER)) {
+                    p.leaverState = Player.LeaverState.POTENTIAL_LEAVER;
+                }
+            }
+        }
+
+        private Player getPlayerFromName(String name) {
+            for (Player p : players) {
+                if (p.name.equals(name)) {
+                    return p;
+                }
+            }
+            return null;
+        }
+
+        private int getThemePointAward(String theme) {
+            // Simple logic for theme points - can be expanded
+            return 1;
         }
     }
-} 
+}
