@@ -76,7 +76,13 @@ public class GuessTheUtils {
                 LOGGER.warn("Test file not found, creating empty runner");
                 liveE2ERunner = new LiveE2ERunner(new java.util.ArrayList<com.google.gson.JsonObject>());
             } else {
-                liveE2ERunner = new LiveE2ERunner(Replay.load(testStream));
+                try {
+                    liveE2ERunner = new LiveE2ERunner(Replay.load(testStream));
+                    LOGGER.info("Live E2E runner loaded successfully");
+                } catch (Exception e) {
+                    LOGGER.error("Failed to load test file due to JSON error, creating empty runner", e);
+                    liveE2ERunner = new LiveE2ERunner(new java.util.ArrayList<com.google.gson.JsonObject>());
+                }
             }
             
             LOGGER.info("Registering commands...");
@@ -96,6 +102,12 @@ public class GuessTheUtils {
         // Register this mod instance for events
         net.minecraftforge.common.MinecraftForge.EVENT_BUS.register(this);
         LOGGER.info("Registered GuessTheUtils for events");
+        
+        // Enable chat cooldown for testing (normally enabled by game events)
+        if (chatCooldown != null) {
+            chatCooldown.enable();
+            LOGGER.info("ChatCooldown enabled for testing");
+        }
         
         LOGGER.info("GuessTheUtils postInit completed!");
     }

@@ -92,8 +92,25 @@ public class Commands extends CommandBase {
                 GuessTheUtilsConfig.enableCustomScoreboard = !GuessTheUtilsConfig.enableCustomScoreboard;
                 sendMessage(player, "Custom Scoreboard: " + getStatus(GuessTheUtilsConfig.enableCustomScoreboard));
                 break;
+            case "chatcooldown":
+                GuessTheUtilsConfig.enableChatCooldownTimer = !GuessTheUtilsConfig.enableChatCooldownTimer;
+                sendMessage(player, "Chat Cooldown: " + getStatus(GuessTheUtilsConfig.enableChatCooldownTimer));
+                break;
+            case "nameautocomplete":
+                GuessTheUtilsConfig.enableNameAutocomplete = !GuessTheUtilsConfig.enableNameAutocomplete;
+                sendMessage(player, "Name Autocomplete: " + getStatus(GuessTheUtilsConfig.enableNameAutocomplete));
+                break;
+            case "shortcutreminder":
+                GuessTheUtilsConfig.enableShortcutReminder = !GuessTheUtilsConfig.enableShortcutReminder;
+                sendMessage(player, "Shortcut Reminder: " + getStatus(GuessTheUtilsConfig.enableShortcutReminder));
+                break;
+            case "buildernotification":
+                GuessTheUtilsConfig.enableBuilderNotification = !GuessTheUtilsConfig.enableBuilderNotification;
+                sendMessage(player, "Builder Notification: " + getStatus(GuessTheUtilsConfig.enableBuilderNotification));
+                break;
             default:
                 sendMessage(player, "Unknown module: " + module);
+                sendMessage(player, "Available modules: gametracker, scoreboard, chatcooldown, nameautocomplete, shortcutreminder, buildernotification");
                 break;
         }
     }

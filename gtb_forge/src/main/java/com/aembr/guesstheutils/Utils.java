@@ -23,7 +23,21 @@ public class Utils {
             prefix.getChatStyle().setColor(EnumChatFormatting.GOLD);
             
             ChatComponentText msg = new ChatComponentText(message);
-            msg.getChatStyle().setColor(EnumChatFormatting.WHITE);
+            msg.getChatStyle().setColor(EnumChatFormatting.YELLOW);
+            
+            prefix.appendSibling(msg);
+            mc.thePlayer.addChatMessage(prefix);
+        }
+    }
+    
+    public static void sendColoredMessage(String message, EnumChatFormatting color) {
+        Minecraft mc = Minecraft.getMinecraft();
+        if (mc.thePlayer != null) {
+            ChatComponentText prefix = new ChatComponentText("[GuessTheUtils] ");
+            prefix.getChatStyle().setColor(EnumChatFormatting.GOLD);
+            
+            ChatComponentText msg = new ChatComponentText(message);
+            msg.getChatStyle().setColor(color);
             
             prefix.appendSibling(msg);
             mc.thePlayer.addChatMessage(prefix);
