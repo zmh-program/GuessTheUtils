@@ -15,7 +15,6 @@ public class ClientProxy extends CommonProxy {
         super.init();
         
         // Register event handlers
-        MinecraftForge.EVENT_BUS.register(new GuessTheUtils());
         MinecraftForge.EVENT_BUS.register(new HudHooks());
     }
 

@@ -60,20 +60,44 @@ public class GuessTheUtils {
 
     @Mod.EventHandler
     public void init(FMLInitializationEvent event) {
-        LOGGER.info("GuessTheUtils init");
+        LOGGER.info("GuessTheUtils init starting...");
         proxy.init();
         
-        replay.initialize();
-        shortcutReminder.init();
-        liveE2ERunner = new LiveE2ERunner(Replay.load(GuessTheUtils.class.getResourceAsStream("/assets/live_tests/TestBuggyLeaverDetection.json")));
-        
-        net.minecraftforge.client.ClientCommandHandler.instance.registerCommand(new Commands());
+        try {
+            LOGGER.info("Initializing replay system...");
+            replay.initialize();
+            
+            LOGGER.info("Initializing shortcut reminder...");
+            shortcutReminder.init();
+            
+            LOGGER.info("Loading live E2E runner...");
+            java.io.InputStream testStream = GuessTheUtils.class.getResourceAsStream("/assets/live_tests/TestBuggyLeaverDetection.json");
+            if (testStream == null) {
+                LOGGER.warn("Test file not found, creating empty runner");
+                liveE2ERunner = new LiveE2ERunner(new java.util.ArrayList<com.google.gson.JsonObject>());
+            } else {
+                liveE2ERunner = new LiveE2ERunner(Replay.load(testStream));
+            }
+            
+            LOGGER.info("Registering commands...");
+            net.minecraftforge.client.ClientCommandHandler.instance.registerCommand(new Commands());
+            
+            LOGGER.info("GuessTheUtils init completed successfully!");
+        } catch (Exception e) {
+            LOGGER.error("Error during GuessTheUtils initialization", e);
+        }
     }
 
     @Mod.EventHandler
     public void postInit(FMLPostInitializationEvent event) {
-        LOGGER.info("GuessTheUtils postInit");
+        LOGGER.info("GuessTheUtils postInit starting...");
         proxy.postInit();
+        
+        // Register this mod instance for events
+        net.minecraftforge.common.MinecraftForge.EVENT_BUS.register(this);
+        LOGGER.info("Registered GuessTheUtils for events");
+        
+        LOGGER.info("GuessTheUtils postInit completed!");
     }
 
     @SubscribeEvent

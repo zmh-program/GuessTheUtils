@@ -29,16 +29,22 @@ public class Commands extends CommandBase {
     public void processCommand(ICommandSender sender, String[] args) throws CommandException {
         EntityPlayer player = (EntityPlayer) sender;
         
+        GuessTheUtils.LOGGER.info("Processing command with " + args.length + " arguments");
+        
         if (args.length == 0) {
             sendMessage(player, "GuessTheUtils v" + GuessTheUtils.VERSION);
             sendMessage(player, "Use /gtu status to see module status");
+            sendMessage(player, "Available commands: reload, status, toggle, replay, livetest");
             return;
         }
+        
+        GuessTheUtils.LOGGER.info("Executing command: " + args[0]);
         
         switch (args[0].toLowerCase()) {
             case "reload":
                 GuessTheUtilsConfig.syncConfig();
                 sendMessage(player, "Configuration reloaded!");
+                GuessTheUtils.LOGGER.info("Config reloaded by " + player.getName());
                 break;
                 
             case "status":
