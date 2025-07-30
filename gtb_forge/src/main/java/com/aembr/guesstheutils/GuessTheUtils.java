@@ -24,7 +24,10 @@ public class GuessTheUtils {
     public static final String VERSION = "0.9.5";
     
     public static final Logger LOGGER = LogManager.getLogger(MOD_ID);
-    public static final Minecraft CLIENT = Minecraft.getMinecraft();
+    
+    public static Minecraft getClient() {
+        return Minecraft.getMinecraft();
+    }
 
     @SidedProxy(clientSide = "com.aembr.guesstheutils.proxy.ClientProxy", serverSide = "com.aembr.guesstheutils.proxy.CommonProxy")
     public static CommonProxy proxy;
@@ -80,7 +83,8 @@ public class GuessTheUtils {
     }
 
     private void onStartTick() {
-        if (CLIENT.thePlayer == null || events == null) return;
+        Minecraft mc = Minecraft.getMinecraft();
+        if (mc.thePlayer == null || events == null) return;
         if (currentTick == null) currentTick = new Tick();
 
         if (testing) {

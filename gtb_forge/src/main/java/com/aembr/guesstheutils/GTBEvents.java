@@ -1,5 +1,6 @@
 package com.aembr.guesstheutils;
 
+import net.minecraft.client.Minecraft;
 import net.minecraft.util.EnumChatFormatting;
 
 import java.util.*;
@@ -313,8 +314,8 @@ public class GTBEvents {
     }
 
     private boolean isCurrentUser(String name) {
-        return GuessTheUtils.CLIENT.thePlayer != null && 
-               GuessTheUtils.CLIENT.thePlayer.getName().equals(name);
+                Minecraft mc = Minecraft.getMinecraft();
+        return mc.thePlayer != null && mc.thePlayer.getName().equals(name);
     }
 
     private void onBuilderChange(String newBuilder) {

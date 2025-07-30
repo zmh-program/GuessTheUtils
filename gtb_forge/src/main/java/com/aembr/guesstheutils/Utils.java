@@ -17,7 +17,8 @@ import java.util.List;
 public class Utils {
     
     public static void sendMessage(String message) {
-        if (GuessTheUtils.CLIENT.thePlayer != null) {
+        Minecraft mc = Minecraft.getMinecraft();
+        if (mc.thePlayer != null) {
             ChatComponentText prefix = new ChatComponentText("[GuessTheUtils] ");
             prefix.getChatStyle().setColor(EnumChatFormatting.GOLD);
             
@@ -25,16 +26,17 @@ public class Utils {
             msg.getChatStyle().setColor(EnumChatFormatting.WHITE);
             
             prefix.appendSibling(msg);
-            GuessTheUtils.CLIENT.thePlayer.addChatMessage(prefix);
+            mc.thePlayer.addChatMessage(prefix);
         }
     }
     
     public static List<String> getScoreboardLines() {
         List<String> lines = new ArrayList<String>();
         
-        if (GuessTheUtils.CLIENT.theWorld == null) return lines;
+        Minecraft mc = Minecraft.getMinecraft();
+        if (mc.theWorld == null) return lines;
         
-        Scoreboard scoreboard = GuessTheUtils.CLIENT.theWorld.getScoreboard();
+        Scoreboard scoreboard = mc.theWorld.getScoreboard();
         if (scoreboard == null) return lines;
         
         ScoreObjective objective = scoreboard.getObjectiveInDisplaySlot(1); // SIDEBAR
@@ -57,9 +59,10 @@ public class Utils {
     public static List<String> collectTabListEntries() {
         List<String> entries = new ArrayList<String>();
         
-        if (GuessTheUtils.CLIENT.getNetHandler() == null) return entries;
+        Minecraft mc = Minecraft.getMinecraft();
+        if (mc.getNetHandler() == null) return entries;
         
-        Collection<NetworkPlayerInfo> playerInfos = GuessTheUtils.CLIENT.getNetHandler().getPlayerInfoMap();
+        Collection<NetworkPlayerInfo> playerInfos = mc.getNetHandler().getPlayerInfoMap();
         
         for (NetworkPlayerInfo info : playerInfos) {
             String displayName = info.getDisplayName() != null ? 
