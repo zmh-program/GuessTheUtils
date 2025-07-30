@@ -46,10 +46,11 @@ public class CustomScoreboard {
 
         FontRenderer fontRenderer = mc.fontRendererObj;
 
-        // Calculate scoreboard position (further right side of screen)
-        int maxWidth = 140;
-        int x = screenWidth - maxWidth - 5;
+        // Calculate scoreboard position
+        int maxWidth = 110;
+        int x = screenWidth - maxWidth - 8;
         int y = 20;
+        int padding = 3;
 
         GlStateManager.pushMatrix();
         GlStateManager.enableBlend();
@@ -58,74 +59,77 @@ public class CustomScoreboard {
         int startY = y;
         int infoHeight = 0;
         
-        // Calculate total height needed for info section
-        infoHeight += fontRenderer.FONT_HEIGHT + 2; // State
-        if (game.currentRound > 0) infoHeight += fontRenderer.FONT_HEIGHT + 2; // Round
-        if (!game.currentTheme.isEmpty()) infoHeight += fontRenderer.FONT_HEIGHT + 2; // Theme
-        if (!game.currentTimer.isEmpty()) infoHeight += fontRenderer.FONT_HEIGHT + 2; // Timer
-        if (game.currentBuilder != null) infoHeight += fontRenderer.FONT_HEIGHT + 4; // Builder
+        // Calculate total height needed for info section with proper spacing
+        infoHeight += fontRenderer.FONT_HEIGHT + 3; // State
+        if (game.currentRound > 0) infoHeight += fontRenderer.FONT_HEIGHT + 3; // Round
+        if (!game.currentTheme.isEmpty()) infoHeight += fontRenderer.FONT_HEIGHT + 3; // Theme
+        if (!game.currentTimer.isEmpty()) infoHeight += fontRenderer.FONT_HEIGHT + 3; // Timer
+        if (game.currentBuilder != null) infoHeight += fontRenderer.FONT_HEIGHT + 5; // Builder
         
-        // Draw info background
-        Gui.drawRect(x - 3, y - 2, x + maxWidth + 1, y + infoHeight + 2, 0x40000000);
+        // Draw info background with lower alpha and rounded feel
+        Gui.drawRect(x - padding, y - 2, x + maxWidth, y + infoHeight + 1, 0x25000000);
         
-        // Game state - simplified display
-        String stateText = GameTracker.state.name().replace("_", " ");
+        // Game state - simplified display with better formatting
+        String stateText = formatStateName(GameTracker.state.name());
         fontRenderer.drawStringWithShadow(stateText, x, y, 0xFF88CCFF);
-        y += fontRenderer.FONT_HEIGHT + 2;
+        y += fontRenderer.FONT_HEIGHT + 3;
 
         // Round info with better formatting
         if (game.currentRound > 0) {
             String roundText = "Round " + game.currentRound + "/" + game.totalRounds;
             fontRenderer.drawStringWithShadow(roundText, x, y, 0xFFFFDD88);
-            y += fontRenderer.FONT_HEIGHT + 2;
+            y += fontRenderer.FONT_HEIGHT + 3;
         }
 
         // Theme with prefix
         if (!game.currentTheme.isEmpty()) {
             fontRenderer.drawStringWithShadow("> " + game.currentTheme, x, y, 0xFF88FF88);
-            y += fontRenderer.FONT_HEIGHT + 2;
+            y += fontRenderer.FONT_HEIGHT + 3;
         }
 
         // Timer with symbol
         if (!game.currentTimer.isEmpty()) {
             fontRenderer.drawStringWithShadow("T " + game.currentTimer, x, y, 0xFFFFFF88);
-            y += fontRenderer.FONT_HEIGHT + 2;
+            y += fontRenderer.FONT_HEIGHT + 3;
         }
 
         // Current builder with spinner
         if (game.currentBuilder != null) {
             String spinnerFrame = getSpinnerFrame();
             fontRenderer.drawStringWithShadow(spinnerFrame + " " + game.currentBuilder.name, x, y, 0xFF88FFFF);
-            y += fontRenderer.FONT_HEIGHT + 4;
+            y += fontRenderer.FONT_HEIGHT + 5;
         }
+
+        // Gap between cards for professional look
+        y += 6;
 
         // Players section
         List<GameTracker.Player> sortedPlayers = getSortedPlayers(game);
         
-        // Players header with background
+        // Players header with background - proper spacing calculation
         int playersStartY = y;
-        int playersHeight = (sortedPlayers.size() + 1) * (fontRenderer.FONT_HEIGHT + 1) + 4;
-        Gui.drawRect(x - 3, y - 2, x + maxWidth + 1, y + playersHeight, 0x40000000);
+        int playersHeight = (fontRenderer.FONT_HEIGHT + 4) + (sortedPlayers.size() * (fontRenderer.FONT_HEIGHT + 3)) + 2;
+        Gui.drawRect(x - padding, y - 2, x + maxWidth, y + playersHeight, 0x25000000);
         
         fontRenderer.drawStringWithShadow("Players (" + sortedPlayers.size() + ")", x, y, 0xFFFFFFFF);
-        y += fontRenderer.FONT_HEIGHT + 2;
+        y += fontRenderer.FONT_HEIGHT + 4;
 
         for (GameTracker.Player player : sortedPlayers) {
             String playerLine = renderPlayerLine(player, game);
             int color = getPlayerColor(player, game);
             
-            // Enhanced background for current user
+            // Enhanced background for current user - more subtle
             if (player.isUser) {
-                Gui.drawRect(x - 1, y - 1, x + maxWidth - 2, y + fontRenderer.FONT_HEIGHT + 1, 0x60FFFF88);
+                Gui.drawRect(x - 1, y - 1, x + maxWidth - padding, y + fontRenderer.FONT_HEIGHT + 1, 0x30FFFF88);
             }
             
-            // Highlight builder with subtle background
+            // Highlight builder with subtle background - more subtle
             if (player.equals(game.currentBuilder)) {
-                Gui.drawRect(x - 1, y - 1, x + maxWidth - 2, y + fontRenderer.FONT_HEIGHT + 1, 0x4088FFFF);
+                Gui.drawRect(x - 1, y - 1, x + maxWidth - padding, y + fontRenderer.FONT_HEIGHT + 1, 0x2088FFFF);
             }
             
             fontRenderer.drawStringWithShadow(playerLine, x, y, color);
-            y += fontRenderer.FONT_HEIGHT + 1;
+            y += fontRenderer.FONT_HEIGHT + 3; // Increased spacing to prevent overlap
         }
 
         GlStateManager.disableBlend();
@@ -151,13 +155,13 @@ public class CustomScoreboard {
         
         // Points with better formatting
         int totalPoints = player.getTotalPoints();
-        line.append(" (").append(totalPoints).append(")");
+        line.append(" ").append(totalPoints);
         
         // Current round points with + symbol
         if (game.currentRound > 0 && game.currentRound <= player.points.length) {
             int currentRoundPoints = player.points[game.currentRound - 1];
             if (currentRoundPoints > 0) {
-                line.append(" +").append(currentRoundPoints);
+                line.append(" (+").append(currentRoundPoints).append(")");
             }
         }
         
@@ -216,5 +220,17 @@ public class CustomScoreboard {
     private String getSpinnerFrame() {
         int index = (tickCounter / 4) % BUILDING_SPINNER.length;
         return BUILDING_SPINNER[index];
+    }
+    
+    private String formatStateName(String stateName) {
+        switch (stateName) {
+            case "PRE_GAME": return "Waiting";
+            case "SETTING_UP": return "Setting Up";
+            case "BUILDING": return "Building";
+            case "GUESSING": return "Guessing";
+            case "GAME_END": return "Game End";
+            case "TRANSITIONING": return "Next Round";
+            default: return stateName.replace("_", " ");
+        }
     }
 }
