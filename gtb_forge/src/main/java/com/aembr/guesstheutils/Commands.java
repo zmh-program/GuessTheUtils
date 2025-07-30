@@ -3,10 +3,12 @@ package com.aembr.guesstheutils;
 import com.aembr.guesstheutils.config.GuessTheUtilsConfig;
 import com.aembr.guesstheutils.modules.BuilderNotification;
 import com.aembr.guesstheutils.modules.GameTracker;
+import net.minecraft.client.Minecraft;
 import net.minecraft.command.CommandBase;
 import net.minecraft.command.CommandException;
 import net.minecraft.command.ICommandSender;
 import net.minecraft.entity.player.EntityPlayer;
+import net.minecraft.scoreboard.Score;
 import net.minecraft.scoreboard.Scoreboard;
 import net.minecraft.scoreboard.ScoreObjective;
 import net.minecraft.scoreboard.Team;
@@ -277,56 +279,77 @@ public class Commands extends CommandBase {
     
     private void showVanillaScoreboardInfo(EntityPlayer player) {
         try {
-            Scoreboard scoreboard = player.getWorldScoreboard();
+            Minecraft mc = Minecraft.getMinecraft();
+            Scoreboard scoreboard = mc.theWorld.getScoreboard();
             
             if (scoreboard == null) {
                 sendMessage(player, "No scoreboard available");
                 return;
             }
             
-            // Display objectives
-            sendMessage(player, "Objectives:");
-            boolean hasObjectives = false;
-            for (ScoreObjective objective : scoreboard.getScoreObjectives()) {
-                hasObjectives = true;
-                String displaySlot = "";
-                if (scoreboard.getObjectiveInDisplaySlot(0) == objective) displaySlot += " [list]";
-                if (scoreboard.getObjectiveInDisplaySlot(1) == objective) displaySlot += " [sidebar]";
-                if (scoreboard.getObjectiveInDisplaySlot(2) == objective) displaySlot += " [belowName]";
+            sendMessage(player, "Current displayed scoreboard:");
+            
+            // Sidebar scoreboard (slot 1)
+            ScoreObjective sidebarObjective = scoreboard.getObjectiveInDisplaySlot(1);
+            if (sidebarObjective != null) {
+                sendMessage(player, "Sidebar: " + sidebarObjective.getDisplayName() + " (" + sidebarObjective.getName() + ")");
                 
-                sendMessage(player, "  " + objective.getName() + " (" + objective.getCriteria().getName() + ")" + displaySlot);
-            }
-            if (!hasObjectives) {
-                sendMessage(player, "  No objectives found");
+                // Get scores for sidebar
+                java.util.Collection scores = scoreboard.getSortedScores(sidebarObjective);
+                if (!scores.isEmpty()) {
+                    sendMessage(player, "  Scores:");
+                    int count = 0;
+                    for (Object scoreObj : scores) {
+                        if (count >= 15) break; // Sidebar shows max 15 entries
+                        Score score = (Score) scoreObj;
+                        sendMessage(player, "    " + score.getPlayerName() + ": " + score.getScorePoints());
+                        count++;
+                    }
+                }
+            } else {
+                sendMessage(player, "Sidebar: None");
             }
             
-            // Display teams
-            sendMessage(player, "Teams:");
-            boolean hasTeams = false;
-            for (Team team : scoreboard.getTeams()) {
-                hasTeams = true;
-                String teamInfo = "  " + team.getRegisteredName();
-                if (team.getMembershipCollection().size() > 0) {
-                    teamInfo += " (" + team.getMembershipCollection().size() + " members)";
+            // Player list scoreboard (slot 0)
+            ScoreObjective listObjective = scoreboard.getObjectiveInDisplaySlot(0);
+            if (listObjective != null) {
+                sendMessage(player, "Player List: " + listObjective.getDisplayName() + " (" + listObjective.getName() + ")");
+                if (scoreboard.entityHasObjective(player.getName(), listObjective)) {
+                    int score = scoreboard.getValueFromObjective(player.getName(), listObjective).getScorePoints();
+                    sendMessage(player, "  Your score: " + score);
                 }
-                sendMessage(player, teamInfo);
-            }
-            if (!hasTeams) {
-                sendMessage(player, "  No teams found");
+            } else {
+                sendMessage(player, "Player List: None");
             }
             
-            // Display player's scores
-            sendMessage(player, "Your scores:");
-            boolean hasScores = false;
-            for (ScoreObjective objective : scoreboard.getScoreObjectives()) {
-                if (scoreboard.entityHasObjective(player.getName(), objective)) {
-                    int score = scoreboard.getValueFromObjective(player.getName(), objective).getScorePoints();
-                    sendMessage(player, "  " + objective.getName() + ": " + score);
-                    hasScores = true;
+            // Below name scoreboard (slot 2)
+            ScoreObjective belowNameObjective = scoreboard.getObjectiveInDisplaySlot(2);
+            if (belowNameObjective != null) {
+                sendMessage(player, "Below Name: " + belowNameObjective.getDisplayName() + " (" + belowNameObjective.getName() + ")");
+                if (scoreboard.entityHasObjective(player.getName(), belowNameObjective)) {
+                    int score = scoreboard.getValueFromObjective(player.getName(), belowNameObjective).getScorePoints();
+                    sendMessage(player, "  Your score: " + score);
                 }
+            } else {
+                sendMessage(player, "Below Name: None");
             }
-            if (!hasScores) {
-                sendMessage(player, "  No scores found");
+            
+            // Display teams information
+            Team playerTeam = scoreboard.getPlayersTeam(player.getName());
+            if (playerTeam != null) {
+                sendMessage(player, "Your team: " + playerTeam.getRegisteredName());
+                if (playerTeam.getMembershipCollection().size() > 1) {
+                    StringBuilder memberList = new StringBuilder();
+                    boolean first = true;
+                    for (Object member : playerTeam.getMembershipCollection()) {
+                        if (!first) memberList.append(", ");
+                        memberList.append(member.toString());
+                        first = false;
+                    }
+                    sendMessage(player, "  Members (" + playerTeam.getMembershipCollection().size() + "): " + memberList.toString());
+                }
+            } else {
+                sendMessage(player, "Your team: None");
             }
             
         } catch (Exception e) {
