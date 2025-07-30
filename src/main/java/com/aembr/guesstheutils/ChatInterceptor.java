@@ -55,16 +55,17 @@ public class ChatInterceptor {
         }
 
         public boolean matchAvailableMessage(String msg)  {
+            if (msg == null) return false;
+            
             String cleanedMsg = msg.trim();
-            return !cleanedMsg.isEmpty() && cleanedMsg.startsWith("/");
+            return !cleanedMsg.isEmpty() && !cleanedMsg.startsWith("/");
         }
         
         @Override
         public void sendChatMessage(String msg, boolean addToChat) {
-            if (msg != null && !msg.trim().isEmpty()) {
+            if (matchAvailableMessage(msg)) {
                 if (GuessTheUtils.chatCooldown != null) {
                     GuessTheUtils.chatCooldown.onMessageSent();
-                    GuessTheUtils.LOGGER.debug("Chat cooldown triggered for message: " + msg);
                 }
             }
             super.sendChatMessage(msg, addToChat);
