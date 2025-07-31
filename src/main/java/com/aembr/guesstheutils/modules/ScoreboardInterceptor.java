@@ -115,7 +115,7 @@ public class ScoreboardInterceptor {
         }
         
         // If not intercepting, fall back to current scoreboard
-        return com.aembr.guesstheutils.Utils.getScoreboardLines();
+        return getScoreboardLines();
     }
 
     public static List<String> getScoreboardLines() {
