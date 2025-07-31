@@ -480,8 +480,9 @@ public class GTBEvents {
             if (sidebarObjective != null) {
                 String displayName = sidebarObjective.getDisplayName();
                 if (displayName != null) {
-                    // Check if sidebar title contains "Guess The Build" (case insensitive)
-                    return displayName.toLowerCase().contains("guess the build");
+                    // Remove color codes before checking the text content
+                    String cleanDisplayName = EnumChatFormatting.getTextWithoutFormattingCodes(displayName);
+                    return cleanDisplayName.toLowerCase().contains("guess the build");
                 }
             }
             

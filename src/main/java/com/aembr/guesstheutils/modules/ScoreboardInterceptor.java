@@ -66,8 +66,8 @@ public class ScoreboardInterceptor {
     private boolean shouldCustomizeScoreboard(String displayName) {
         if (displayName == null) return false;
         
-        // Check if it's a GTB scoreboard and if custom scoreboard is enabled
-        boolean isGtb = displayName.toLowerCase().contains("guess the build");
+        String cleanDisplayName = EnumChatFormatting.getTextWithoutFormattingCodes(displayName);
+        boolean isGtb = cleanDisplayName.toLowerCase().contains("guess the build");
         boolean shouldCustomize = com.aembr.guesstheutils.modules.CustomScoreboard.isRendering();
         
         return isGtb && shouldCustomize;
