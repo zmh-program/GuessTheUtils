@@ -354,7 +354,6 @@ public class GTBEvents {
         if (isInLobby()) return GameState.LOBBY;
 
         for (String line : lines) {
-            if (line.contains("Lobby")) return GameState.LOBBY;
             if (line.contains("Round") && line.contains("/")) return GameState.ROUND_BUILD;
             if (line.contains("Next Round")) return GameState.ROUND_END;
             if (line.contains("Winners")) return GameState.POST_GAME;
