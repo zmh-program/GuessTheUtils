@@ -18,6 +18,7 @@ import java.util.regex.Matcher;
 
 public class CustomScoreboard {
     private static final String[] BUILDING_SPINNER = new String[] {"⠋", "⠙", "⠹", "⠸", "⠼", "⠴", "⠦", "⠧", "⠇", "⠏"};
+    public static String EmptyLine = "§7";
     public static int tickCounter = 0;
     
     private GameTracker gameTracker;
@@ -134,7 +135,7 @@ public class CustomScoreboard {
             List<String> lines = new ArrayList<>();
             
             // Add empty line for spacing
-            lines.add("");
+            lines.add(EmptyLine);
             
             // Game state
             String stateText = formatStateName(GameTracker.state.name());
@@ -162,7 +163,7 @@ public class CustomScoreboard {
             }
             
             // Empty line for separation
-            lines.add("");
+            lines.add(EmptyLine);
             
             // Top 3 players
             List<GameTracker.Player> sortedPlayers = getSortedPlayers(game);
@@ -176,7 +177,7 @@ public class CustomScoreboard {
             }
             
             // Server footer
-            lines.add("");
+            lines.add(EmptyLine);
             lines.add("§ewww.hypixel.net");
             
             return lines.toArray(new String[0]);
@@ -227,9 +228,10 @@ public class CustomScoreboard {
             }
             
             // Build our custom waiting scoreboard
-            lines.add("");
-            lines.add("§bWaiting for Players");
-            lines.add("");
+            String spinnerFrame = getSpinnerFrame();
+            lines.add(EmptyLine);
+            lines.add("§b" + spinnerFrame + " Waiting for Players");
+            lines.add(EmptyLine);
             
             if (!playerCount.isEmpty()) {
                 lines.add("§f" + playerCount);
@@ -238,10 +240,10 @@ public class CustomScoreboard {
             if (!timeLeft.isEmpty()) {
                 lines.add("§e" + timeLeft);
             } else {
-                lines.add("§cWaiting...");
+                lines.add("§c" + spinnerFrame + " Waiting...");
             }
             
-            lines.add("");
+            lines.add(EmptyLine);
             lines.add("§ewww.hypixel.net");
             
             return lines.toArray(new String[0]);
