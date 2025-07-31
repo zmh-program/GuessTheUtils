@@ -46,13 +46,13 @@ public class ScoreboardInterceptor {
             
             if (shouldCustomize) {
                 if (!isIntercepting) {
-                    // First time intercepting - save original state
-                    saveOriginalScoreboard(scoreboard, sidebarObjective);
                     isIntercepting = true;
                 }
+                
+                // Apply our customization
                 updateCustomScoreboard(scoreboard, sidebarObjective);
             } else if (isIntercepting) {
-                // Stop intercepting - restore original if needed
+                // Stop intercepting
                 isIntercepting = false;
                 originalScores.clear();
                 originalScoreboardLines.clear();
@@ -67,41 +67,12 @@ public class ScoreboardInterceptor {
         if (displayName == null) return false;
         
         // Check if it's a GTB scoreboard and if custom scoreboard is enabled
-        boolean isGTB = displayName.toLowerCase().contains("guess the build");
+        boolean isGtb = displayName.toLowerCase().contains("guess the build");
         boolean shouldCustomize = com.aembr.guesstheutils.modules.CustomScoreboard.isRendering();
         
-        return isGTB && shouldCustomize;
+        return isGtb && shouldCustomize;
     }
-    
-    private void saveOriginalScoreboard(Scoreboard scoreboard, ScoreObjective objective) {
-        try {
-            originalTitle = objective.getDisplayName();
-            originalScores.clear();
-            originalScoreboardLines.clear();
-            
-            // Save original scores
-            Collection<Score> scores = scoreboard.getSortedScores(objective);
-            for (Score score : scores) {
-                originalScores.put(score.getPlayerName(), score.getScorePoints());
-            }
-            
-            // Save original scoreboard lines (same logic as Utils.getScoreboardLines())
-            for (Score score : scores) {
-                ScorePlayerTeam team = scoreboard.getPlayersTeam(score.getPlayerName());
-                String line = ScorePlayerTeam.formatPlayerName(team, score.getPlayerName());
-                originalScoreboardLines.add(EnumChatFormatting.getTextWithoutFormattingCodes(line));
-            }
-            
-            if (objective.getDisplayName() != null) {
-                originalScoreboardLines.add(0, EnumChatFormatting.getTextWithoutFormattingCodes(objective.getDisplayName()));
-            }
-            
-            GuessTheUtils.LOGGER.debug("Saved original scoreboard: " + originalTitle + " (" + originalScoreboardLines.size() + " lines)");
-        } catch (Exception e) {
-            GuessTheUtils.LOGGER.error("Error saving original scoreboard", e);
-        }
-    }
-    
+
     private void updateCustomScoreboard(Scoreboard scoreboard, ScoreObjective objective) {
         try {
             // Get custom scoreboard lines
@@ -131,7 +102,7 @@ public class ScoreboardInterceptor {
     
     private String[] getCustomScoreboardLines() {
         try {
-            // System.out.println("Getting custom scoreboard lines: " + originalScoreboardLines);
+            System.out.println("Getting custom scoreboard lines: " + originalScoreboardLines);
             
             if (GuessTheUtils.gameTracker == null || GuessTheUtils.gameTracker.game == null) {
                 // Extract info from original scoreboard during waiting phase
@@ -228,6 +199,8 @@ public class ScoreboardInterceptor {
         return players;
     }
     
+
+    
     // Public method to get original scoreboard lines for GTBEvents
     public static List<String> getOriginalScoreboardLines() {
         if (isIntercepting && !originalScoreboardLines.isEmpty()) {
@@ -244,8 +217,11 @@ public class ScoreboardInterceptor {
             String playerCount = "";
             String timeLeft = "";
             
-            // Parse original scoreboard lines to extract information
-            for (String line : originalScoreboardLines) {
+            // Get CURRENT scoreboard data (this works as shown in logs)
+            List<String> currentScoreboardLines = getOriginalScoreboardLines();
+
+            // Parse CURRENT scoreboard lines to extract information  
+            for (String line : currentScoreboardLines) {
                 String cleanLine = line.trim();
                 
                 // Extract player count (e.g., "Players: 9/10")

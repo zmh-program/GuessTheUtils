@@ -45,6 +45,7 @@ public class Utils {
     }
     
     public static List<String> getScoreboardLines() {
+        // deprecated since we are using the scoreboard interceptor
         List<String> lines = new ArrayList<String>();
         
         Minecraft mc = Minecraft.getMinecraft();

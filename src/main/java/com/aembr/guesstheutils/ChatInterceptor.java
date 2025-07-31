@@ -7,6 +7,9 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.network.NetworkManager;
 import net.minecraft.network.play.client.C01PacketChatMessage;
 import net.minecraft.network.play.server.S02PacketChat;
+import net.minecraft.network.play.server.S3BPacketScoreboardObjective;
+import net.minecraft.network.play.server.S3CPacketUpdateScore;
+import net.minecraft.network.play.server.S3DPacketDisplayScoreboard;
 import net.minecraft.util.IChatComponent;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 import net.minecraftforge.fml.common.gameevent.TickEvent;
@@ -15,6 +18,7 @@ import net.minecraftforge.fml.common.network.FMLNetworkEvent;
 import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.ConcurrentLinkedQueue;
 
 public class ChatInterceptor {
@@ -25,6 +29,10 @@ public class ChatInterceptor {
     
     private static final ConcurrentLinkedQueue<String> pendingChatMessages = new ConcurrentLinkedQueue<>();
     private static volatile String lastActionBarMessage = null;
+    
+    // Store raw scoreboard data from server packets
+    private static volatile String rawScoreboardTitle = "";
+    private static final Map<String, Integer> rawScoreboardScores = new java.util.concurrent.ConcurrentHashMap<>();
     
     public static void init() {
         GuessTheUtils.LOGGER.info("ChatInterceptor initialized with netty handler injection");
@@ -220,6 +228,12 @@ public class ChatInterceptor {
             if (msg instanceof S02PacketChat) {
                 S02PacketChat chatPacket = (S02PacketChat) msg;
                 handleIncomingChatPacket(chatPacket);
+            } else if (msg instanceof S3BPacketScoreboardObjective) {
+                S3BPacketScoreboardObjective objectivePacket = (S3BPacketScoreboardObjective) msg;
+                handleScoreboardObjective(objectivePacket);
+            } else if (msg instanceof S3CPacketUpdateScore) {
+                S3CPacketUpdateScore scorePacket = (S3CPacketUpdateScore) msg;
+                handleScoreboardScore(scorePacket);
             }
             
             super.channelRead(ctx, msg);
@@ -298,6 +312,44 @@ public class ChatInterceptor {
             lastActionBarMessage = message;
         }
         
+        private void handleScoreboardObjective(S3BPacketScoreboardObjective packet) {
+            try {
+                // Debug: Print all field names to find correct ones
+                Field[] fields = S3BPacketScoreboardObjective.class.getDeclaredFields();
+                System.out.println("S3BPacketScoreboardObjective fields: " + java.util.Arrays.toString(fields));
+                
+                // Capture scoreboard title updates
+                String objectiveName = getObjectiveName(packet);
+                String displayName = getObjectiveDisplayName(packet);
+
+                if (objectiveName != null && displayName != null) {
+                    rawScoreboardTitle = displayName;
+                }
+            } catch (Exception e) {
+                GuessTheUtils.LOGGER.debug("Error handling scoreboard objective: " + e.getMessage());
+                e.printStackTrace();
+            }
+        }
+        
+        private void handleScoreboardScore(S3CPacketUpdateScore packet) {
+            try {
+                // Debug: Print all field names to find correct ones
+                Field[] fields = S3CPacketUpdateScore.class.getDeclaredFields();
+                
+                // Capture scoreboard score updates
+                String playerName = getScorePlayerName(packet);
+                int scoreValue = getScoreValue(packet);
+                String objectiveName = getScoreObjectiveName(packet);
+                
+                if (objectiveName != null && playerName != null) {
+                    rawScoreboardScores.put(playerName, scoreValue);
+                }
+            } catch (Exception e) {
+                GuessTheUtils.LOGGER.debug("Error handling scoreboard score: " + e.getMessage());
+                e.printStackTrace();
+            }
+        }
+        
         private String getChatMessage(C01PacketChatMessage packet) {
             try {
                 Field messageField = C01PacketChatMessage.class.getDeclaredField("message");
@@ -315,5 +367,65 @@ public class ChatInterceptor {
             String cleanedMsg = msg.trim();
             return !cleanedMsg.isEmpty() && !cleanedMsg.startsWith("/");
         }
+        
+        // Reflection methods for scoreboard packets
+        private String getObjectiveName(S3BPacketScoreboardObjective packet) {
+            try {
+                Field field = S3BPacketScoreboardObjective.class.getDeclaredField("objectiveName");
+                field.setAccessible(true);
+                return (String) field.get(packet);
+            } catch (Exception e) {
+                return null;
+            }
+        }
+        
+        private String getObjectiveDisplayName(S3BPacketScoreboardObjective packet) {
+            try {
+                Field field = S3BPacketScoreboardObjective.class.getDeclaredField("objectiveValue");
+                field.setAccessible(true);
+                return (String) field.get(packet);
+            } catch (Exception e) {
+                return null;
+            }
+        }
+        
+        private String getScorePlayerName(S3CPacketUpdateScore packet) {
+            try {
+                Field field = S3CPacketUpdateScore.class.getDeclaredField("playerName");
+                field.setAccessible(true);
+                return (String) field.get(packet);
+            } catch (Exception e) {
+                return null;
+            }
+        }
+        
+        private String getScoreObjectiveName(S3CPacketUpdateScore packet) {
+            try {
+                Field field = S3CPacketUpdateScore.class.getDeclaredField("objectiveName");
+                field.setAccessible(true);
+                return (String) field.get(packet);
+            } catch (Exception e) {
+                return null;
+            }
+        }
+        
+        private int getScoreValue(S3CPacketUpdateScore packet) {
+            try {
+                Field field = S3CPacketUpdateScore.class.getDeclaredField("scoreValue");
+                field.setAccessible(true);
+                return field.getInt(packet);
+            } catch (Exception e) {
+                return 0;
+            }
+        }
+    }
+    
+    // Public methods to access raw scoreboard data
+    public static String getRawScoreboardTitle() {
+        return rawScoreboardTitle;
+    }
+    
+    public static Map<String, Integer> getRawScoreboardScores() {
+        return new java.util.HashMap<>(rawScoreboardScores);
     }
 }
