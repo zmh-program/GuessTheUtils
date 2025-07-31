@@ -274,14 +274,14 @@ public class Commands extends CommandBase {
     
     private void showOriginalScoreboardInfo(EntityPlayer player) {
         try {
-            if (!com.aembr.guesstheutils.modules.OriginalScoreboardCapture.hasOriginalScoreboardData()) {
+            if (!com.aembr.guesstheutils.interceptor.OriginalScoreboardCapture.hasOriginalScoreboardData()) {
                 sendMessage(player, "No original scoreboard data available.");
                 sendMessage(player, "Make sure you're in a game with a scoreboard visible.");
                 return;
             }
             
-            String title = com.aembr.guesstheutils.modules.OriginalScoreboardCapture.getOriginalScoreboardTitle();
-            java.util.Map<String, Integer> lines = com.aembr.guesstheutils.modules.OriginalScoreboardCapture.getOriginalScoreboardLines();
+            String title = com.aembr.guesstheutils.interceptor.OriginalScoreboardCapture.getOriginalScoreboardTitle();
+            java.util.Map<String, Integer> lines = com.aembr.guesstheutils.interceptor.OriginalScoreboardCapture.getOriginalScoreboardLines();
             
             sendMessage(player, "Original Title: " + (title.isEmpty() ? "None" : title));
             sendMessage(player, "Original Lines (" + lines.size() + "):");

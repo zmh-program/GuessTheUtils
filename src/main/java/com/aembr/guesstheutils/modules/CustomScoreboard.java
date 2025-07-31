@@ -2,6 +2,7 @@ package com.aembr.guesstheutils.modules;
 
 import com.aembr.guesstheutils.GuessTheUtils;
 import com.aembr.guesstheutils.config.GuessTheUtilsConfig;
+import com.aembr.guesstheutils.interceptor.ScoreboardInterceptor;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.FontRenderer;
 import net.minecraft.client.gui.Gui;

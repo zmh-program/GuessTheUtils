@@ -115,16 +115,16 @@ public class GuessTheUtils {
         LOGGER.info("Registered HudHooks for rendering events");
         
         // Register scoreboard interceptor for direct scoreboard modification
-        net.minecraftforge.common.MinecraftForge.EVENT_BUS.register(new com.aembr.guesstheutils.modules.ScoreboardInterceptor());
+        net.minecraftforge.common.MinecraftForge.EVENT_BUS.register(new com.aembr.guesstheutils.interceptor.ScoreboardInterceptor());
         LOGGER.info("Registered ScoreboardInterceptor for scoreboard content modification");
         
         // Register original scoreboard capture for getting unmodified data
-        net.minecraftforge.common.MinecraftForge.EVENT_BUS.register(new com.aembr.guesstheutils.modules.OriginalScoreboardCapture());
+        net.minecraftforge.common.MinecraftForge.EVENT_BUS.register(new com.aembr.guesstheutils.interceptor.OriginalScoreboardCapture());
         LOGGER.info("Registered OriginalScoreboardCapture for capturing original scoreboard data");
         
         // Register chat interceptor for chat cooldown
-        net.minecraftforge.common.MinecraftForge.EVENT_BUS.register(new ChatInterceptor());
-        ChatInterceptor.init();
+        net.minecraftforge.common.MinecraftForge.EVENT_BUS.register(new com.aembr.guesstheutils.interceptor.ChatInterceptor());
+        com.aembr.guesstheutils.interceptor.ChatInterceptor.init();
         LOGGER.info("Registered ChatInterceptor for chat message interception");
         
         // Enable chat cooldown for testing (normally enabled by game events)
@@ -168,7 +168,7 @@ public class GuessTheUtils {
             }
         }
 
-        onScoreboardUpdate(com.aembr.guesstheutils.modules.ScoreboardInterceptor.getOriginalScoreboardLines());
+        onScoreboardUpdate(com.aembr.guesstheutils.interceptor.ScoreboardInterceptor.getOriginalScoreboardLines());
         onPlayerListUpdate(Utils.collectTabListEntries());
         
         gameTracker.onTick();

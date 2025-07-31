@@ -1,6 +1,7 @@
-package com.aembr.guesstheutils.modules;
+package com.aembr.guesstheutils.interceptor;
 
 import com.aembr.guesstheutils.GuessTheUtils;
+import com.aembr.guesstheutils.modules.CustomScoreboard;
 import com.aembr.guesstheutils.modules.GameTracker;
 import net.minecraft.client.Minecraft;
 import net.minecraft.scoreboard.Score;

@@ -1,4 +1,4 @@
-package com.aembr.guesstheutils.modules;
+package com.aembr.guesstheutils.interceptor;
 
 import com.aembr.guesstheutils.GuessTheUtils;
 import net.minecraft.client.Minecraft;

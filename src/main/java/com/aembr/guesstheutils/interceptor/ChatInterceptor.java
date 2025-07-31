@@ -1,5 +1,7 @@
-package com.aembr.guesstheutils;
+package com.aembr.guesstheutils.interceptor;
 
+import com.aembr.guesstheutils.GuessTheUtils;
+import com.aembr.guesstheutils.Tick;
 import io.netty.channel.ChannelDuplexHandler;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelPromise;

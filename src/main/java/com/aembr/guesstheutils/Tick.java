@@ -17,7 +17,7 @@ public class Tick {
     public String error;
 
     public Tick() {
-        com.aembr.guesstheutils.ChatInterceptor.extractPendingMessages(this);
+        com.aembr.guesstheutils.interceptor.ChatInterceptor.extractPendingMessages(this);
     }
 
     public Tick(JsonObject json) {
