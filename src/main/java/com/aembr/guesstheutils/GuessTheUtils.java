@@ -45,9 +45,13 @@ public class GuessTheUtils {
 
     public static boolean testing = false;
     public static LiveE2ERunner liveE2ERunner;
-    public static boolean debugMode = true;
+    public static boolean debugMode = false;
 
     private static Tick currentTick;
+    
+    public static Tick getCurrentTick() {
+        return currentTick;
+    }
     private List<String> previousScoreboardLines = new ArrayList<String>();
     private List<String> previousPlayerListEntries = new ArrayList<String>();
     private String previousActionBarMessage = "";
@@ -162,6 +166,8 @@ public class GuessTheUtils {
 
         onScoreboardUpdate(Utils.getScoreboardLines());
         onPlayerListUpdate(Utils.collectTabListEntries());
+        
+        ChatInterceptor.processMessages(currentTick);
         
         gameTracker.onTick();
         chatCooldown.onTick();

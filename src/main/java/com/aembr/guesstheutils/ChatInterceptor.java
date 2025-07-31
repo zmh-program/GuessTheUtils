@@ -6,19 +6,47 @@ import io.netty.channel.ChannelPromise;
 import net.minecraft.client.Minecraft;
 import net.minecraft.network.NetworkManager;
 import net.minecraft.network.play.client.C01PacketChatMessage;
+import net.minecraft.network.play.server.S02PacketChat;
+import net.minecraft.util.IChatComponent;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 import net.minecraftforge.fml.common.gameevent.TickEvent;
 import net.minecraftforge.fml.common.network.FMLNetworkEvent;
 
 import java.lang.reflect.Field;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.concurrent.ConcurrentLinkedQueue;
 
 public class ChatInterceptor {
     private static final String HANDLER_NAME = "guesstheutils_chat_interceptor";
     private static boolean isInjected = false;
     private static int injectionAttempts = 0;
     
+    private static final ConcurrentLinkedQueue<String> pendingChatMessages = new ConcurrentLinkedQueue<>();
+    private static volatile String lastActionBarMessage = null;
+    
     public static void init() {
         GuessTheUtils.LOGGER.info("ChatInterceptor initialized with netty handler injection");
+    }
+    
+    public static void processMessages(Tick currentTick) {
+        if (currentTick == null) return;
+        
+        if (!pendingChatMessages.isEmpty()) {
+            if (currentTick.chatMessages == null) {
+                currentTick.chatMessages = new ArrayList<>();
+            }
+            
+            String message;
+            while ((message = pendingChatMessages.poll()) != null) {
+                currentTick.chatMessages.add(message);
+            }
+        }
+        
+        if (lastActionBarMessage != null) {
+            currentTick.actionBarMessage = lastActionBarMessage;
+            lastActionBarMessage = null;
+        }
     }
     
     @SubscribeEvent
@@ -131,6 +159,65 @@ public class ChatInterceptor {
             }
             
             super.write(ctx, msg, promise);
+        }
+        
+        @Override
+        public void channelRead(ChannelHandlerContext ctx, Object msg) throws Exception {
+            if (msg instanceof S02PacketChat) {
+                S02PacketChat chatPacket = (S02PacketChat) msg;
+                handleIncomingChatPacket(chatPacket);
+            }
+            
+            super.channelRead(ctx, msg);
+        }
+        
+        private void handleIncomingChatPacket(S02PacketChat packet) {
+            try {
+                IChatComponent chatComponent = getChatComponent(packet);
+                byte chatType = getChatType(packet);
+                
+                if (chatComponent != null) {
+                    String message = chatComponent.getUnformattedText();
+                    
+                    if (chatType == 0) {
+                        addChatMessage(message);
+                    } else if (chatType == 2) {
+                        setActionBarMessage(message);
+                    }
+                }
+            } catch (Exception e) {
+                GuessTheUtils.LOGGER.error("Failed to handle incoming chat packet", e);
+            }
+        }
+        
+        private IChatComponent getChatComponent(S02PacketChat packet) {
+            try {
+                Field chatComponentField = S02PacketChat.class.getDeclaredField("chatComponent");
+                chatComponentField.setAccessible(true);
+                return (IChatComponent) chatComponentField.get(packet);
+            } catch (Exception e) {
+                GuessTheUtils.LOGGER.error("Failed to get chat component from packet", e);
+                return null;
+            }
+        }
+        
+        private byte getChatType(S02PacketChat packet) {
+            try {
+                Field typeField = S02PacketChat.class.getDeclaredField("type");
+                typeField.setAccessible(true);
+                return typeField.getByte(packet);
+            } catch (Exception e) {
+                GuessTheUtils.LOGGER.error("Failed to get chat type from packet", e);
+                return 0;
+            }
+        }
+        
+        private void addChatMessage(String message) {
+            pendingChatMessages.offer(message);
+        }
+        
+        private void setActionBarMessage(String message) {
+            lastActionBarMessage = message;
         }
         
         private String getChatMessage(C01PacketChatMessage packet) {
