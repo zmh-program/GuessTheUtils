@@ -123,9 +123,8 @@ public class ChatInterceptor {
                 C01PacketChatMessage chatPacket = (C01PacketChatMessage) msg;
                 String message = getChatMessage(chatPacket);
                 
-                System.out.println("Message: " + message);
-                if (matchAvailableMessage(message)) {
-                    if (GuessTheUtils.chatCooldown != null) {
+                if (GuessTheUtils.chatCooldown != null && matchAvailableMessage(message)) {
+                    if (GuessTheUtils.events.isInGtb()) {
                         GuessTheUtils.chatCooldown.onMessageSent();
                     }
                 }

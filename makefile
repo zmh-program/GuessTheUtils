@@ -1,10 +1,16 @@
-.PHONY: build run server
+.PHONY: build run server stop apply deploy
 
 build:
 	gradlew build
 
 run:
-	gradlew runClient
+	gradlew :runClient
+
+run-offline:
+	gradlew :runClient --offline
+
+stop:
+	gradlew --stop
 
 server:
 	gradlew :runServer
