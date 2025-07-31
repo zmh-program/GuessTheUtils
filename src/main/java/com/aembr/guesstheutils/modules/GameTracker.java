@@ -83,6 +83,18 @@ public class GameTracker extends GTBEvents.Module {
         }, this);
     }
 
+    private void onTick(Minecraft client) {
+        if (game == null || !events.isInGtb()) return;
+        game.players.forEach(player -> player.inactiveTicks++);
+        CustomScoreboard.tickCounter++;
+    }
+
+    private static int getThemePointAward(String theme) {
+        return (theme.length() < 6) ? 1 : (theme.length() < 9) ? 2 : 3;
+    }
+
+
+
     private void onUserRejoin(GTBEvents.UserRejoinEvent userRejoinEvent) {
         if (game == null || game.leaveState == null || game.leaveRound == -1 || game.leaveBuilder == null) {
             Utils.sendMessage("Tracking is disabled for this game, as you weren't present at the start " +

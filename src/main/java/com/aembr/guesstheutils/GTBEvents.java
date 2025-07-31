@@ -130,12 +130,7 @@ public class GTBEvents {
     public void processTickUpdate(Tick tick) {
         currentTick = tick;
         emit(new TickUpdateEvent());
-        if (tick.chatMessages != null) {
-            System.out.println("Chat Messages: " + tick.chatMessages);
-        }
-        if (tick.actionBarMessage != null) {
-            System.out.println("Action Bar Message: " + tick.actionBarMessage);
-        }
+
         if (tick.scoreboardLines != null) scoreboardLineHistory.add(tick.scoreboardLines);
         if (tick.playerListEntries != null) playerListEntryHistory.add(tick.playerListEntries);
 
@@ -197,67 +192,161 @@ public class GTBEvents {
     }
 
     private void onChatMessages(List<String> chatMessages) {
+        List<String> correctGuessers = new ArrayList<>();
         for (String messageString : chatMessages) {
-            String strippedMessage = EnumChatFormatting.getTextWithoutFormattingCodes(messageString);
+            String strMessage = EnumChatFormatting.getTextWithoutFormattingCodes(messageString);
+            if (strMessage == null || strMessage.isEmpty()) continue;
 
-            if (strippedMessage.startsWith("Builder: ")) {
-                String builder = strippedMessage.substring(9).trim();
-                onBuilderChange(builder);
+            if (gameState.equals(GameState.ROUND_PRE) && strMessage.startsWith("Round: ") && strMessage.contains("/")) {
+                String[] currentOverTotal = strMessage.replace("Round: ", "").split("/");
+                if (currentOverTotal[0].matches("\\d{1,2}") && currentOverTotal[1].matches("\\d{1,2}")) {
+                    int current = Integer.parseInt(currentOverTotal[0]);
+                    int total = Integer.parseInt(currentOverTotal[1]);
+                    emit(new RoundStartEvent(current, total));
+                    changeState(GameState.ROUND_BUILD);
+                }
             }
 
-            if (strippedMessage.endsWith(" guessed the word!")) {
-                String playerName = strippedMessage.substring(0, strippedMessage.length() - 18);
-                onCorrectGuess(Collections.singletonList(playerName));
+            if (strMessage.startsWith("Builder: ")) {
+                String builderName = strMessage.replace("Builder: ", "");
+                if (!Objects.equals(currentBuilder, builderName)) {
+                    if (gameState.equals(GameState.ROUND_PRE) || gameState.equals(GameState.ROUND_END)) {
+                        emit(new BuilderChangeEvent(currentBuilder, builderName));
+                        currentBuilder = builderName;
+                    } else if (gameState.equals(GameState.SETUP)) {
+                        prematureBuilder = builderName;
+                    }
+                }
             }
 
-            if (Arrays.asList(roundSkipMessages).contains(strippedMessage)) {
+            if (gameState.equals(GameState.ROUND_BUILD) && !strMessage.contains(":")
+                    && strMessage.endsWith(" correctly guessed the theme!")) {
+                String name = strMessage.replace(" correctly guessed the theme!", "");
+                correctGuessers.add(name);
+            }
+
+            if (gameState.equals(GameState.ROUND_BUILD) && strMessage.startsWith("+") && strMessage.endsWith("(Correct Guess)")) {
+                emit(new UserCorrectGuessEvent());
+            }
+
+            if (Arrays.asList(roundSkipMessages).contains(strMessage)) {
                 roundSkipped = true;
+            }
+
+            if (gameState.equals(GameState.ROUND_BUILD) && strMessage.startsWith("The theme was: ")) {
+                String theme = strMessage.replace("The theme was: ", "").replace("!", "");
+                if (!currentTheme.equals(theme)) {
+                    emit(new ThemeUpdateEvent(theme));
+                    currentTheme = theme;
+                }
+            }
+
+            if (strMessage.startsWith("Welcome back! You are building something relevant to the theme ")) {
+                emit(new UserRejoinEvent());
+                emit(new RoundEndEvent(false));
+            }
+
+            if (strMessage.startsWith("Welcome back! It is ") && strMessage.endsWith("'s turn to build. You have to guess the build!")) {
+                String builder = strMessage.replace("Welcome back! It is ", "")
+                        .replace("'s turn to build. You have to guess the build!", "");
+
+                if (!currentBuilder.equals(builder)) {
+                    emit(new BuilderChangeEvent(currentBuilder, builder));
+                    currentBuilder = builder;
+                }
+                emit(new UserRejoinEvent());
+            }
+
+            if (gameState.equals(GameState.ROUND_PRE) && strMessage.equals("The owner left! Skipping...")) {
                 emit(new RoundSkipEvent());
+                emit(new BuilderChangeEvent(currentBuilder, null));
             }
 
-            if (strippedMessage.equals("1 second remaining!")) {
-                emit(new OneSecondAlertEvent());
-            }
-
-            String playerName = extractPlayerNameFromChat(strippedMessage);
-            if (playerName != null) {
-                emit(new PlayerChatEvent(playerName, strippedMessage));
+            if (gameState.equals(GameState.ROUND_PRE) || gameState.equals(GameState.ROUND_BUILD)
+                    || gameState.equals(GameState.ROUND_END)) {
+                String playerName = getPlayerNameFromMessage(strMessage);
+                if (playerName != null) {
+                    String playerMessage = strMessage.split(": ", 2)[1];
+                    emit(new PlayerChatEvent(playerName, playerMessage));
+                }
             }
         }
+        if (!correctGuessers.isEmpty()) emit(new CorrectGuessEvent(correctGuessers));
     }
 
     private void onActionBarMessage(String actionBarMessage) {
+        String strMessage = EnumChatFormatting.getTextWithoutFormattingCodes(actionBarMessage);
+        if (strMessage == null || strMessage.isEmpty()) return;
+
+        if (strMessage.startsWith("The theme is ") && gameState.equals(GameState.ROUND_BUILD)) {
+            String theme = strMessage.replace("The theme is ", "");
+            if (!currentTheme.equals(theme)) {
+                emit(new ThemeUpdateEvent(theme));
+                currentTheme = theme;
+            }
+        }
     }
 
     private void onTitleSet(String title) {
     }
 
     private void onSubtitleSet(String subtitle) {
+        if (gameState.equals(GameState.ROUND_BUILD)
+                && Objects.equals(EnumChatFormatting.getTextWithoutFormattingCodes(subtitle), "1 second remaining!")) {
+            emit(new OneSecondAlertEvent());
+        }
     }
 
     private void onScreenTitle(String screenTitle) {
+        if (!(gameState.equals(GameState.ROUND_PRE) || gameState.equals(GameState.ROUND_END))) return;
+        if (screenTitle.equals("Select a theme to build!")) {
+            if (scoreboardLineHistory.size() == 0) return;
+            String builderName = getBuilderNameFromScoreboard(scoreboardLineHistory.get(0));
+            if (Objects.equals(currentBuilder, builderName)) return;
+            emit(new BuilderChangeEvent(currentBuilder, builderName));
+            emit(new UserBuilderEvent());
+            currentBuilder = builderName;
+        }
     }
 
-    private void changeState(GameState newState) {
-        if (gameState.equals(newState)) return;
+    public void changeState(GameState newState) {
+        if (gameState == newState) return;
 
-        GameState previousState = gameState;
-        gameState = newState;
-
-        emit(new StateChangeEvent(previousState, newState));
-
-        if (newState.equals(GameState.SETUP) && !setupPlayerList.isEmpty()) {
-            processGameStart();
+        if (newState.equals(GameState.LOBBY)) {
+            if (playerListEntryHistory.size() > 0) {
+                lobbyPlayerList = playerListEntryHistory.get(0);
+            }
         }
 
         if (newState.equals(GameState.ROUND_PRE)) {
+            if (gameState.equals(GameState.SETUP) && !setupPlayerList.isEmpty()) {
+                if (playerListEntryHistory.get(0).size() < 3) {
+                    onGameStart(lobbyPlayerList, setupPlayerList, playerListEntryHistory.get(1));
+                } else {
+                    onGameStart(lobbyPlayerList, setupPlayerList, playerListEntryHistory.get(0));
+                }
+            }
             currentTheme = "";
         }
 
-        if (newState.equals(GameState.ROUND_END)) {
+        if (newState.equals(GameState.POST_GAME)) {
+            onGameEnd(scoreboardLineHistory.get(0));
+        }
+
+        if (gameState.equals(GameState.ROUND_BUILD) && newState.equals(GameState.ROUND_END)) {
             emit(new RoundEndEvent(roundSkipped));
             roundSkipped = false;
         }
+
+        if (newState.equals(GameState.NONE)
+                && (gameState.equals(GameState.ROUND_PRE)
+                || gameState.equals(GameState.ROUND_BUILD)
+                || gameState.equals(GameState.ROUND_END))) {
+            emit(new UserLeaveEvent());
+        }
+
+        emit(new StateChangeEvent(gameState, newState));
+        gameState = newState;
     }
 
     private void processGameStart() {
@@ -350,32 +439,108 @@ public class GTBEvents {
         }
     }
 
-    private GameState getStateFromScoreboard(List<String> lines) {
-        if (isInLobby()) return GameState.LOBBY;
-
-        for (String line : lines) {
-            if (line.contains("Round") && line.contains("/")) return GameState.ROUND_BUILD;
-            if (line.contains("Next Round")) return GameState.ROUND_END;
-            if (line.contains("Winners")) return GameState.POST_GAME;
-        }
+    public GameState getStateFromScoreboard(List<String> scoreboardLines) {
+        if (scoreboardLines.isEmpty()) return null;
+        if (!scoreboardLines.get(0).equals("GUESS THE BUILD")) return GameState.NONE;
+        if (scoreboardLines.size() == 1) return GameState.NONE;
+        if (scoreboardLines.contains("Mode: Guess The Build")) return GameState.LOBBY;
+        if (scoreboardLines.stream().anyMatch(line -> line.startsWith("1. "))) return GameState.POST_GAME;
+        if (scoreboardLines.stream().anyMatch(line -> line.startsWith("Starts In: 00:"))) return GameState.ROUND_PRE;
+        if (scoreboardLines.stream().anyMatch(line -> line.startsWith("Next Round: 00:0"))) return GameState.ROUND_END;
+        if (scoreboardLines.stream()
+                .anyMatch(line -> line.startsWith("Time: 0") && line.length() > 7)) return GameState.ROUND_BUILD;
         return null;
     }
 
-    private String getThemeFromScoreboard(List<String> lines) {
-        for (String line : lines) {
-            if (line.startsWith("Word: ") || line.startsWith("Theme: ")) {
-                return line.substring(line.indexOf(": ") + 2);
+    private String getThemeFromScoreboard(List<String> scoreboardLines) {
+        int themeLine = scoreboardLines.indexOf("Theme:");
+        if (themeLine == -1 || scoreboardLines.size() <= themeLine + 1) return "";
+
+        String themeLineString = scoreboardLines.get(themeLine + 1);
+        if (!themeLineString.startsWith(" ")) return "";
+        if (themeLineString.trim().isEmpty()) return "";
+        if (themeLineString.equals(" ???")) return "";
+        return themeLineString.substring(1);
+    }
+
+    private String getPlayerNameFromMessage(String message) {
+        if (!message.contains(": ")) return null;
+        String[] nameParts = message.split(": ")[0].split(" ");
+        if (message.startsWith("[GUESSER CHAT]")) {
+            return nameParts[nameParts.length - 1];
+        } else {
+            if (Arrays.stream(validEmblems).anyMatch(e -> e.equals(nameParts[0]))) {
+                return nameParts[nameParts.length - 1];
+            }
+            if (Arrays.stream(validTitles).anyMatch(e -> e.equals(nameParts[0]))) {
+                return nameParts[nameParts.length - 1];
+            }
+            if (Arrays.stream(validLeaderboardTitles)
+                    .anyMatch(e -> e.equals(nameParts[0]) && nameParts[1].equals("Builder"))) {
+                return nameParts[nameParts.length - 1];
+            }
+            if (Arrays.stream(validRanks).anyMatch(e -> e.equals(nameParts[0]))) {
+                return nameParts[nameParts.length - 1];
+            }
+            if (nameParts.length == 1 && !nameParts[0].equals("Builder") && !nameParts[0].equals("Round")) {
+                return nameParts[0];
             }
         }
         return null;
     }
 
-    private String extractPlayerNameFromChat(String message) {
-        if (message.contains(": ")) {
-            String prefix = message.substring(0, message.indexOf(": "));
-            return EnumChatFormatting.getTextWithoutFormattingCodes(prefix).trim();
+    private String getBuilderNameFromScoreboard(List<String> scoreboardLines) {
+        List<String> strLines = scoreboardLines.stream().map(line -> EnumChatFormatting.getTextWithoutFormattingCodes(line)).collect(java.util.stream.Collectors.toList());
+        int builderLine = strLines.indexOf("Builder:");
+        if (builderLine == -1 || strLines.size() <= builderLine + 1) return "";
+
+        String builderLineString = strLines.get(builderLine + 1);
+        if (!builderLineString.startsWith(" ")) return "";
+
+        return builderLineString.substring(1);
+    }
+
+    @SuppressWarnings("SequencedCollectionMethodCanBeUsed")
+    private void onGameStart(List<String> lobbyList, List<String> setupList, List<String> finalList) {
+        Set<InitialPlayerData> players = new HashSet<>();
+        for (String playerEntry : finalList) {
+            String name = EnumChatFormatting.getTextWithoutFormattingCodes(playerEntry);
+            if (name == null || name.trim().isEmpty()) continue;
+
+            String title = "";
+            String emblem = "";
+            String rankColor = "WHITE";
+            boolean isUser = isCurrentUser(name);
+
+            players.add(new InitialPlayerData(name, rankColor, title, emblem, isUser));
         }
-        return null;
+
+        currentBuilder = null;
+        emit(new GameStartEvent(players));
+
+        lobbyPlayerList = new ArrayList<>();
+        setupPlayerList = new ArrayList<>();
+
+        if (prematureBuilder != null) {
+            emit(new BuilderChangeEvent(null, prematureBuilder));
+            currentBuilder = prematureBuilder;
+            prematureBuilder = null;
+        }
+    }
+
+    private void onGameEnd(List<String> scoreboardLines) {
+        Map<String, Integer> actualScores = new HashMap<>();
+        scoreboardLines.stream().map(line -> EnumChatFormatting.getTextWithoutFormattingCodes(line))
+                .filter(line -> line != null && !line.trim().isEmpty())
+                .map(line -> line.split("\\. ", 2))
+                .filter(parts -> parts.length > 1)
+                .map(parts -> parts[1].split(": ", 2))
+                .filter(parts -> parts.length > 1 && parts[0].length() < 16)
+                .forEach(parts -> {
+                    try { actualScores.put(parts[0], Integer.valueOf(parts[1])); }
+                    catch (NumberFormatException ignored) {}
+                });
+        emit(new GameEndEvent(actualScores));
     }
 
     @SuppressWarnings("unchecked")
