@@ -36,8 +36,4 @@ public class HudHooks {
         // Reset the rendering flag
         isRenderingCustom = false;
     }
-    
-
-    
-    
 } 

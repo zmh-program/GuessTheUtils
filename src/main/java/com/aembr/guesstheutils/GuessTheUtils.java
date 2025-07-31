@@ -45,6 +45,7 @@ public class GuessTheUtils {
 
     public static boolean testing = false;
     public static LiveE2ERunner liveE2ERunner;
+    public static boolean debugMode = true;
 
     private static Tick currentTick;
     private List<String> previousScoreboardLines = new ArrayList<String>();

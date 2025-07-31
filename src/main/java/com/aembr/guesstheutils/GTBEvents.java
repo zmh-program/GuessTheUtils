@@ -459,6 +459,10 @@ public class GTBEvents {
             if (mc.theWorld == null) {
                 return false;
             }
+
+            if (GuessTheUtils.debugMode) {
+                return true;
+            }
             
             Scoreboard scoreboard = mc.theWorld.getScoreboard();
             if (scoreboard == null) {
