@@ -48,7 +48,7 @@ public class ScoreboardInterceptor {
             if (shouldCustomize) {
                 if (!isIntercepting) {
                     isIntercepting = true;
-                    System.out.println("DEBUG ScoreboardInterceptor: Starting to intercept scoreboard");
+                    GuessTheUtils.LOGGER.debug("Starting to intercept scoreboard");
                 }
                 
                 // Apply our customization
@@ -83,9 +83,7 @@ public class ScoreboardInterceptor {
             
             // Clear existing scores
             Collection<Score> existingScores = new ArrayList<>(scoreboard.getSortedScores(objective));
-            System.out.println("DEBUG ScoreboardInterceptor: Clearing " + existingScores.size() + " existing scores");
             for (Score score : existingScores) {
-                System.out.println("  Removing: " + score.getScorePoints() + " - '" + score.getPlayerName() + "'");
                 scoreboard.removeObjectiveFromEntity(score.getPlayerName(), objective);
             }
             
@@ -111,11 +109,13 @@ public class ScoreboardInterceptor {
     
 
     public static List<String> getOriginalScoreboardLines() {
-        if (isIntercepting && !originalScoreboardLines.isEmpty()) {
-            return new ArrayList<>(originalScoreboardLines);
+        // Use the new OriginalScoreboardCapture to get truly original data
+        List<String> capturedLines = OriginalScoreboardCapture.getOriginalScoreboardLinesFormatted();
+        if (!capturedLines.isEmpty()) {
+            return capturedLines;
         }
         
-        // If not intercepting, fall back to current scoreboard
+        // If no captured data, fall back to current scoreboard
         return getScoreboardLines();
     }
 

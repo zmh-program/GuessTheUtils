@@ -62,14 +62,36 @@ public class Commands extends CommandBase {
                 break;
                 
             case "debug":
-                sendMessage(player, "=== Game Detection ===");
-                boolean inGtb = GuessTheUtils.events.isInGtb();
-                sendMessage(player, "In Guess The Build: " + (inGtb ? 
-                    EnumChatFormatting.GREEN + "Yes" : 
-                    EnumChatFormatting.RED + "No"));
-                
-                sendMessage(player, "=== Original Scoreboard Data ===");
-                showOriginalScoreboardInfo(player);
+                if (args.length > 1 && args[1].equalsIgnoreCase("scoreboard")) {
+                    if (args.length > 2 && args[2].equalsIgnoreCase("original")) {
+                        // Show original scoreboard data captured by hook
+                        String originalData = com.aembr.guesstheutils.interceptor.OriginalScoreboardCapture.getFormattedOriginalScoreboard();
+                        sendMessage(player, EnumChatFormatting.GOLD + "=== Original Scoreboard Data (from Hook) ===");
+                        for (String line : originalData.split("\n")) {
+                            sendMessage(player, EnumChatFormatting.YELLOW + line);
+                        }
+                    } else {
+                        // Show current scoreboard data
+                        java.util.List<String> currentLines = com.aembr.guesstheutils.interceptor.ScoreboardInterceptor.getScoreboardLines();
+                        sendMessage(player, EnumChatFormatting.GOLD + "=== Current Scoreboard Data ===");
+                        for (String line : currentLines) {
+                            sendMessage(player, EnumChatFormatting.GREEN + line);
+                        }
+                        sendMessage(player, "");
+                        sendMessage(player, EnumChatFormatting.GRAY + "Use '/gtu debug scoreboard original' to see original data");
+                    }
+                } else {
+                    sendMessage(player, "=== Game Detection ===");
+                    boolean inGtb = GuessTheUtils.events.isInGtb();
+                    sendMessage(player, "In Guess The Build: " + (inGtb ? 
+                        EnumChatFormatting.GREEN + "Yes" : 
+                        EnumChatFormatting.RED + "No"));
+                    
+                    sendMessage(player, "=== Original Scoreboard Data ===");
+                    showOriginalScoreboardInfo(player);
+                    sendMessage(player, "");
+                    sendMessage(player, EnumChatFormatting.GRAY + "Use '/gtu debug scoreboard' for detailed scoreboard info");
+                }
                 break;
                 
             case "toggle":

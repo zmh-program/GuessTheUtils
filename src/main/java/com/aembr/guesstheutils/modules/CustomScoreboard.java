@@ -125,8 +125,6 @@ public class CustomScoreboard {
      */
     public static String[] getCustomScoreboardLines() {
         try {
-            System.out.println("CustomScoreboard: Getting custom scoreboard lines");
-            
             if (GuessTheUtils.gameTracker == null || GuessTheUtils.gameTracker.game == null) {
                 // Extract info from original scoreboard during waiting phase
                 return getWaitingScoreboardLines();
