@@ -131,15 +131,11 @@ public class ScoreboardInterceptor {
     
     private String[] getCustomScoreboardLines() {
         try {
+            // System.out.println("Getting custom scoreboard lines: " + originalScoreboardLines);
+            
             if (GuessTheUtils.gameTracker == null || GuessTheUtils.gameTracker.game == null) {
-                // Return waiting message
-                return new String[] {
-                    "",
-                    "§b⠋ Waiting for game...",
-                    "",
-                    "§7GuessTheUtils",
-                    ""
-                };
+                // Extract info from original scoreboard during waiting phase
+                return getWaitingScoreboardLines();
             }
             
             GameTracker.Game game = GuessTheUtils.gameTracker.game;
@@ -240,5 +236,67 @@ public class ScoreboardInterceptor {
         
         // If not intercepting, fall back to current scoreboard
         return com.aembr.guesstheutils.Utils.getScoreboardLines();
+    }
+    
+    private String[] getWaitingScoreboardLines() {
+        try {
+            List<String> lines = new ArrayList<>();
+            String playerCount = "";
+            String timeLeft = "";
+            
+            // Parse original scoreboard lines to extract information
+            for (String line : originalScoreboardLines) {
+                String cleanLine = line.trim();
+                
+                // Extract player count (e.g., "Players: 9/10")
+                if (cleanLine.startsWith("Players:")) {
+                    playerCount = cleanLine;
+                }
+                
+                // Extract time (e.g., "Starting in 00:25 to allow time for additional players")
+                if (cleanLine.contains("Starting in")) {
+                    // Find the time pattern (mm:ss format)
+                    java.util.regex.Pattern timePattern = java.util.regex.Pattern.compile("Starting in (\\d{2}:\\d{2})");
+                    java.util.regex.Matcher matcher = timePattern.matcher(cleanLine);
+                    if (matcher.find()) {
+                        timeLeft = "Starting in " + matcher.group(1);
+                    } else {
+                        // Fallback for simpler format
+                        String[] parts = cleanLine.split("Starting in ");
+                        if (parts.length > 1) {
+                            String time = parts[1].split(" ")[0];
+                            timeLeft = "Starting in " + time;
+                        }
+                    }
+                }
+            }
+            
+            // Build custom waiting screen
+            lines.add("");
+            
+            if (!timeLeft.isEmpty()) {
+                lines.add("§e" + timeLeft);
+            } else {
+                String spinnerFrame = getSpinnerFrame();
+                lines.add("§b" + spinnerFrame + " Waiting for game...");
+            }
+            
+            if (!playerCount.isEmpty()) {
+                lines.add("§a" + playerCount);
+            }
+            
+            lines.add("");
+            return lines.toArray(new String[0]);
+            
+        } catch (Exception e) {
+            GuessTheUtils.LOGGER.debug("Error parsing waiting scoreboard: " + e.getMessage());
+            // Fallback to simple waiting message with spinner
+            String spinnerFrame = getSpinnerFrame();
+            return new String[] {
+                "",
+                "§b" + spinnerFrame + " Waiting for game...",
+                ""
+            };
+        }
     }
 }
