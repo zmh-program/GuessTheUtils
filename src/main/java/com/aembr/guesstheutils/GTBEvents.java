@@ -4,6 +4,7 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.scoreboard.Scoreboard;
 import net.minecraft.scoreboard.ScoreObjective;
 import net.minecraft.util.EnumChatFormatting;
+import com.aembr.guesstheutils.interceptor.OriginalScoreboardCapture;
 
 import java.util.*;
 import java.util.function.Consumer;
@@ -497,6 +498,8 @@ public class GTBEvents {
     public boolean isInLobby() {
         if (!isInGtb()) return false;
 
-        return false;
+        // Check if the scoreboard objective is "PreScoreboard"
+        String originalObjective = OriginalScoreboardCapture.getOriginalScoreboardObjective();
+        return originalObjective != null && originalObjective.trim().equals("PreScoreboard");
     }
 }
