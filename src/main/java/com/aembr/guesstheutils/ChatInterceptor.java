@@ -316,8 +316,7 @@ public class ChatInterceptor {
             try {
                 // Debug: Print all field names to find correct ones
                 Field[] fields = S3BPacketScoreboardObjective.class.getDeclaredFields();
-                System.out.println("S3BPacketScoreboardObjective fields: " + java.util.Arrays.toString(fields));
-                
+
                 // Capture scoreboard title updates
                 String objectiveName = getObjectiveName(packet);
                 String displayName = getObjectiveDisplayName(packet);

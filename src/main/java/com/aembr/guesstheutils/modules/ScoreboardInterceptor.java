@@ -102,7 +102,7 @@ public class ScoreboardInterceptor {
     
     private String[] getCustomScoreboardLines() {
         try {
-            System.out.println("Getting custom scoreboard lines: " + originalScoreboardLines);
+            // System.out.println("Getting custom scoreboard lines: " + originalScoreboardLines);
             
             if (GuessTheUtils.gameTracker == null || GuessTheUtils.gameTracker.game == null) {
                 // Extract info from original scoreboard during waiting phase
