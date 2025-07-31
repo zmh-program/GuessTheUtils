@@ -16,7 +16,9 @@ public class Tick {
     public String screenTitle;
     public String error;
 
-    public Tick() {}
+    public Tick() {
+        com.aembr.guesstheutils.ChatInterceptor.extractPendingMessages(this);
+    }
 
     public Tick(JsonObject json) {
         if (json.has("scoreboardLines")) {

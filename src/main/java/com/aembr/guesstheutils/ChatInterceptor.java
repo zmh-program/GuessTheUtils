@@ -29,22 +29,22 @@ public class ChatInterceptor {
         GuessTheUtils.LOGGER.info("ChatInterceptor initialized with netty handler injection");
     }
     
-    public static void processMessages(Tick currentTick) {
-        if (currentTick == null) return;
+    public static void extractPendingMessages(Tick tick) {
+        if (tick == null) return;
         
         if (!pendingChatMessages.isEmpty()) {
-            if (currentTick.chatMessages == null) {
-                currentTick.chatMessages = new ArrayList<>();
+            if (tick.chatMessages == null) {
+                tick.chatMessages = new ArrayList<>();
             }
             
             String message;
             while ((message = pendingChatMessages.poll()) != null) {
-                currentTick.chatMessages.add(message);
+                tick.chatMessages.add(message);
             }
         }
         
         if (lastActionBarMessage != null) {
-            currentTick.actionBarMessage = lastActionBarMessage;
+            tick.actionBarMessage = lastActionBarMessage;
             lastActionBarMessage = null;
         }
     }

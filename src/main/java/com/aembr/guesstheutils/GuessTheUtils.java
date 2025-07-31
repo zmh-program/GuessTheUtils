@@ -167,8 +167,6 @@ public class GuessTheUtils {
         onScoreboardUpdate(Utils.getScoreboardLines());
         onPlayerListUpdate(Utils.collectTabListEntries());
         
-        ChatInterceptor.processMessages(currentTick);
-        
         gameTracker.onTick();
         chatCooldown.onTick();
     }
