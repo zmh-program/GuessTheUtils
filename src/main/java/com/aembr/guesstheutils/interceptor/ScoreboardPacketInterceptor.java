@@ -175,6 +175,10 @@ public class ScoreboardPacketInterceptor extends ChannelDuplexHandler {
         return objectiveDisplayName;
     }
     
+    public static String getOriginalScoreboardObjective() {
+        return currentObjective;
+    }
+    
     public static List<String> getOriginalScoreboardLines() {
         return new ArrayList<>(orderedLines);
     }

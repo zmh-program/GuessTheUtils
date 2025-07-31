@@ -129,6 +129,10 @@ public class OriginalScoreboardCapture {
         return ScoreboardPacketInterceptor.getOriginalScoreboardTitle();
     }
     
+    public static String getOriginalScoreboardObjective() {
+        return ScoreboardPacketInterceptor.getOriginalScoreboardObjective();
+    }
+    
     public static Map<String, Integer> getOriginalScoreboardLines() {
         // This method is deprecated, use getOriginalScoreboardLinesFormatted instead
         return new HashMap<>();
@@ -150,6 +154,7 @@ public class OriginalScoreboardCapture {
         
         StringBuilder sb = new StringBuilder();
         sb.append("Original Scoreboard Title: ").append(getOriginalScoreboardTitle()).append("\n");
+        sb.append("Original Scoreboard Objective: ").append(getOriginalScoreboardObjective()).append("\n");
         sb.append("Original Scoreboard Lines (from packets):\n");
         
         List<String> lines = getOriginalScoreboardLinesFormatted();

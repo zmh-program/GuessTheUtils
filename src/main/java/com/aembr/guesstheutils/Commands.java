@@ -303,9 +303,11 @@ public class Commands extends CommandBase {
             }
             
             String title = com.aembr.guesstheutils.interceptor.OriginalScoreboardCapture.getOriginalScoreboardTitle();
+            String objective = com.aembr.guesstheutils.interceptor.OriginalScoreboardCapture.getOriginalScoreboardObjective();
             java.util.Map<String, Integer> lines = com.aembr.guesstheutils.interceptor.OriginalScoreboardCapture.getOriginalScoreboardLines();
             
             sendMessage(player, "Original Title: " + (title.isEmpty() ? "None" : title));
+            sendMessage(player, "Original Objective: " + (objective.isEmpty() ? "None" : objective));
             sendMessage(player, "Original Lines (" + lines.size() + "):");
             
             if (lines.isEmpty()) {
