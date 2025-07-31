@@ -40,7 +40,7 @@ public class Commands extends CommandBase {
         if (args.length == 0) {
             sendMessage(player, "GuessTheUtils v" + GuessTheUtils.VERSION);
             sendMessage(player, "Use /gtu status to see module status");
-            sendMessage(player, "Available commands: reload, status, debug, original, toggle, replay, livetest, test");
+            sendMessage(player, "Available commands: reload, status, debug, toggle, replay, livetest, test");
             return;
         }
         
@@ -67,13 +67,7 @@ public class Commands extends CommandBase {
                 sendMessage(player, "In Guess The Build: " + (inGtb ? 
                     EnumChatFormatting.GREEN + "Yes" : 
                     EnumChatFormatting.RED + "No"));
-            
-                sendMessage(player, "");
-                sendMessage(player, "=== Vanilla Scoreboard Info ===");
-                showVanillaScoreboardInfo(player);
-                break;
                 
-            case "original":
                 sendMessage(player, "=== Original Scoreboard Data ===");
                 showOriginalScoreboardInfo(player);
                 break;
@@ -223,50 +217,37 @@ public class Commands extends CommandBase {
             return;
         }
         
-        sendMessage(player, "Testing Custom Scoreboard...");
-        sendMessage(player, "Creating fake game state for testing");
-        
-        // Create a fake game for testing
+        sendMessage(player, "Testing Custom Scoreboard... (use /gtu test scoreboard to reset)");
         createTestGame(player);
-        
-        sendMessage(player, "Test game created - check right side of screen for custom scoreboard");
-        sendMessage(player, "Use '/gtu test scoreboard' again to reset the test");
     }
     
     private void createTestGame(EntityPlayer player) {
-        // Create test game data
         if (GuessTheUtils.gameTracker.game != null) {
-            // Clear existing game
             GuessTheUtils.gameTracker.game = null;
             sendMessage(player, "Cleared test game");
             return;
         }
         
-        // Create new test game
         GuessTheUtils.gameTracker.game = new GameTracker.Game();
         GuessTheUtils.gameTracker.game.currentRound = 2;
         GuessTheUtils.gameTracker.game.totalRounds = 3;
         GuessTheUtils.gameTracker.game.currentTheme = "house";
         GuessTheUtils.gameTracker.game.currentTimer = "1:30";
         
-        // Add test players
         GuessTheUtils.gameTracker.game.players.clear();
         
-        // Add user player
         GameTracker.Player userPlayer = new GameTracker.Player(player.getName());
         userPlayer.isUser = true;
         userPlayer.points = new int[]{20, 3, 0};
         userPlayer.rank = EnumChatFormatting.YELLOW;
         GuessTheUtils.gameTracker.game.players.add(userPlayer);
         
-        // Add builder player
         GameTracker.Player builderPlayer = new GameTracker.Player("TestBuilder");
         builderPlayer.points = new int[]{12, 2, 0};
         builderPlayer.rank = EnumChatFormatting.GREEN;
         GuessTheUtils.gameTracker.game.currentBuilder = builderPlayer;
         GuessTheUtils.gameTracker.game.players.add(builderPlayer);
         
-        // Add other players
         GameTracker.Player player1 = new GameTracker.Player("Player1");
         player1.points = new int[]{6, 1, 0};
         player1.rank = EnumChatFormatting.BLUE;
@@ -285,177 +266,10 @@ public class Commands extends CommandBase {
         
         // Set game state
         GameTracker.state = GTBEvents.GameState.ROUND_BUILD;
-        
-        sendMessage(player, "Created test game with 5 players, round 2/3");
     }
     
     private String getStatus(boolean enabled) {
         return enabled ? EnumChatFormatting.GREEN + "Enabled" : EnumChatFormatting.RED + "Disabled";
-    }
-    
-
-    
-    private String getScoreboardLineText(Scoreboard scoreboard, String playerName, int scorePoints) {
-        try {
-            net.minecraft.scoreboard.Team team = scoreboard.getPlayersTeam(playerName);
-            
-            if (team != null) {
-                TeamTextInfo textInfo = getTeamTextInfo(team);
-                
-                // Construct the full display text
-                StringBuilder displayText = new StringBuilder();
-                if (textInfo.prefix != null && !textInfo.prefix.isEmpty()) {
-                    displayText.append(textInfo.prefix);
-                }
-                if (playerName != null && !playerName.isEmpty()) {
-                    displayText.append(playerName);
-                }
-                if (textInfo.suffix != null && !textInfo.suffix.isEmpty()) {
-                    displayText.append(textInfo.suffix);
-                }
-                
-                String finalText = displayText.toString();
-                if (!finalText.trim().isEmpty()) {
-                    return finalText.trim() + ": " + scorePoints;
-                }
-            }
-            
-            // Simple fallback
-            String displayName = playerName;
-            if (playerName == null || playerName.isEmpty()) {
-                displayName = "[EMPTY]";
-            }
-            
-            return displayName + ": " + scorePoints;
-            
-        } catch (Exception e) {
-            return (playerName == null ? "[NULL]" : playerName) + ": " + scorePoints;
-        }
-    }
-    
-    private static class TeamTextInfo {
-        public String prefix = "";
-        public String suffix = "";
-        
-        public TeamTextInfo(String prefix, String suffix) {
-            this.prefix = prefix != null ? prefix : "";
-            this.suffix = suffix != null ? suffix : "";
-        }
-    }
-    
-    private TeamTextInfo getTeamTextInfo(net.minecraft.scoreboard.Team team) {
-        String prefix = "";
-        String suffix = "";
-        
-        try {
-            // Get prefix and suffix using known 1.8.9 method names
-            java.lang.reflect.Method[] methods = team.getClass().getMethods();
-            
-            for (java.lang.reflect.Method method : methods) {
-                if (method.getParameterCount() == 0 && method.getReturnType() == String.class) {
-                    String name = method.getName();
-                    try {
-                        Object result = method.invoke(team);
-                        if (result instanceof String) {
-                            String resultStr = (String) result;
-                            
-                            // func_96668_e is the prefix in Hypixel (1.8.9)
-                            if (name.equals("func_96668_e") && !resultStr.isEmpty()) {
-                                prefix = resultStr;
-                            }
-                            // func_96663_f is the suffix in Hypixel (1.8.9)  
-                            else if (name.equals("func_96663_f") && !resultStr.isEmpty()) {
-                                suffix = resultStr;
-                            }
-                        }
-                    } catch (Exception ignored) {}
-                }
-            }
-        } catch (Exception ignored) {}
-        
-        return new TeamTextInfo(prefix, suffix);
-    }
-    
-
-
-    private void showVanillaScoreboardInfo(EntityPlayer player) {
-        try {
-            Minecraft mc = Minecraft.getMinecraft();
-            Scoreboard scoreboard = mc.theWorld.getScoreboard();
-            
-            if (scoreboard == null) {
-                sendMessage(player, "No scoreboard available");
-                return;
-            }
-            
-            sendMessage(player, "Current displayed scoreboard:");
-            
-            // Sidebar scoreboard (slot 1)
-            ScoreObjective sidebarObjective = scoreboard.getObjectiveInDisplaySlot(1);
-            if (sidebarObjective != null) {
-                sendMessage(player, "Sidebar: " + sidebarObjective.getDisplayName() + " (" + sidebarObjective.getName() + ")");
-                
-                // Get scores for sidebar
-                java.util.Collection scores = scoreboard.getSortedScores(sidebarObjective);
-                if (!scores.isEmpty()) {
-                    sendMessage(player, "  Scores (sorted by score, descending):");
-                    
-                    // Convert to list and sort by score (descending)
-                    java.util.List<Score> scoreList = new java.util.ArrayList<Score>();
-                    for (Object scoreObj : scores) {
-                        scoreList.add((Score) scoreObj);
-                    }
-                    
-                    // Sort by score points in descending order (high scores first)
-                    java.util.Collections.sort(scoreList, new java.util.Comparator<Score>() {
-                        @Override
-                        public int compare(Score s1, Score s2) {
-                            return Integer.compare(s2.getScorePoints(), s1.getScorePoints());
-                        }
-                    });
-                    
-                    int count = 0;
-                    for (Score score : scoreList) {
-                        if (count >= 15) break; // Sidebar shows max 15 entries
-                        String playerName = score.getPlayerName();
-                        String actualText = getScoreboardLineText(scoreboard, playerName, score.getScorePoints());
-                        
-                        sendMessage(player, "    " + actualText);
-                        count++;
-                    }
-                }
-            } else {
-                sendMessage(player, "Sidebar: None");
-            }
-            
-            // Player list scoreboard (slot 0)
-            ScoreObjective listObjective = scoreboard.getObjectiveInDisplaySlot(0);
-            if (listObjective != null) {
-                sendMessage(player, "Player List: " + listObjective.getDisplayName() + " (" + listObjective.getName() + ")");
-                if (scoreboard.entityHasObjective(player.getName(), listObjective)) {
-                    int score = scoreboard.getValueFromObjective(player.getName(), listObjective).getScorePoints();
-                    sendMessage(player, "  Your score: " + score);
-                }
-            } else {
-                sendMessage(player, "Player List: None");
-            }
-            
-            // Below name scoreboard (slot 2)
-            ScoreObjective belowNameObjective = scoreboard.getObjectiveInDisplaySlot(2);
-            if (belowNameObjective != null) {
-                sendMessage(player, "Below Name: " + belowNameObjective.getDisplayName() + " (" + belowNameObjective.getName() + ")");
-                if (scoreboard.entityHasObjective(player.getName(), belowNameObjective)) {
-                    int score = scoreboard.getValueFromObjective(player.getName(), belowNameObjective).getScorePoints();
-                    sendMessage(player, "  Your score: " + score);
-                }
-            } else {
-                sendMessage(player, "Below Name: None");
-            }
-            
-        } catch (Exception e) {
-            sendMessage(player, "Error retrieving scoreboard info: " + e.getMessage());
-            GuessTheUtils.LOGGER.error("Error in showVanillaScoreboardInfo", e);
-        }
     }
     
     private void showOriginalScoreboardInfo(EntityPlayer player) {
@@ -475,17 +289,11 @@ public class Commands extends CommandBase {
             if (lines.isEmpty()) {
                 sendMessage(player, "  (No lines)");
             } else {
-                // Sort by score value descending (typical scoreboard order)
                 lines.entrySet().stream()
                     .sorted((a, b) -> Integer.compare(b.getValue(), a.getValue()))
-                    .limit(15) // Limit to prevent spam
                     .forEach(entry -> {
                         sendMessage(player, "  " + entry.getValue() + ": " + entry.getKey());
                     });
-                
-                if (lines.size() > 15) {
-                    sendMessage(player, "  ... and " + (lines.size() - 15) + " more lines");
-                }
             }
             
         } catch (Exception e) {
