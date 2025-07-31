@@ -350,6 +350,8 @@ public class GTBEvents {
     }
 
     private GameState getStateFromScoreboard(List<String> lines) {
+        if (isInLobby()) return GameState.LOBBY;
+
         for (String line : lines) {
             if (line.contains("Lobby")) return GameState.LOBBY;
             if (line.contains("Round") && line.contains("/")) return GameState.ROUND_BUILD;
@@ -491,4 +493,10 @@ public class GTBEvents {
             return false;
         }
     }
-} 
+
+    public boolean isInLobby() {
+        if (!isInGtb()) return false;
+
+        return false;
+    }
+}
