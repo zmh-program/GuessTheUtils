@@ -40,7 +40,7 @@ public class Commands extends CommandBase {
         if (args.length == 0) {
             sendMessage(player, "GuessTheUtils v" + GuessTheUtils.VERSION);
             sendMessage(player, "Use /gtu status to see module status");
-            sendMessage(player, "Available commands: reload, status, debug, toggle, replay, livetest, test");
+            sendMessage(player, "Available commands: reload, status, debug, original, toggle, replay, livetest, test");
             return;
         }
         
@@ -71,6 +71,11 @@ public class Commands extends CommandBase {
                 sendMessage(player, "");
                 sendMessage(player, "=== Vanilla Scoreboard Info ===");
                 showVanillaScoreboardInfo(player);
+                break;
+                
+            case "original":
+                sendMessage(player, "=== Original Scoreboard Data ===");
+                showOriginalScoreboardInfo(player);
                 break;
                 
             case "toggle":
@@ -450,6 +455,42 @@ public class Commands extends CommandBase {
         } catch (Exception e) {
             sendMessage(player, "Error retrieving scoreboard info: " + e.getMessage());
             GuessTheUtils.LOGGER.error("Error in showVanillaScoreboardInfo", e);
+        }
+    }
+    
+    private void showOriginalScoreboardInfo(EntityPlayer player) {
+        try {
+            if (!com.aembr.guesstheutils.modules.OriginalScoreboardCapture.hasOriginalScoreboardData()) {
+                sendMessage(player, "No original scoreboard data available.");
+                sendMessage(player, "Make sure you're in a game with a scoreboard visible.");
+                return;
+            }
+            
+            String title = com.aembr.guesstheutils.modules.OriginalScoreboardCapture.getOriginalScoreboardTitle();
+            java.util.Map<String, Integer> lines = com.aembr.guesstheutils.modules.OriginalScoreboardCapture.getOriginalScoreboardLines();
+            
+            sendMessage(player, "Original Title: " + (title.isEmpty() ? "None" : title));
+            sendMessage(player, "Original Lines (" + lines.size() + "):");
+            
+            if (lines.isEmpty()) {
+                sendMessage(player, "  (No lines)");
+            } else {
+                // Sort by score value descending (typical scoreboard order)
+                lines.entrySet().stream()
+                    .sorted((a, b) -> Integer.compare(b.getValue(), a.getValue()))
+                    .limit(15) // Limit to prevent spam
+                    .forEach(entry -> {
+                        sendMessage(player, "  " + entry.getValue() + ": " + entry.getKey());
+                    });
+                
+                if (lines.size() > 15) {
+                    sendMessage(player, "  ... and " + (lines.size() - 15) + " more lines");
+                }
+            }
+            
+        } catch (Exception e) {
+            sendMessage(player, "Error retrieving original scoreboard info: " + e.getMessage());
+            GuessTheUtils.LOGGER.error("Error in showOriginalScoreboardInfo", e);
         }
     }
     

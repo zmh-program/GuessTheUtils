@@ -47,6 +47,7 @@ public class ScoreboardInterceptor {
             if (shouldCustomize) {
                 if (!isIntercepting) {
                     isIntercepting = true;
+                    System.out.println("DEBUG ScoreboardInterceptor: Starting to intercept scoreboard");
                 }
                 
                 // Apply our customization
@@ -81,7 +82,9 @@ public class ScoreboardInterceptor {
             
             // Clear existing scores
             Collection<Score> existingScores = new ArrayList<>(scoreboard.getSortedScores(objective));
+            System.out.println("DEBUG ScoreboardInterceptor: Clearing " + existingScores.size() + " existing scores");
             for (Score score : existingScores) {
+                System.out.println("  Removing: " + score.getScorePoints() + " - '" + score.getPlayerName() + "'");
                 scoreboard.removeObjectiveFromEntity(score.getPlayerName(), objective);
             }
             
@@ -102,7 +105,7 @@ public class ScoreboardInterceptor {
     
     private String[] getCustomScoreboardLines() {
         try {
-            // System.out.println("Getting custom scoreboard lines: " + originalScoreboardLines);
+            System.out.println("Getting custom scoreboard lines: " + originalScoreboardLines);
             
             if (GuessTheUtils.gameTracker == null || GuessTheUtils.gameTracker.game == null) {
                 // Extract info from original scoreboard during waiting phase

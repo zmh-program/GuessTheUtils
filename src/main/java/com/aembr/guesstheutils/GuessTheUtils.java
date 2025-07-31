@@ -118,6 +118,10 @@ public class GuessTheUtils {
         net.minecraftforge.common.MinecraftForge.EVENT_BUS.register(new com.aembr.guesstheutils.modules.ScoreboardInterceptor());
         LOGGER.info("Registered ScoreboardInterceptor for scoreboard content modification");
         
+        // Register original scoreboard capture for getting unmodified data
+        net.minecraftforge.common.MinecraftForge.EVENT_BUS.register(new com.aembr.guesstheutils.modules.OriginalScoreboardCapture());
+        LOGGER.info("Registered OriginalScoreboardCapture for capturing original scoreboard data");
+        
         // Register chat interceptor for chat cooldown
         net.minecraftforge.common.MinecraftForge.EVENT_BUS.register(new ChatInterceptor());
         ChatInterceptor.init();
