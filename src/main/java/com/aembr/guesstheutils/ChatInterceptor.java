@@ -1,74 +1,104 @@
 package com.aembr.guesstheutils;
 
-import net.minecraft.client.gui.GuiChat;
-import net.minecraft.client.gui.GuiTextField;
-import net.minecraftforge.client.event.GuiOpenEvent;
+import io.netty.channel.ChannelDuplexHandler;
+import io.netty.channel.ChannelHandlerContext;
+import io.netty.channel.ChannelPromise;
+import net.minecraft.client.Minecraft;
+import net.minecraft.network.NetworkManager;
+import net.minecraft.network.play.client.C01PacketChatMessage;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
+import net.minecraftforge.fml.common.network.FMLNetworkEvent;
 
 import java.lang.reflect.Field;
 
-/**
- * ChatInterceptor for Minecraft Forge 1.8.9
- * 
- * Since ClientChatEvent doesn't exist in 1.8.9, this class provides an alternative approach
- * to intercept chat messages sent by the player. It works by:
- * 
- * 1. Listening for GuiOpenEvent to detect when the chat GUI is opened
- * 2. Replacing the standard GuiChat with a custom subclass
- * 3. Overriding the sendChatMessage method to trigger the chat cooldown
- * 
- * This allows the mod to detect when the player sends a message and activate
- * the chat cooldown timer accordingly.
- */
 public class ChatInterceptor {
+    private static final String HANDLER_NAME = "guesstheutils_chat_interceptor";
+    private static boolean isInjected = false;
     
     public static void init() {
-        GuessTheUtils.LOGGER.info("ChatInterceptor initialized");
+        GuessTheUtils.LOGGER.info("ChatInterceptor initialized with netty handler injection");
     }
     
     @SubscribeEvent
-    public void onGuiOpen(GuiOpenEvent event) {
-        if (event.gui instanceof GuiChat && !(event.gui instanceof CustomGuiChat)) {
-            GuiChat originalChat = (GuiChat) event.gui;
-            event.gui = new CustomGuiChat(originalChat);
+    public void onClientConnectedToServer(FMLNetworkEvent.ClientConnectedToServerEvent event) {
+        injectNettyHandler();
+    }
+    
+    @SubscribeEvent
+    public void onClientDisconnectedFromServer(FMLNetworkEvent.ClientDisconnectionFromServerEvent event) {
+        removeNettyHandler();
+    }
+    
+    private void injectNettyHandler() {
+        try {
+            NetworkManager networkManager = Minecraft.getMinecraft().getNetHandler().getNetworkManager();
+            
+            if (networkManager != null && networkManager.channel() != null) {
+                if (networkManager.channel().pipeline().get(HANDLER_NAME) == null) {
+                    networkManager.channel().pipeline().addBefore("packet_handler", HANDLER_NAME, new ChatPacketHandler());
+                    isInjected = true;
+                    GuessTheUtils.LOGGER.info("Successfully injected chat packet handler");
+                } else {
+                    GuessTheUtils.LOGGER.debug("Chat packet handler already injected");
+                }
+            }
+        } catch (Exception e) {
+            GuessTheUtils.LOGGER.error("Failed to inject netty handler", e);
         }
     }
     
-    public static class CustomGuiChat extends GuiChat {
-        
-        public CustomGuiChat(GuiChat original) {
-            super();
-            
-            try {
-                Field inputFieldField = GuiChat.class.getDeclaredField("inputField");
-                inputFieldField.setAccessible(true);
-                GuiTextField originalInputField = (GuiTextField) inputFieldField.get(original);
+    private void removeNettyHandler() {
+        try {
+            if (isInjected) {
+                NetworkManager networkManager = Minecraft.getMinecraft().getNetHandler().getNetworkManager();
                 
-                if (originalInputField != null) {
-                    String currentText = originalInputField.getText();
-                    inputFieldField.set(this, originalInputField);
-                    originalInputField.setText(currentText);
+                if (networkManager != null && networkManager.channel() != null) {
+                    if (networkManager.channel().pipeline().get(HANDLER_NAME) != null) {
+                        networkManager.channel().pipeline().remove(HANDLER_NAME);
+                        GuessTheUtils.LOGGER.info("Successfully removed chat packet handler");
+                    }
                 }
+                isInjected = false;
+            }
+        } catch (Exception e) {
+            GuessTheUtils.LOGGER.error("Failed to remove netty handler", e);
+        }
+    }
+    
+    public static class ChatPacketHandler extends ChannelDuplexHandler {
+        
+        @Override
+        public void write(ChannelHandlerContext ctx, Object msg, ChannelPromise promise) throws Exception {
+            if (msg instanceof C01PacketChatMessage) {
+                C01PacketChatMessage chatPacket = (C01PacketChatMessage) msg;
+                String message = getChatMessage(chatPacket);
+                
+                if (matchAvailableMessage(message)) {
+                    if (GuessTheUtils.chatCooldown != null) {
+                        GuessTheUtils.chatCooldown.onMessageSent();
+                    }
+                }
+            }
+            
+            super.write(ctx, msg, promise);
+        }
+        
+        private String getChatMessage(C01PacketChatMessage packet) {
+            try {
+                Field messageField = C01PacketChatMessage.class.getDeclaredField("message");
+                messageField.setAccessible(true);
+                return (String) messageField.get(packet);
             } catch (Exception e) {
-                GuessTheUtils.LOGGER.error("Failed to copy input field from original GuiChat", e);
+                GuessTheUtils.LOGGER.error("Failed to get message from chat packet", e);
+                return "";
             }
         }
-
-        public boolean matchAvailableMessage(String msg)  {
+        
+        private boolean matchAvailableMessage(String msg) {
             if (msg == null) return false;
             
             String cleanedMsg = msg.trim();
             return !cleanedMsg.isEmpty() && !cleanedMsg.startsWith("/");
-        }
-        
-        @Override
-        public void sendChatMessage(String msg, boolean addToChat) {
-            if (matchAvailableMessage(msg)) {
-                if (GuessTheUtils.chatCooldown != null) {
-                    GuessTheUtils.chatCooldown.onMessageSent();
-                }
-            }
-            super.sendChatMessage(msg, addToChat);
         }
     }
 }
