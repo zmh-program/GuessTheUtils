@@ -44,33 +44,6 @@ public class Utils {
         }
     }
     
-    public static List<String> getScoreboardLines() {
-        // deprecated since we are using the scoreboard interceptor
-        List<String> lines = new ArrayList<String>();
-        
-        Minecraft mc = Minecraft.getMinecraft();
-        if (mc.theWorld == null) return lines;
-        
-        Scoreboard scoreboard = mc.theWorld.getScoreboard();
-        if (scoreboard == null) return lines;
-        
-        ScoreObjective objective = scoreboard.getObjectiveInDisplaySlot(1); // SIDEBAR
-        if (objective == null) return lines;
-        
-        Collection<Score> scores = scoreboard.getSortedScores(objective);
-        for (Score score : scores) {
-            ScorePlayerTeam team = scoreboard.getPlayersTeam(score.getPlayerName());
-            String line = ScorePlayerTeam.formatPlayerName(team, score.getPlayerName());
-            lines.add(EnumChatFormatting.getTextWithoutFormattingCodes(line));
-        }
-        
-        if (objective.getDisplayName() != null) {
-            lines.add(0, EnumChatFormatting.getTextWithoutFormattingCodes(objective.getDisplayName()));
-        }
-        
-        return lines;
-    }
-    
     public static List<String> collectTabListEntries() {
         List<String> entries = new ArrayList<String>();
         
