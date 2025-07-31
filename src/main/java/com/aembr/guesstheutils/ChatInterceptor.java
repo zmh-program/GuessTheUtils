@@ -178,16 +178,11 @@ public class ChatInterceptor {
                 
                 if (chatComponent != null) {
                     String message = chatComponent.getUnformattedText();
-                    
-                    // Temporary debug output
-                    GuessTheUtils.LOGGER.info("S02PacketChat received - Type: " + chatType + ", Message: " + message);
-                    
+
                     if (chatType == 0) {
                         addChatMessage(message);
-                        GuessTheUtils.LOGGER.info("Added chat message: " + message);
                     } else if (chatType == 2) {
                         setActionBarMessage(message);
-                        GuessTheUtils.LOGGER.info("Set actionbar message: " + message);
                     }
                 }
             } catch (Exception e) {

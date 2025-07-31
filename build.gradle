@@ -24,7 +24,7 @@ minecraft {
         "--username", System.getenv('MC_USERNAME') ?: "Player",
         "--uuid", System.getenv('MC_UUID') ?: "",
         "--accessToken", System.getenv('MC_TOKEN') ?: "",
-        "--userType", "mojang"
+        "--userType", System.getenv('MC_USER_TYPE') ?: ""
     ]
 }
 

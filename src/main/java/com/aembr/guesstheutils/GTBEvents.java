@@ -129,6 +129,12 @@ public class GTBEvents {
     public void processTickUpdate(Tick tick) {
         currentTick = tick;
         emit(new TickUpdateEvent());
+        if (tick.chatMessages != null) {
+            System.out.println("Chat Messages: " + tick.chatMessages);
+        }
+        if (tick.actionBarMessage != null) {
+            System.out.println("Action Bar Message: " + tick.actionBarMessage);
+        }
         if (tick.scoreboardLines != null) scoreboardLineHistory.add(tick.scoreboardLines);
         if (tick.playerListEntries != null) playerListEntryHistory.add(tick.playerListEntries);
 

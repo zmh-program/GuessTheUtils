@@ -6,9 +6,6 @@ build:
 run:
 	gradlew :runClient
 
-run-offline:
-	gradlew :runClient --offline
-
 stop:
 	gradlew --stop
 
