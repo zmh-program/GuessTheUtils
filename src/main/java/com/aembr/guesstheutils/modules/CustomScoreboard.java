@@ -166,7 +166,7 @@ public class CustomScoreboard {
             
             // Top 3 players
             List<GameTracker.Player> sortedPlayers = getSortedPlayers(game);
-            int count = Math.min(3, sortedPlayers.size());
+            int count = sortedPlayers.size();
             
             for (int i = 0; i < count; i++) {
                 GameTracker.Player player = sortedPlayers.get(i);

@@ -312,6 +312,7 @@ public class GTBEvents {
     public void changeState(GameState newState) {
         if (gameState == newState) return;
 
+        GuessTheUtils.LOGGER.info("Change state from " + gameState + " to " + newState);
         if (newState.equals(GameState.LOBBY)) {
             if (playerListEntryHistory.size() > 0) {
                 lobbyPlayerList = playerListEntryHistory.get(0);
@@ -441,9 +442,8 @@ public class GTBEvents {
 
     public GameState getStateFromScoreboard(List<String> scoreboardLines) {
         if (scoreboardLines.isEmpty()) return null;
-        if (!scoreboardLines.get(0).equals("GUESS THE BUILD")) return GameState.NONE;
-        if (scoreboardLines.size() == 1) return GameState.NONE;
-        if (scoreboardLines.contains("Mode: Guess The Build")) return GameState.LOBBY;
+
+        if (scoreboardLines.contains("Mode: Guess The Build") || isInLobby()) return GameState.LOBBY;
         if (scoreboardLines.stream().anyMatch(line -> line.startsWith("1. "))) return GameState.POST_GAME;
         if (scoreboardLines.stream().anyMatch(line -> line.startsWith("Starts In: 00:"))) return GameState.ROUND_PRE;
         if (scoreboardLines.stream().anyMatch(line -> line.startsWith("Next Round: 00:0"))) return GameState.ROUND_END;
