@@ -18,6 +18,7 @@ public class ScoreboardInterceptor {
     private static boolean isIntercepting = false;
     private static String originalTitle = "";
     private static final Map<String, Integer> originalScores = new HashMap<>();
+    private static final List<String> originalScoreboardLines = new ArrayList<>();
     private static long lastUpdateTime = 0;
     private static final long UPDATE_INTERVAL = 100; // Update every 100ms
     
@@ -54,6 +55,7 @@ public class ScoreboardInterceptor {
                 // Stop intercepting - restore original if needed
                 isIntercepting = false;
                 originalScores.clear();
+                originalScoreboardLines.clear();
             }
             
         } catch (Exception e) {
@@ -75,6 +77,7 @@ public class ScoreboardInterceptor {
         try {
             originalTitle = objective.getDisplayName();
             originalScores.clear();
+            originalScoreboardLines.clear();
             
             // Save original scores
             Collection<Score> scores = scoreboard.getSortedScores(objective);
@@ -82,7 +85,18 @@ public class ScoreboardInterceptor {
                 originalScores.put(score.getPlayerName(), score.getScorePoints());
             }
             
-            GuessTheUtils.LOGGER.debug("Saved original scoreboard: " + originalTitle);
+            // Save original scoreboard lines (same logic as Utils.getScoreboardLines())
+            for (Score score : scores) {
+                ScorePlayerTeam team = scoreboard.getPlayersTeam(score.getPlayerName());
+                String line = ScorePlayerTeam.formatPlayerName(team, score.getPlayerName());
+                originalScoreboardLines.add(EnumChatFormatting.getTextWithoutFormattingCodes(line));
+            }
+            
+            if (objective.getDisplayName() != null) {
+                originalScoreboardLines.add(0, EnumChatFormatting.getTextWithoutFormattingCodes(objective.getDisplayName()));
+            }
+            
+            GuessTheUtils.LOGGER.debug("Saved original scoreboard: " + originalTitle + " (" + originalScoreboardLines.size() + " lines)");
         } catch (Exception e) {
             GuessTheUtils.LOGGER.error("Error saving original scoreboard", e);
         }
@@ -216,5 +230,15 @@ public class ScoreboardInterceptor {
         });
         
         return players;
+    }
+    
+    // Public method to get original scoreboard lines for GTBEvents
+    public static List<String> getOriginalScoreboardLines() {
+        if (isIntercepting && !originalScoreboardLines.isEmpty()) {
+            return new ArrayList<>(originalScoreboardLines);
+        }
+        
+        // If not intercepting, fall back to current scoreboard
+        return com.aembr.guesstheutils.Utils.getScoreboardLines();
     }
 }

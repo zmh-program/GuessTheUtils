@@ -164,7 +164,7 @@ public class GuessTheUtils {
             }
         }
 
-        onScoreboardUpdate(Utils.getScoreboardLines());
+        onScoreboardUpdate(com.aembr.guesstheutils.modules.ScoreboardInterceptor.getOriginalScoreboardLines());
         onPlayerListUpdate(Utils.collectTabListEntries());
         
         gameTracker.onTick();

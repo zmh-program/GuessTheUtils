@@ -179,10 +179,15 @@ public class ChatInterceptor {
                 if (chatComponent != null) {
                     String message = chatComponent.getUnformattedText();
                     
+                    // Temporary debug output
+                    GuessTheUtils.LOGGER.info("S02PacketChat received - Type: " + chatType + ", Message: " + message);
+                    
                     if (chatType == 0) {
                         addChatMessage(message);
+                        GuessTheUtils.LOGGER.info("Added chat message: " + message);
                     } else if (chatType == 2) {
                         setActionBarMessage(message);
+                        GuessTheUtils.LOGGER.info("Set actionbar message: " + message);
                     }
                 }
             } catch (Exception e) {
@@ -192,9 +197,21 @@ public class ChatInterceptor {
         
         private IChatComponent getChatComponent(S02PacketChat packet) {
             try {
-                Field chatComponentField = S02PacketChat.class.getDeclaredField("chatComponent");
-                chatComponentField.setAccessible(true);
-                return (IChatComponent) chatComponentField.get(packet);
+                // Try different possible field names for 1.8.9
+                String[] possibleFieldNames = {"chatComponent", "field_148919_a", "a"};
+                
+                for (String fieldName : possibleFieldNames) {
+                    try {
+                        Field chatComponentField = S02PacketChat.class.getDeclaredField(fieldName);
+                        chatComponentField.setAccessible(true);
+                        return (IChatComponent) chatComponentField.get(packet);
+                    } catch (NoSuchFieldException ignored) {
+                        // Try next field name
+                    }
+                }
+                
+                GuessTheUtils.LOGGER.debug("Could not find chat component field. Available fields: " + java.util.Arrays.toString(S02PacketChat.class.getDeclaredFields()));
+                return null;
             } catch (Exception e) {
                 GuessTheUtils.LOGGER.error("Failed to get chat component from packet", e);
                 return null;
@@ -203,9 +220,21 @@ public class ChatInterceptor {
         
         private byte getChatType(S02PacketChat packet) {
             try {
-                Field typeField = S02PacketChat.class.getDeclaredField("type");
-                typeField.setAccessible(true);
-                return typeField.getByte(packet);
+                // Try different possible field names for 1.8.9
+                String[] possibleFieldNames = {"type", "field_148918_b", "b"};
+                
+                for (String fieldName : possibleFieldNames) {
+                    try {
+                        Field typeField = S02PacketChat.class.getDeclaredField(fieldName);
+                        typeField.setAccessible(true);
+                        return typeField.getByte(packet);
+                    } catch (NoSuchFieldException ignored) {
+                        // Try next field name
+                    }
+                }
+                
+                GuessTheUtils.LOGGER.debug("Could not find chat type field. Available fields: " + java.util.Arrays.toString(S02PacketChat.class.getDeclaredFields()));
+                return 0;
             } catch (Exception e) {
                 GuessTheUtils.LOGGER.error("Failed to get chat type from packet", e);
                 return 0;
