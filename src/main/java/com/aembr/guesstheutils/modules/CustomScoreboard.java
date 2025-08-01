@@ -161,7 +161,7 @@ public class CustomScoreboard {
                     String spinnerFrame = getSpinnerFrame();
                     rank = "§3" + spinnerFrame + " ";
                 } else {
-                    rank = "§" + (i == 0 ? "6" : i == 1 ? "e" : "f") + (i + 1) + ". ";
+                    rank = "§" + (i == 0 ? "6" : i == 1 ? "e" : i == 2 ? "f" : "7") + (i + 1) + ". ";
                 }
                 String pointsStr = "§f:§7 " + player.getTotalPoints();
                 
