@@ -170,6 +170,13 @@ public class GameTracker extends GTBEvents.Module {
             return sum;
         }
 
+        public int getCurrentRoundPoints(int currentRound) {
+            if (currentRound <= 0 || currentRound > points.length) {
+                return 0;
+            }
+            return points[currentRound - 1];
+        }
+
         public int getInactiveTicks() {
             return inactiveTicks;
         }

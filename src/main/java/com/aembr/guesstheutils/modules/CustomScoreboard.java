@@ -166,7 +166,7 @@ public class CustomScoreboard {
                 String pointsStr = "§f:§7 " + player.getTotalPoints();
                 
                 
-                Integer thisRoundPoints = player.points.length > game.currentRound - 1 ? player.points[game.currentRound - 1] : 0;
+                Integer thisRoundPoints = player.getCurrentRoundPoints(game.currentRound);
                 String thisRoundPointsStr = thisRoundPoints > 0 ? " (§a+" + thisRoundPoints + "§7)" : "";
                 String playerColor = getPlayerColorCode(player, game);
                 lines.add(rank + playerColor + player.name + pointsStr + thisRoundPointsStr);

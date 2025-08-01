@@ -37,14 +37,14 @@ public class ShortcutReminder extends GTBEvents.Module {
     public void onThemeUpdate(GTBEvents.ThemeUpdateEvent event) {
         currentTheme = event.theme();
 
-        if (lastTheme.equals(currentTheme)) return;
-        lastTheme = currentTheme;
-
         if (!GuessTheUtilsConfig.enableShortcutReminder) return;
 
         currentShortcuts = getShortcuts(currentTheme);
 
         if (currentShortcuts.isEmpty()) return;
+
+        if (lastTheme.equals(currentTheme)) return;
+        lastTheme = currentTheme;
 
         ChatComponentText reminderMessage = new ChatComponentText("");
         for (Map.Entry<String, List<String>> shortcut : currentShortcuts) {
