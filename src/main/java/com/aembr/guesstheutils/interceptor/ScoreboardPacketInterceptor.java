@@ -30,6 +30,8 @@ public class ScoreboardPacketInterceptor extends ChannelDuplexHandler {
     
     @Override
     public void channelRead(ChannelHandlerContext ctx, Object msg) throws Exception {
+        boolean shouldPassthrough = true;
+        
         try {
             if (msg instanceof Packet) {
                 Packet<?> packet = (Packet<?>) msg;
@@ -41,7 +43,7 @@ public class ScoreboardPacketInterceptor extends ChannelDuplexHandler {
                 } else if (packet instanceof S3DPacketDisplayScoreboard) {
                     handleDisplayPacket((S3DPacketDisplayScoreboard) packet);
                 } else if (packet instanceof S3EPacketTeams) {
-                    handleTeamsPacket((S3EPacketTeams) packet);
+                    shouldPassthrough = handleTeamsPacketSafely((S3EPacketTeams) packet);
                 }
             }
         } catch (Exception e) {
@@ -50,7 +52,35 @@ public class ScoreboardPacketInterceptor extends ChannelDuplexHandler {
             }
         }
         
-        super.channelRead(ctx, msg);
+        if (shouldPassthrough) {
+            super.channelRead(ctx, msg);
+        }
+    }
+    
+    private boolean handleTeamsPacketSafely(S3EPacketTeams packet) {
+        try {
+            if (packet == null) {
+                return false;
+            }
+            
+            String teamName = packet.func_149312_c();
+            if (teamName == null || teamName.isEmpty()) {
+                return false;
+            }
+            
+            int action = packet.func_149307_h();
+            
+            if (action == 1) {
+                handleTeamsPacket(packet);
+                return false;
+            }
+            
+            handleTeamsPacket(packet);
+            return true;
+            
+        } catch (Exception e) {
+            return false;
+        }
     }
     
     private void handleObjectivePacket(S3BPacketScoreboardObjective packet) {
