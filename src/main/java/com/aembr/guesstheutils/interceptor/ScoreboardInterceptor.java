@@ -90,8 +90,7 @@ public class ScoreboardInterceptor {
             // Add custom scores
             for (int i = 0; i < customLines.length; i++) {
                 String line = customLines[i];
-                if (line != null && !line.trim().isEmpty()) {
-                    // Use reverse index for proper ordering (higher scores appear at top)
+                if (line != null) {
                     int scoreValue = customLines.length - i;
                     scoreboard.getValueFromObjective(line, objective).setScorePoints(scoreValue);
                 }
@@ -103,7 +102,6 @@ public class ScoreboardInterceptor {
     }
     
     private String[] getCustomScoreboardLines() {
-        // Delegate to CustomScoreboard for business logic
         return CustomScoreboard.getCustomScoreboardLines();
     }
     

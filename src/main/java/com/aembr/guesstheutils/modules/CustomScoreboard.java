@@ -75,13 +75,13 @@ public class CustomScoreboard {
         
         // Points with better formatting
         int totalPoints = player.getTotalPoints();
-        line.append(" ").append(totalPoints);
+        line.append(" §2").append(totalPoints).append("§r");
         
         // Current round points with + symbol
         if (game.currentRound > 0 && game.currentRound <= player.points.length) {
             int currentRoundPoints = player.points[game.currentRound - 1];
             if (currentRoundPoints > 0) {
-                line.append(" (+").append(currentRoundPoints).append(")");
+                line.append(" (§a+").append(currentRoundPoints).append("§r)");
             }
         }
         
@@ -170,16 +170,16 @@ public class CustomScoreboard {
             
             // Round info
             if (game.currentRound > 0) {
-                lines.add("§6Round " + game.currentRound + "/" + game.totalRounds);
+                String roundInfo = "§6Round " + game.currentRound + "/" + game.totalRounds;
+                if (!game.currentTimer.isEmpty()) {
+                    roundInfo += " §e(" + game.currentTimer + ")";
+                }
+                lines.add(roundInfo);
             }
+
             // Theme
             if (!game.currentTheme.isEmpty()) {
-                lines.add("§a> " + game.currentTheme);
-            }
-            
-            // Timer
-            if (!game.currentTimer.isEmpty()) {
-                lines.add("§e[T] " + game.currentTimer);
+                lines.add("§a> " + game.currentTheme + " (" + GuessTheUtils.events.getCurrentThemeStruct() + ")");
             }
             
             List<GameTracker.Player> sortedPlayers = getSortedPlayers(game);

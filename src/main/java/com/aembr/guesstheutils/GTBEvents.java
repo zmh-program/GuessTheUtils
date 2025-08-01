@@ -301,6 +301,19 @@ public class GTBEvents {
         }
     }
 
+    public String getCurrentThemeStruct() {
+        String[] segments = currentTheme.split(" ");
+        String result = "";
+        for (String segment : segments) {
+            if (result.isEmpty()) {
+                result += segment.length();
+            } else {
+                result += "-" + segment.length();
+            }
+        }
+        return result;
+    }
+
     private void onTitleSet(String title) {
     }
 
