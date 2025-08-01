@@ -58,7 +58,6 @@ public class ChatInterceptor {
         
         if (lastActionBarMessage != null) {
             tick.actionBarMessage = lastActionBarMessage;
-            lastActionBarMessage = null;
         }
     }
     

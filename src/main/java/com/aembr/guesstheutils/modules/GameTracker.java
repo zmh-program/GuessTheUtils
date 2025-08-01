@@ -539,8 +539,7 @@ public class GameTracker extends GTBEvents.Module {
         }
 
         private int getThemePointAward(String theme) {
-            // Simple logic for theme points - can be expanded
-            return 1;
+            return (theme.length() < 6) ? 1 : (theme.length() < 9) ? 2 : 3;
         }
     }
 }

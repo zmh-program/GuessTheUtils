@@ -89,35 +89,35 @@ public class CustomScoreboard {
         return line.toString();
     }
 
-    private int getPlayerColor(GameTracker.Player player, GameTracker.Game game) {
+    private static String getPlayerColorCode(GameTracker.Player player, GameTracker.Game game) {
         if (player.leaverState == GameTracker.Player.LeaverState.LEAVER) {
-            return 0xFF666666; // Gray for leavers
+            return "§7"; // Gray for leavers
         }
         
         if (player.equals(game.currentBuilder)) {
-            return 0xFF55FFFF; // Cyan for builder
+            return "§b"; // Aqua for builder
         }
         
         if (player.isUser) {
-            return 0xFFFFFF55; // Yellow for user
+            return "§e"; // Yellow for user
         }
         
         // Rank colors
         if (player.rank != null) {
             switch (player.rank) {
-                case RED: return 0xFFFF5555;
-                case GOLD: return 0xFFFFAA00;
-                case YELLOW: return 0xFFFFFF55;
-                case GREEN: return 0xFF55FF55;
-                case AQUA: return 0xFF55FFFF;
-                case BLUE: return 0xFF5555FF;
-                case LIGHT_PURPLE: return 0xFFFF55FF;
-                case DARK_PURPLE: return 0xFFAA00AA;
-                default: return 0xFFFFFFFF;
+                case RED: return "§c";
+                case GOLD: return "§6";
+                case YELLOW: return "§e";
+                case GREEN: return "§a";
+                case AQUA: return "§b";
+                case BLUE: return "§9";
+                case LIGHT_PURPLE: return "§d";
+                case DARK_PURPLE: return "§5";
+                default: return "§f";
             }
         }
         
-        return 0xFFFFFFFF; // White default
+        return "§f"; // White default
     }
     
     /**
@@ -136,10 +136,6 @@ public class CustomScoreboard {
             // Add empty line for spacing
             lines.add(EmptyLine);
             
-            // Game state
-            String stateText = formatStateName(GameTracker.state.name());
-            lines.add("§b" + stateText);
-            
             // Round info
             if (game.currentRound > 0) {
                 lines.add("§6Round " + game.currentRound + "/" + game.totalRounds);
@@ -155,24 +151,25 @@ public class CustomScoreboard {
                 lines.add("§e[T] " + game.currentTimer);
             }
             
-            // Current builder
-            if (game.currentBuilder != null) {
-                String spinnerFrame = getSpinnerFrame();
-                lines.add("§3" + spinnerFrame + " " + game.currentBuilder.name);
-            }
-            
-            // Empty line for separation
-            lines.add(EmptyLine);
-            
-            // Top 3 players
             List<GameTracker.Player> sortedPlayers = getSortedPlayers(game);
             int count = sortedPlayers.size();
             
             for (int i = 0; i < count; i++) {
                 GameTracker.Player player = sortedPlayers.get(i);
-                String rank = "§" + (i == 0 ? "6" : i == 1 ? "e" : "f") + (i + 1) + ". ";
-                String pointsStr = player.getTotalPoints() > 0 ? " §7(" + player.getTotalPoints() + ")" : "";
-                lines.add(rank + "§f" + player.name + pointsStr);
+                String rank;
+                if (player.equals(game.currentBuilder)) {
+                    String spinnerFrame = getSpinnerFrame();
+                    rank = "§3" + spinnerFrame + " ";
+                } else {
+                    rank = "§" + (i == 0 ? "6" : i == 1 ? "e" : "f") + (i + 1) + ". ";
+                }
+                String pointsStr = "§f:§7 " + player.getTotalPoints();
+                
+                
+                Integer thisRoundPoints = player.points.length > game.currentRound - 1 ? player.points[game.currentRound - 1] : 0;
+                String thisRoundPointsStr = thisRoundPoints > 0 ? " (§a+" + thisRoundPoints + "§7)" : "";
+                String playerColor = getPlayerColorCode(player, game);
+                lines.add(rank + playerColor + player.name + pointsStr + thisRoundPointsStr);
             }
             
             // Server footer
@@ -284,12 +281,13 @@ public class CustomScoreboard {
      */
     private static String formatStateName(String stateName) {
         switch (stateName) {
-            case "PRE_GAME": return "Waiting";
-            case "SETTING_UP": return "Setting Up";
-            case "BUILDING": return "Building";
-            case "GUESSING": return "Guessing";
-            case "GAME_END": return "Game End";
-            case "TRANSITIONING": return "Next Round";
+            case "NONE": return "Waiting";
+            case "LOBBY": return "In Lobby";
+            case "SETUP": return "Setting Up";
+            case "ROUND_PRE": return "Starting";
+            case "ROUND_BUILD": return "Building";
+            case "ROUND_END": return "Round End";
+            case "POST_GAME": return "Game End";
             default: return stateName.replace("_", " ");
         }
     }
