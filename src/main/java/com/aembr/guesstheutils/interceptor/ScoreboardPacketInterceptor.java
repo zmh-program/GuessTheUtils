@@ -167,8 +167,9 @@ public class ScoreboardPacketInterceptor extends ChannelDuplexHandler {
                 teamPrefixes.put(teamName, prefix != null ? prefix : "");
                 teamSuffixes.put(teamName, suffix != null ? suffix : "");
                 
+                Collection<String> players = null;
                 if (action == 0) { // Create team
-                    Collection<String> players = packet.func_149310_g();
+                    players = packet.func_149310_g();
                     if (players != null) {
                         for (String player : players) {
                             if (player != null) {
@@ -257,5 +258,43 @@ public class ScoreboardPacketInterceptor extends ChannelDuplexHandler {
     
     public static boolean hasOriginalData() {
         return !orderedLines.isEmpty();
+    }
+    
+    public static String getPlayerDisplayName(String playerName) {
+        if (playerName == null) return null;
+        
+        String teamName = playerTeams.get(playerName);
+        if (teamName == null) return playerName;
+        
+        String prefix = teamPrefixes.getOrDefault(teamName, "");
+        String suffix = teamSuffixes.getOrDefault(teamName, "");
+        
+        return prefix + playerName + suffix;
+    }
+    
+    public static Map<String, String> getAllPlayerDisplayNames() {
+        Map<String, String> result = new HashMap<>();
+        for (String playerName : playerTeams.keySet()) {
+            result.put(playerName, getPlayerDisplayName(playerName));
+        }
+        return result;
+    }
+    
+    public static String getPlayerPrefix(String playerName) {
+        if (playerName == null) return "";
+        
+        String teamName = playerTeams.get(playerName);
+        if (teamName == null) return "";
+        
+        return teamPrefixes.getOrDefault(teamName, "");
+    }
+    
+    public static String getPlayerSuffix(String playerName) {
+        if (playerName == null) return "";
+        
+        String teamName = playerTeams.get(playerName);
+        if (teamName == null) return "";
+        
+        return teamSuffixes.getOrDefault(teamName, "");
     }
 }

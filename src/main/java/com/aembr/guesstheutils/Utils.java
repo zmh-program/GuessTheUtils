@@ -52,6 +52,17 @@ public class Utils {
                 info.getDisplayName().getFormattedText() : 
                 info.getGameProfile().getName();
             entries.add(EnumChatFormatting.getTextWithoutFormattingCodes(displayName));
+
+            String playerName = info.getGameProfile().getName();
+            
+            // Only output for current player
+            if (mc.thePlayer != null && playerName.equals(mc.thePlayer.getName())) {
+                String prefix = com.aembr.guesstheutils.interceptor.ScoreboardPacketInterceptor.getPlayerPrefix(playerName);
+                String suffix = com.aembr.guesstheutils.interceptor.ScoreboardPacketInterceptor.getPlayerSuffix(playerName);
+                String teamDisplayName = com.aembr.guesstheutils.interceptor.ScoreboardPacketInterceptor.getPlayerDisplayName(playerName);
+                
+                System.out.println("YOUR INFO - Name: " + playerName + " | Prefix: " + prefix + " | Suffix: " + suffix + " | Full: " + teamDisplayName);
+            }
         }
         
         return entries;
