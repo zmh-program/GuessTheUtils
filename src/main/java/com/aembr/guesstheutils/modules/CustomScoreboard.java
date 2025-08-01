@@ -131,6 +131,10 @@ public class CustomScoreboard {
             }
             
             GameTracker.Game game = GuessTheUtils.gameTracker.game;
+            if (game == null) {
+                return new String[0];
+            }
+            
             List<String> lines = new ArrayList<>();
             
             // Add empty line for spacing
@@ -159,7 +163,7 @@ public class CustomScoreboard {
                 String rank;
                 if (player.equals(game.currentBuilder)) {
                     String spinnerFrame = getSpinnerFrame();
-                    rank = "§3" + spinnerFrame + " ";
+                    rank = "§3" + spinnerFrame + ". ";
                 } else {
                     rank = "§" + (i == 0 ? "6" : i == 1 ? "e" : i == 2 ? "f" : "7") + (i + 1) + ". ";
                 }

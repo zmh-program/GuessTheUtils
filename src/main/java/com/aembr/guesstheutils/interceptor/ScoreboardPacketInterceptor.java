@@ -30,17 +30,23 @@ public class ScoreboardPacketInterceptor extends ChannelDuplexHandler {
     
     @Override
     public void channelRead(ChannelHandlerContext ctx, Object msg) throws Exception {
-        if (msg instanceof Packet) {
-            Packet<?> packet = (Packet<?>) msg;
-            
-            if (packet instanceof S3BPacketScoreboardObjective) {
-                handleObjectivePacket((S3BPacketScoreboardObjective) packet);
-            } else if (packet instanceof S3CPacketUpdateScore) {
-                handleScorePacket((S3CPacketUpdateScore) packet);
-            } else if (packet instanceof S3DPacketDisplayScoreboard) {
-                handleDisplayPacket((S3DPacketDisplayScoreboard) packet);
-            } else if (packet instanceof S3EPacketTeams) {
-                handleTeamsPacket((S3EPacketTeams) packet);
+        try {
+            if (msg instanceof Packet) {
+                Packet<?> packet = (Packet<?>) msg;
+                
+                if (packet instanceof S3BPacketScoreboardObjective) {
+                    handleObjectivePacket((S3BPacketScoreboardObjective) packet);
+                } else if (packet instanceof S3CPacketUpdateScore) {
+                    handleScorePacket((S3CPacketUpdateScore) packet);
+                } else if (packet instanceof S3DPacketDisplayScoreboard) {
+                    handleDisplayPacket((S3DPacketDisplayScoreboard) packet);
+                } else if (packet instanceof S3EPacketTeams) {
+                    handleTeamsPacket((S3EPacketTeams) packet);
+                }
+            }
+        } catch (Exception e) {
+            if (!(e instanceof NullPointerException)) {
+                GuessTheUtils.LOGGER.debug("Error in packet interception: " + e.getMessage(), e);
             }
         }
         
@@ -70,8 +76,16 @@ public class ScoreboardPacketInterceptor extends ChannelDuplexHandler {
     
     private void handleScorePacket(S3CPacketUpdateScore packet) {
         try {
+            if (packet == null) {
+                return;
+            }
+            
             String playerName = packet.getPlayerName();
             String objectiveName = packet.getObjectiveName();
+            if (playerName == null || objectiveName == null) {
+                return;
+            }
+            
             int score = packet.getScoreValue();
             S3CPacketUpdateScore.Action action = packet.getScoreAction();
             
@@ -84,7 +98,9 @@ public class ScoreboardPacketInterceptor extends ChannelDuplexHandler {
                 updateOrderedLines();
             }
         } catch (Exception e) {
-            GuessTheUtils.LOGGER.debug("Error handling score packet: " + e.getMessage());
+            if (!(e instanceof NullPointerException)) {
+                GuessTheUtils.LOGGER.debug("Error handling score packet: " + e.getMessage(), e);
+            }
         }
     }
     
@@ -104,7 +120,15 @@ public class ScoreboardPacketInterceptor extends ChannelDuplexHandler {
     
     private void handleTeamsPacket(S3EPacketTeams packet) {
         try {
+            if (packet == null) {
+                return;
+            }
+            
             String teamName = packet.func_149312_c();
+            if (teamName == null) {
+                return;
+            }
+            
             int action = packet.func_149307_h();
             
             if (action == 0 || action == 2) { // Create or update team
@@ -117,48 +141,64 @@ public class ScoreboardPacketInterceptor extends ChannelDuplexHandler {
                     Collection<String> players = packet.func_149310_g();
                     if (players != null) {
                         for (String player : players) {
-                            playerTeams.put(player, teamName);
+                            if (player != null) {
+                                playerTeams.put(player, teamName);
+                            }
                         }
                     }
                 }
             } else if (action == 1) { // Remove team
                 teamPrefixes.remove(teamName);
                 teamSuffixes.remove(teamName);
-                playerTeams.values().removeAll(Collections.singleton(teamName));
+                playerTeams.entrySet().removeIf(entry -> teamName.equals(entry.getValue()));
             } else if (action == 3) { // Add players to team
                 Collection<String> players = packet.func_149310_g();
                 if (players != null) {
                     for (String player : players) {
-                        playerTeams.put(player, teamName);
+                        if (player != null) {
+                            playerTeams.put(player, teamName);
+                        }
                     }
                 }
             } else if (action == 4) { // Remove players from team
                 Collection<String> players = packet.func_149310_g();
                 if (players != null) {
                     for (String player : players) {
-                        playerTeams.remove(player);
+                        if (player != null) {
+                            playerTeams.remove(player);
+                        }
                     }
                 }
             }
             
             updateOrderedLines();
         } catch (Exception e) {
-            GuessTheUtils.LOGGER.debug("Error handling teams packet: " + e.getMessage());
+            if (!(e instanceof NullPointerException)) {
+                GuessTheUtils.LOGGER.debug("Error handling teams packet: " + e.getMessage(), e);
+            }
         }
     }
     
     private void updateOrderedLines() {
         try {
+            if (originalScores == null || orderedLines == null) {
+                return;
+            }
+            
             List<Map.Entry<String, Integer>> sortedEntries = new ArrayList<>(originalScores.entrySet());
             sortedEntries.sort((a, b) -> Integer.compare(b.getValue(), a.getValue()));
             
             orderedLines.clear();
             for (Map.Entry<String, Integer> entry : sortedEntries) {
+                if (entry == null || entry.getKey() == null) {
+                    continue;
+                }
+                
                 String playerName = entry.getKey();
                 String teamName = playerTeams.get(playerName);
                 
                 String formattedLine = playerName;
-                if (teamName != null) {
+                if (teamName != null && teamPrefixes != null && teamSuffixes != null) {
                     String prefix = teamPrefixes.getOrDefault(teamName, "");
                     String suffix = teamSuffixes.getOrDefault(teamName, "");
                     formattedLine = prefix + playerName + suffix;
@@ -167,7 +207,9 @@ public class ScoreboardPacketInterceptor extends ChannelDuplexHandler {
                 orderedLines.add(formattedLine);
             }
         } catch (Exception e) {
-            GuessTheUtils.LOGGER.debug("Error updating ordered lines: " + e.getMessage());
+            if (!(e instanceof NullPointerException)) {
+                GuessTheUtils.LOGGER.debug("Error updating ordered lines: " + e.getMessage(), e);
+            }
         }
     }
     
