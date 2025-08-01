@@ -93,6 +93,10 @@ public class ScoreboardInterceptor {
                 if (line != null) {
                     if (line.length() > 40) {
                         line = line.substring(0, 40);
+
+                        if (line.endsWith("§")) {
+                            line = line.substring(0, line.length() - 1);
+                        }
                     }
                     int scoreValue = customLines.length - i;
                     scoreboard.getValueFromObjective(line, objective).setScorePoints(scoreValue);

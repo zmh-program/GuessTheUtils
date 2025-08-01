@@ -162,6 +162,11 @@ public class GTBEvents {
         }
     }
 
+    private String cleanUnicodeString(String input) {
+        if (input == null) return "";
+        return input.replaceAll("[^\\x20-\\x7E]", "");
+    }
+
     private void onScoreboardUpdate(List<String> scoreboardLines) {
         List<String> stringLines = scoreboardLines.stream().map(line -> EnumChatFormatting.getTextWithoutFormattingCodes(line)).collect(java.util.stream.Collectors.toList());
         GameState state = getStateFromScoreboard(stringLines);
@@ -192,6 +197,25 @@ public class GTBEvents {
                 if (timeValue.matches("\\d{1,2}:\\d{2}") && !timeValue.equals(currentTimer)) {
                     currentTimer = timeValue;
                     emit(new TimerUpdateEvent(currentTimer));
+                }
+            }
+        }
+
+        // solve builder's name will not shown in the text when the builder is current user
+        for (int i = 0; i < stringLines.size() - 1; i++) {
+            String line = EnumChatFormatting.getTextWithoutFormattingCodes(stringLines.get(i)).trim();
+            if (line.startsWith("Builder:")) {
+                String currentBuilderName = cleanUnicodeString(EnumChatFormatting.getTextWithoutFormattingCodes(stringLines.get(i + 1))).trim();
+                if (currentBuilderName != null && !currentBuilderName.isEmpty() && !currentBuilderName.equals(currentBuilder)) {
+                    // if is the current user, trigger the builder change event
+                    if (isCurrentUser(currentBuilderName)) {
+                        if (gameState.equals(GameState.SETUP) || gameState.equals(GameState.LOBBY)) {
+                            prematureBuilder = currentBuilderName;
+                        } else {
+                            emit(new BuilderChangeEvent(currentBuilder, currentBuilderName));
+                            currentBuilder = currentBuilderName;
+                        }
+                    }
                 }
             }
         }
