@@ -180,17 +180,19 @@ public class GTBEvents {
         }
 
         Optional<String> timerLine = stringLines.stream()
-                .filter(line -> (line.startsWith("Starts In: ")
-                        || line.startsWith("Time: ")
-                        || line.startsWith("Next Round: ")))
+                .filter(line -> (line.trim().startsWith("Starts In: ")
+                        || line.trim().startsWith("Time: ")
+                        || line.trim().startsWith("Next Round: ")))
                 .reduce((first, second) -> second);
         if (timerLine.isPresent()) {
-            String[] timerLineParts = timerLine.get().split(": ", 2);
-            if (timerLineParts.length == 2
-                    && timerLineParts[1].matches("\\d{2}:\\d{2}")
-                    && !timerLineParts[1].equals(currentTimer)) {
-                currentTimer = timerLineParts[1];
-                emit(new TimerUpdateEvent(currentTimer));
+            String[] timerLineParts = Utils.stripFormatting(timerLine.get()).split(": ", 2);
+
+            if (timerLineParts.length == 2) {
+                String timeValue = timerLineParts[1].replaceAll("[^\\d:]", "");
+                if (timeValue.matches("\\d{1,2}:\\d{2}") && !timeValue.equals(currentTimer)) {
+                    currentTimer = timeValue;
+                    emit(new TimerUpdateEvent(currentTimer));
+                }
             }
         }
 
@@ -411,7 +413,7 @@ public class GTBEvents {
     public boolean isBoldTitle(String line) {
         // get the index of line in validTitles
         int index = Arrays.asList(validTitles).indexOf(line);
-        if (index == -1) return "";
+        if (index == -1) return false;
 
         // if the title is equal or greater than the index of Legend, return isBold
         return index >= Arrays.asList(validTitles).indexOf("Legend");
