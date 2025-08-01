@@ -21,6 +21,7 @@ public class ShortcutReminder extends GTBEvents.Module {
     private Map<String, List<String>> shortcuts = new HashMap<String, List<String>>();
 
     String currentTheme = "";
+    String lastTheme = "";
     List<Map.Entry<String, List<String>>> currentShortcuts = new ArrayList<Map.Entry<String, List<String>>>();
 
     EnumChatFormatting shortcutColor = EnumChatFormatting.GOLD;
@@ -35,6 +36,9 @@ public class ShortcutReminder extends GTBEvents.Module {
 
     public void onThemeUpdate(GTBEvents.ThemeUpdateEvent event) {
         currentTheme = event.theme();
+
+        if (lastTheme.equals(currentTheme)) return;
+        lastTheme = currentTheme;
 
         if (!GuessTheUtilsConfig.enableShortcutReminder) return;
 
@@ -77,6 +81,7 @@ public class ShortcutReminder extends GTBEvents.Module {
 
     public void reset() {
         currentTheme = "";
+        lastTheme = "";
         currentShortcuts = new ArrayList<Map.Entry<String, List<String>>>();
     }
 
