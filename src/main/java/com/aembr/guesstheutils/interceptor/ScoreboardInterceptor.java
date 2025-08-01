@@ -91,6 +91,9 @@ public class ScoreboardInterceptor {
             for (int i = 0; i < customLines.length; i++) {
                 String line = customLines[i];
                 if (line != null) {
+                    if (line.length() > 40) {
+                        line = line.substring(0, 40);
+                    }
                     int scoreValue = customLines.length - i;
                     scoreboard.getValueFromObjective(line, objective).setScorePoints(scoreValue);
                 }
