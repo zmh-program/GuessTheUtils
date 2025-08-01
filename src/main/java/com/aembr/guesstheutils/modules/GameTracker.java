@@ -137,6 +137,7 @@ public class GameTracker extends GTBEvents.Module {
         public enum LeaverState { NORMAL, POTENTIAL_LEAVER, LEAVER }
         public String name;
         public EnumChatFormatting rank;
+        public String prefix;
         public String title;
         public String emblem;
         public int[] points;
@@ -148,8 +149,10 @@ public class GameTracker extends GTBEvents.Module {
 
         public Player(String name, String rankColor, String title, String emblem, boolean isUser) {
             this.name = name;
+
             this.rank = EnumChatFormatting.getValueByName(rankColor.toLowerCase());
             if (this.rank == null) this.rank = EnumChatFormatting.WHITE;
+            this.prefix = rankColor;
             this.title = title;
             this.emblem = emblem;
             this.isUser = isUser;

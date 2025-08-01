@@ -1,6 +1,7 @@
 package com.aembr.guesstheutils.modules;
 
 import com.aembr.guesstheutils.GuessTheUtils;
+import com.aembr.guesstheutils.GTBEvents;
 import com.aembr.guesstheutils.config.GuessTheUtilsConfig;
 import com.aembr.guesstheutils.interceptor.ScoreboardInterceptor;
 import net.minecraft.client.Minecraft;
@@ -90,6 +91,15 @@ public class CustomScoreboard {
     }
 
     private static String getPlayerColorCode(GameTracker.Player player, GameTracker.Game game) {
+        if (player.prefix != null) {
+            String prefix = player.prefix.trim();
+            String extractTitle = GTBEvents.extractTitle(prefix);
+            if (extractTitle != null && extractTitle.length() > 0) {
+                prefix = prefix.replace(extractTitle, "[" + String.valueOf(extractTitle.charAt(0)) + "]").trim();
+            }
+            return prefix + " ";
+        }
+
         if (player.leaverState == GameTracker.Player.LeaverState.LEAVER) {
             return "§7"; // Gray for leavers
         }
@@ -100,21 +110,6 @@ public class CustomScoreboard {
         
         if (player.isUser) {
             return "§e"; // Yellow for user
-        }
-        
-        // Rank colors
-        if (player.rank != null) {
-            switch (player.rank) {
-                case RED: return "§c";
-                case GOLD: return "§6";
-                case YELLOW: return "§e";
-                case GREEN: return "§a";
-                case AQUA: return "§b";
-                case BLUE: return "§9";
-                case LIGHT_PURPLE: return "§d";
-                case DARK_PURPLE: return "§5";
-                default: return "§f";
-            }
         }
         
         return "§f"; // White default
@@ -168,7 +163,6 @@ public class CustomScoreboard {
                     rank = "§" + (i == 0 ? "6" : i == 1 ? "e" : i == 2 ? "f" : "7") + (i + 1) + ". ";
                 }
                 String pointsStr = "§f:§7 " + player.getTotalPoints();
-                
                 
                 Integer thisRoundPoints = player.getCurrentRoundPoints(game.currentRound);
                 String thisRoundPointsStr = thisRoundPoints > 0 ? " (§a+" + thisRoundPoints + "§7)" : "";

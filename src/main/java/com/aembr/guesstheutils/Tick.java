@@ -9,6 +9,7 @@ import java.util.List;
 public class Tick {
     public List<String> scoreboardLines;
     public List<String> playerListEntries;
+    public List<Utils.PlayerInfo> playerListInfoEntries;
     public List<String> chatMessages;
     public String actionBarMessage;
     public String title;
@@ -26,10 +27,20 @@ public class Tick {
             json.get("scoreboardLines").getAsJsonArray().forEach(element -> 
                 scoreboardLines.add(element.getAsString()));
         }
-        if (json.has("playerListEntries")) {
+                if (json.has("playerListEntries")) {
             playerListEntries = new ArrayList<>();
-            json.get("playerListEntries").getAsJsonArray().forEach(element -> 
+            json.get("playerListEntries").getAsJsonArray().forEach(element ->
                 playerListEntries.add(element.getAsString()));
+        }
+        if (json.has("playerListInfoEntries")) {
+            playerListInfoEntries = new ArrayList<>();
+            json.get("playerListInfoEntries").getAsJsonArray().forEach(element -> {
+                JsonObject playerObj = element.getAsJsonObject();
+                String name = playerObj.get("name").getAsString();
+                String prefix = playerObj.has("prefix") ? playerObj.get("prefix").getAsString() : "";
+                String suffix = playerObj.has("suffix") ? playerObj.get("suffix").getAsString() : "";
+                playerListInfoEntries.add(new Utils.PlayerInfo(name, prefix, suffix));
+            });
         }
         if (json.has("chatMessages")) {
             chatMessages = new ArrayList<>();
@@ -54,8 +65,8 @@ public class Tick {
     }
 
     public SerializedTick serialize() {
-        return new SerializedTick(scoreboardLines, playerListEntries, chatMessages, 
-                actionBarMessage, title, subtitle, screenTitle, error);
+                return new SerializedTick(scoreboardLines, playerListEntries, playerListInfoEntries, chatMessages,
+                                 actionBarMessage, title, subtitle, screenTitle, error);
     }
 
     public boolean isEmpty() {
@@ -66,12 +77,14 @@ public class Tick {
                (chatMessages == null || chatMessages.isEmpty()) &&
                (scoreboardLines == null || scoreboardLines.isEmpty()) &&
                (playerListEntries == null || playerListEntries.isEmpty()) &&
+               (playerListInfoEntries == null || playerListInfoEntries.isEmpty()) &&
                error == null;
     }
 
     public static class SerializedTick {
         public final List<String> scoreboardLines;
         public final List<String> playerListEntries;
+        public final List<Utils.PlayerInfo> playerListInfoEntries;
         public final List<String> chatMessages;
         public final String actionBarMessage;
         public final String title;
@@ -80,10 +93,11 @@ public class Tick {
         public final String error;
 
         public SerializedTick(List<String> scoreboardLines, List<String> playerListEntries,
-                             List<String> chatMessages, String actionBarMessage, String title, 
-                             String subtitle, String screenTitle, String error) {
+                             List<Utils.PlayerInfo> playerListInfoEntries, List<String> chatMessages, 
+                             String actionBarMessage, String title, String subtitle, String screenTitle, String error) {
             this.scoreboardLines = scoreboardLines;
             this.playerListEntries = playerListEntries;
+            this.playerListInfoEntries = playerListInfoEntries;
             this.chatMessages = chatMessages;
             this.actionBarMessage = actionBarMessage;
             this.title = title;
@@ -96,8 +110,9 @@ public class Tick {
         public String toString() {
             return "SerializedTick{" +
                     "scoreboardLines=" + scoreboardLines +
-                    ", playerListEntries=" + playerListEntries +
-                    ", chatMessages=" + chatMessages +
+                                    ", playerListEntries=" + playerListEntries +
+                ", playerListInfoEntries=" + playerListInfoEntries +
+                ", chatMessages=" + chatMessages +
                     ", actionBarMessage='" + actionBarMessage + '\'' +
                     ", title='" + title + '\'' +
                     ", subtitle='" + subtitle + '\'' +

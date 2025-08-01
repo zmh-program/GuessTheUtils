@@ -101,14 +101,15 @@ public class GTBEvents {
 
     private final Utils.FixedSizeBuffer<List<String>> scoreboardLineHistory = new Utils.FixedSizeBuffer<>(3);
     private final Utils.FixedSizeBuffer<List<String>> playerListEntryHistory = new Utils.FixedSizeBuffer<>(3);
+    private final Utils.FixedSizeBuffer<List<Utils.PlayerInfo>> playerListInfoEntryHistory = new Utils.FixedSizeBuffer<>(3);
 
-    private final String[] validEmblems = new String[]{"≈", "α", "Ω", "$", "π", "ƒ"};
-    private final String[] validTitles = new String[]{"Rookie", "Untrained", "Amateur", "Prospect", "Apprentice",
+    private static final String[] validEmblems = new String[]{"≈", "α", "Ω", "$", "π", "ƒ"};
+    private static final String[] validTitles = new String[]{"Rookie", "Untrained", "Amateur", "Prospect", "Apprentice",
             "Experienced", "Seasoned", "Trained", "Skilled", "Talented", "Professional", "Artisan", "Expert",
             "Master", "Legend", "Grandmaster", "Celestial", "Divine", "Ascended"};
-    private final String[] validLeaderboardTitles = new String[]{"#10", "#9", "#8", "#7", "#6", "#5", "#4", "#3", "#2",
+    private static final String[] validLeaderboardTitles = new String[]{"#10", "#9", "#8", "#7", "#6", "#5", "#4", "#3", "#2",
             "#1"};
-    private final String[] validRanks = new String[]{"[VIP]", "[VIP+]", "[MVP]", "[MVP+]", "[MVP++]", "[YOUTUBE]"};
+    private static final String[] validRanks = new String[]{"[VIP]", "[VIP+]", "[MVP]", "[MVP+]", "[MVP++]", "[YOUTUBE]"};
     private final String[] roundSkipMessages = new String[]{"The plot owner has left the game! Skipping...",
             "The plot owner is AFK! Skipping...", "The plot owner hasn't placed any blocks! Skipping..."};
 
@@ -121,6 +122,8 @@ public class GTBEvents {
 
     private List<String> lobbyPlayerList = new ArrayList<>();
     private List<String> setupPlayerList = new ArrayList<>();
+    private List<Utils.PlayerInfo> lobbyPlayerInfoList = new ArrayList<>();
+    private List<Utils.PlayerInfo> setupPlayerInfoList = new ArrayList<>();
     private String currentBuilder = "";
     private String currentTheme = "";
     private String currentTimer = "";
@@ -132,10 +135,12 @@ public class GTBEvents {
         emit(new TickUpdateEvent());
 
         if (tick.scoreboardLines != null) scoreboardLineHistory.add(tick.scoreboardLines);
-        if (tick.playerListEntries != null) playerListEntryHistory.add(tick.playerListEntries);
-
+                if (tick.playerListEntries != null) playerListEntryHistory.add(tick.playerListEntries);
+        if (tick.playerListInfoEntries != null) playerListInfoEntryHistory.add(tick.playerListInfoEntries);
+        
         if (tick.scoreboardLines != null) onScoreboardUpdate(tick.scoreboardLines);
         if (tick.playerListEntries != null) onPlayerListUpdate(tick.playerListEntries);
+        if (tick.playerListInfoEntries != null) onPlayerListInfoUpdate(tick.playerListInfoEntries);
         if (tick.chatMessages != null) onChatMessages(tick.chatMessages);
         if (tick.actionBarMessage != null) onActionBarMessage(tick.actionBarMessage);
         if (tick.title != null) onTitleSet(tick.title);
@@ -147,6 +152,13 @@ public class GTBEvents {
         if (gameState.equals(GameState.LOBBY)) lobbyPlayerList = playerListEntries;
         if (gameState.equals(GameState.SETUP) && setupPlayerList.isEmpty()) {
             setupPlayerList = playerListEntries;
+        }
+    }
+
+    private void onPlayerListInfoUpdate(List<Utils.PlayerInfo> playerListInfoEntries) {
+        if (gameState.equals(GameState.LOBBY)) lobbyPlayerInfoList = playerListInfoEntries;
+        if (gameState.equals(GameState.SETUP) && setupPlayerInfoList.isEmpty()) {
+            setupPlayerInfoList = playerListInfoEntries;
         }
     }
 
@@ -317,14 +329,19 @@ public class GTBEvents {
             if (playerListEntryHistory.size() > 0) {
                 lobbyPlayerList = playerListEntryHistory.get(0);
             }
+            if (playerListInfoEntryHistory.size() > 0) {
+                lobbyPlayerInfoList = playerListInfoEntryHistory.get(0);
+            }
         }
 
         if (newState.equals(GameState.ROUND_PRE)) {
             if (gameState.equals(GameState.SETUP) && !setupPlayerList.isEmpty()) {
                 if (playerListEntryHistory.get(0).size() < 3) {
-                    onGameStart(lobbyPlayerList, setupPlayerList, playerListEntryHistory.get(1));
+                    onGameStart(lobbyPlayerList, setupPlayerList, playerListEntryHistory.get(1),
+                               lobbyPlayerInfoList, setupPlayerInfoList, playerListInfoEntryHistory.get(1));
                 } else {
-                    onGameStart(lobbyPlayerList, setupPlayerList, playerListEntryHistory.get(0));
+                    onGameStart(lobbyPlayerList, setupPlayerList, playerListEntryHistory.get(0),
+                               lobbyPlayerInfoList, setupPlayerInfoList, playerListInfoEntryHistory.get(0));
                 }
             }
             currentTheme = "";
@@ -362,15 +379,27 @@ public class GTBEvents {
         return new InitialPlayerData(name, rankColor, title, emblem, isUser);
     }
 
+    private InitialPlayerData parsePlayerInfoData(Utils.PlayerInfo playerInfo) {
+        String name = playerInfo.name;
+        if (name == null) return null;
+
+        String rankColor = extractRankColor(playerInfo.prefix);
+        String title = extractTitle(playerInfo.prefix);
+        String emblem = extractEmblem(playerInfo.suffix);
+        boolean isUser = isCurrentUser(name);
+
+        return new InitialPlayerData(name, rankColor, title, emblem, isUser);
+    }
+
     private String extractPlayerName(String line) {
         return line.replaceAll("\\[.*?\\]", "").trim();
     }
 
     private String extractRankColor(String line) {
-        return "WHITE";
+        return line;
     }
 
-    private String extractTitle(String line) {
+    public static String extractTitle(String line) {
         for (String title : validTitles) {
             if (line.contains(title)) {
                 return title;
@@ -379,10 +408,12 @@ public class GTBEvents {
         return "";
     }
 
-    private String extractEmblem(String line) {
+    public static String extractEmblem(String line) {
         for (String emblem : validEmblems) {
             if (line.contains(emblem)) {
-                return emblem;
+                return line;
+                // return emblem; 
+                // use prefix instead
             }
         }
         return "";
@@ -478,15 +509,28 @@ public class GTBEvents {
     }
 
     @SuppressWarnings("SequencedCollectionMethodCanBeUsed")
-    private void onGameStart(List<String> lobbyList, List<String> setupList, List<String> finalList) {
+    private void onGameStart(List<String> lobbyList, List<String> setupList, List<String> finalList,
+                            List<Utils.PlayerInfo> lobbyInfoList, List<Utils.PlayerInfo> setupInfoList, List<Utils.PlayerInfo> finalInfoList) {
         Set<InitialPlayerData> players = new HashSet<>();
-        for (String playerEntry : finalList) {
-            String cleanEntry = EnumChatFormatting.getTextWithoutFormattingCodes(playerEntry);
-            if (cleanEntry.trim().isEmpty()) continue;
-            
-            InitialPlayerData playerData = parsePlayerData(cleanEntry);
-            if (playerData != null) {
-                players.add(playerData);
+        
+        if (finalInfoList != null && !finalInfoList.isEmpty()) {
+            for (Utils.PlayerInfo playerInfo : finalInfoList) {
+                if (playerInfo.name.trim().isEmpty()) continue;
+                
+                InitialPlayerData playerData = parsePlayerInfoData(playerInfo);
+                if (playerData != null) {
+                    players.add(playerData);
+                }
+            }
+        } else {
+            for (String playerEntry : finalList) {
+                String cleanEntry = EnumChatFormatting.getTextWithoutFormattingCodes(playerEntry);
+                if (cleanEntry.trim().isEmpty()) continue;
+                
+                InitialPlayerData playerData = parsePlayerData(cleanEntry);
+                if (playerData != null) {
+                    players.add(playerData);
+                }
             }
         }
 
@@ -495,6 +539,8 @@ public class GTBEvents {
 
         lobbyPlayerList = new ArrayList<>();
         setupPlayerList = new ArrayList<>();
+        lobbyPlayerInfoList = new ArrayList<>();
+        setupPlayerInfoList = new ArrayList<>();
 
         if (prematureBuilder != null) {
             emit(new BuilderChangeEvent(null, prematureBuilder));

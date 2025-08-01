@@ -11,6 +11,27 @@ import java.util.List;
 
 public class Utils {
     
+    public static class PlayerInfo {
+        public final String name;
+        public final String prefix;
+        public final String suffix;
+        
+        public PlayerInfo(String name, String prefix, String suffix) {
+            this.name = name;
+            this.prefix = prefix != null ? prefix : "";
+            this.suffix = suffix != null ? suffix : "";
+        }
+        
+        public String getFullDisplayName() {
+            return prefix + name + suffix;
+        }
+        
+        @Override
+        public String toString() {
+            return "PlayerInfo{name='" + name + "', prefix='" + prefix + "', suffix='" + suffix + "'}";
+        }
+    }
+    
     public static void sendMessage(String message) {
         Minecraft mc = Minecraft.getMinecraft();
         if (mc.thePlayer != null) {
@@ -52,17 +73,25 @@ public class Utils {
                 info.getDisplayName().getFormattedText() : 
                 info.getGameProfile().getName();
             entries.add(EnumChatFormatting.getTextWithoutFormattingCodes(displayName));
-
+        }
+        
+        return entries;
+    }
+    
+    public static List<PlayerInfo> collectPlayerInfos() {
+        List<PlayerInfo> entries = new ArrayList<PlayerInfo>();
+        
+        Minecraft mc = Minecraft.getMinecraft();
+        if (mc.getNetHandler() == null) return entries;
+        
+        Collection<NetworkPlayerInfo> playerInfos = mc.getNetHandler().getPlayerInfoMap();
+        
+        for (NetworkPlayerInfo info : playerInfos) {
             String playerName = info.getGameProfile().getName();
+            String prefix = com.aembr.guesstheutils.interceptor.ScoreboardPacketInterceptor.getPlayerPrefix(playerName);
+            String suffix = com.aembr.guesstheutils.interceptor.ScoreboardPacketInterceptor.getPlayerSuffix(playerName);
             
-            // Only output for current player
-            if (mc.thePlayer != null && playerName.equals(mc.thePlayer.getName())) {
-                String prefix = com.aembr.guesstheutils.interceptor.ScoreboardPacketInterceptor.getPlayerPrefix(playerName);
-                String suffix = com.aembr.guesstheutils.interceptor.ScoreboardPacketInterceptor.getPlayerSuffix(playerName);
-                String teamDisplayName = com.aembr.guesstheutils.interceptor.ScoreboardPacketInterceptor.getPlayerDisplayName(playerName);
-                
-                System.out.println("YOUR INFO - Name: " + playerName + " | Prefix: " + prefix + " | Suffix: " + suffix + " | Full: " + teamDisplayName);
-            }
+            entries.add(new PlayerInfo(playerName, prefix, suffix));
         }
         
         return entries;

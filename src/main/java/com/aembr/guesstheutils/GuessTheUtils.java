@@ -183,6 +183,7 @@ public class GuessTheUtils {
     public void onPlayerListUpdate(List<String> entries) {
         if (currentTick == null) return;
         currentTick.playerListEntries = entries;
+        currentTick.playerListInfoEntries = Utils.collectPlayerInfos();
     }
 
     public static void onTitleSet(String title) {
