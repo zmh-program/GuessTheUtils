@@ -77,7 +77,6 @@ public class Tick {
                (chatMessages == null || chatMessages.isEmpty()) &&
                (scoreboardLines == null || scoreboardLines.isEmpty()) &&
                (playerListEntries == null || playerListEntries.isEmpty()) &&
-               (playerListInfoEntries == null || playerListInfoEntries.isEmpty()) &&
                error == null;
     }
 

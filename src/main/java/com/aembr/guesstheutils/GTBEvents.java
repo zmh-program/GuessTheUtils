@@ -105,7 +105,7 @@ public class GTBEvents {
 
     private static final String[] validEmblems = new String[]{"≈", "α", "Ω", "$", "π", "ƒ"};
     private static final String[] validTitles = new String[]{"Rookie", "Untrained", "Amateur", "Prospect", "Apprentice",
-            "Experienced", "Seasoned", "Trained", "Skilled", "Talented", "Professional", "Artisan", "Expert",
+            "Experienced", "Seasoned", "Trained", "Skilled", "Talented", "Professional", "Pro", "Artisan", "Expert",
             "Master", "Legend", "Grandmaster", "Celestial", "Divine", "Ascended"};
     private static final String[] validLeaderboardTitles = new String[]{"#10", "#9", "#8", "#7", "#6", "#5", "#4", "#3", "#2",
             "#1"};
