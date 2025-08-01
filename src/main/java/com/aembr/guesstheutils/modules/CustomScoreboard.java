@@ -56,43 +56,9 @@ public class CustomScoreboard {
         return true;
     }
 
-    private String renderPlayerLine(GameTracker.Player player, GameTracker.Game game) {
-        StringBuilder line = new StringBuilder();
-        
-        // Better status icons
-        if (player.leaverState == GameTracker.Player.LeaverState.LEAVER) {
-            line.append("X ");
-        } else if (player.leaverState == GameTracker.Player.LeaverState.POTENTIAL_LEAVER) {
-            line.append("? ");
-        } else if (player.inactiveTicks > 3600) {
-            line.append("~ ");
-        } else {
-            line.append("+ ");
-        }
-        
-        // Player name
-        line.append(player.name);
-        
-        // Points with better formatting
-        int totalPoints = player.getTotalPoints();
-        line.append(" §2").append(totalPoints).append("§r");
-        
-        // Current round points with + symbol
-        if (game.currentRound > 0 && game.currentRound <= player.points.length) {
-            int currentRoundPoints = player.points[game.currentRound - 1];
-            if (currentRoundPoints > 0) {
-                line.append(" (§a+").append(currentRoundPoints).append("§r)");
-            }
-        }
-        
-        // Builder indicator - removed since we show it with background color and spinner
-        
-        return line.toString();
-    }
-
     private static String getPlayerRank(GameTracker.Player player) {
         if (player.prefix != null) {
-            String prefix = player.prefix.trim();
+            String prefix = player.prefix.replace("§r", "").trim();
             String extractTitle = GTBEvents.extractTitle(prefix);
             if (extractTitle != null && extractTitle.length() > 0) {
                 String replacement = "[" + String.valueOf(extractTitle.charAt(0)) + "]";
@@ -197,7 +163,7 @@ public class CustomScoreboard {
                 String pointsStr = "§f:§7 " + player.getTotalPoints();
                 
                 Integer thisRoundPoints = player.getCurrentRoundPoints(game.currentRound);
-                String thisRoundPointsStr = thisRoundPoints > 0 ? " (§a+" + thisRoundPoints + "§7)" : "";
+                String thisRoundPointsStr = thisRoundPoints > 0 ? " §a+" + thisRoundPoints : "";
                 lines.add(rank + getPlayerName(player, game) + pointsStr + thisRoundPointsStr);
             }
             
