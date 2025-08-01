@@ -102,7 +102,7 @@ public class GTBEvents {
     private final Utils.FixedSizeBuffer<List<String>> scoreboardLineHistory = new Utils.FixedSizeBuffer<>(3);
     private final Utils.FixedSizeBuffer<List<String>> playerListEntryHistory = new Utils.FixedSizeBuffer<>(3);
 
-    private final String[] validEmblems = new String[]{"~", "a", "O", "$", "p", "f"};
+    private final String[] validEmblems = new String[]{"≈", "α", "Ω", "$", "π", "ƒ"};
     private final String[] validTitles = new String[]{"Rookie", "Untrained", "Amateur", "Prospect", "Apprentice",
             "Experienced", "Seasoned", "Trained", "Skilled", "Talented", "Professional", "Artisan", "Expert",
             "Master", "Legend", "Grandmaster", "Celestial", "Divine", "Ascended"};
@@ -350,29 +350,6 @@ public class GTBEvents {
         gameState = newState;
     }
 
-    private void processGameStart() {
-        Set<InitialPlayerData> players = new HashSet<>();
-        
-        for (String entry : setupPlayerList) {
-            String cleanEntry = EnumChatFormatting.getTextWithoutFormattingCodes(entry);
-            if (cleanEntry.trim().isEmpty()) continue;
-            
-            InitialPlayerData playerData = parsePlayerData(cleanEntry);
-            if (playerData != null) {
-                players.add(playerData);
-            }
-        }
-
-        if (!players.isEmpty()) {
-            emit(new GameStartEvent(players));
-        }
-
-        if (prematureBuilder != null) {
-            onBuilderChange(prematureBuilder);
-            prematureBuilder = null;
-        }
-    }
-
     private InitialPlayerData parsePlayerData(String playerLine) {
         String name = extractPlayerName(playerLine);
         if (name == null) return null;
@@ -504,15 +481,13 @@ public class GTBEvents {
     private void onGameStart(List<String> lobbyList, List<String> setupList, List<String> finalList) {
         Set<InitialPlayerData> players = new HashSet<>();
         for (String playerEntry : finalList) {
-            String name = EnumChatFormatting.getTextWithoutFormattingCodes(playerEntry);
-            if (name == null || name.trim().isEmpty()) continue;
-
-            String title = "";
-            String emblem = "";
-            String rankColor = "WHITE";
-            boolean isUser = isCurrentUser(name);
-
-            players.add(new InitialPlayerData(name, rankColor, title, emblem, isUser));
+            String cleanEntry = EnumChatFormatting.getTextWithoutFormattingCodes(playerEntry);
+            if (cleanEntry.trim().isEmpty()) continue;
+            
+            InitialPlayerData playerData = parsePlayerData(cleanEntry);
+            if (playerData != null) {
+                players.add(playerData);
+            }
         }
 
         currentBuilder = null;

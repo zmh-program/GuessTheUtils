@@ -226,6 +226,10 @@ public class CustomScoreboard {
                     }
                 }
             }
+
+            if (playerCount.isEmpty() && timeLeft.isEmpty()) {
+                return null;
+            }
             
             // Build our custom waiting scoreboard
             String spinnerFrame = getSpinnerFrame();
@@ -239,8 +243,6 @@ public class CustomScoreboard {
             
             if (!timeLeft.isEmpty()) {
                 lines.add("§e" + timeLeft);
-            } else {
-                lines.add("§c" + spinnerFrame + " Waiting...");
             }
             
             lines.add(EmptyLine);
