@@ -90,16 +90,32 @@ public class CustomScoreboard {
         return line.toString();
     }
 
-    private static String getPlayerColorCode(GameTracker.Player player, GameTracker.Game game) {
+    private static String getPlayerRank(GameTracker.Player player) {
         if (player.prefix != null) {
             String prefix = player.prefix.trim();
             String extractTitle = GTBEvents.extractTitle(prefix);
             if (extractTitle != null && extractTitle.length() > 0) {
-                prefix = prefix.replace(extractTitle, "[" + String.valueOf(extractTitle.charAt(0)) + "]").trim();
+                String replacement = "[" + String.valueOf(extractTitle.charAt(0)) + "]";
+                if (GuessTheUtils.events.isBoldTitle(extractTitle)) {
+                    replacement = "§l" + replacement + "§r";
+                }
+                prefix = prefix.replace(extractTitle, replacement).trim();
             }
-            return prefix + " ";
+            return prefix + "";
         }
 
+        return "";
+    }
+
+    private static String getPlayerEmblem(GameTracker.Player player) {
+        String emblem = player.emblem;
+        if (emblem != null && emblem.length() > 0) {
+            return emblem.trim();
+        }
+        return "";
+    }
+
+    private static String getPlayerColorCode(GameTracker.Player player, GameTracker.Game game) {
         if (player.leaverState == GameTracker.Player.LeaverState.LEAVER) {
             return "§7"; // Gray for leavers
         }
@@ -113,6 +129,23 @@ public class CustomScoreboard {
         }
         
         return "§f"; // White default
+    }
+
+    private static String getPlayerName(GameTracker.Player player, GameTracker.Game game) {
+        String rank = getPlayerRank(player);
+        String colorCode = getPlayerColorCode(player, game);
+        String playerName = player.name;
+        String emblem = getPlayerEmblem(player);
+
+        StringBuilder result = new StringBuilder();
+        if (rank != null && !rank.isEmpty()) {
+            result.append(rank).append(" ");
+        }
+        result.append(colorCode).append(playerName);
+        if (emblem != null && !emblem.isEmpty()) {
+            result.append(" ").append(emblem);
+        }
+        return result.toString();
     }
     
     /**
@@ -139,7 +172,6 @@ public class CustomScoreboard {
             if (game.currentRound > 0) {
                 lines.add("§6Round " + game.currentRound + "/" + game.totalRounds);
             }
-            
             // Theme
             if (!game.currentTheme.isEmpty()) {
                 lines.add("§a> " + game.currentTheme);
@@ -166,8 +198,7 @@ public class CustomScoreboard {
                 
                 Integer thisRoundPoints = player.getCurrentRoundPoints(game.currentRound);
                 String thisRoundPointsStr = thisRoundPoints > 0 ? " (§a+" + thisRoundPoints + "§7)" : "";
-                String playerColor = getPlayerColorCode(player, game);
-                lines.add(rank + playerColor + player.name + pointsStr + thisRoundPointsStr);
+                lines.add(rank + getPlayerName(player, game) + pointsStr + thisRoundPointsStr);
             }
             
             // Server footer

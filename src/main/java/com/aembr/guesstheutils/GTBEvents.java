@@ -408,6 +408,15 @@ public class GTBEvents {
         return "";
     }
 
+    public boolean isBoldTitle(String line) {
+        // get the index of line in validTitles
+        int index = Arrays.asList(validTitles).indexOf(line);
+        if (index == -1) return "";
+
+        // if the title is equal or greater than the index of Legend, return isBold
+        return index >= Arrays.asList(validTitles).indexOf("Legend");
+    }
+
     public static String extractEmblem(String line) {
         for (String emblem : validEmblems) {
             if (line.contains(emblem)) {
