@@ -101,7 +101,7 @@ public class GTBEvents {
 
     private final Utils.FixedSizeBuffer<List<String>> scoreboardLineHistory = new Utils.FixedSizeBuffer<>(3);
     private final Utils.FixedSizeBuffer<List<String>> playerListEntryHistory = new Utils.FixedSizeBuffer<>(3);
-    private final Utils.FixedSizeBuffer<List<Utils.PlayerInfo>> playerListInfoEntryHistory = new Utils.FixedSizeBuffer<>(3);
+    private final Utils.FixedSizeBuffer<List<Utils.PlayerInfo>> playerListInfoEntryHistory = new Utils.FixedSizeBuffer<>(5);
 
     private static final String[] validEmblems = new String[]{"≈", "α", "Ω", "$", "π", "ƒ"};
     private static final String[] validTitles = new String[]{"Rookie", "Untrained", "Amateur", "Prospect", "Apprentice",
@@ -122,8 +122,6 @@ public class GTBEvents {
 
     private List<String> lobbyPlayerList = new ArrayList<>();
     private List<String> setupPlayerList = new ArrayList<>();
-    private List<Utils.PlayerInfo> lobbyPlayerInfoList = new ArrayList<>();
-    private List<Utils.PlayerInfo> setupPlayerInfoList = new ArrayList<>();
     private String currentBuilder = "";
     private String currentTheme = "";
     private String currentTimer = "";
@@ -140,7 +138,6 @@ public class GTBEvents {
         
         if (tick.scoreboardLines != null) onScoreboardUpdate(tick.scoreboardLines);
         if (tick.playerListEntries != null) onPlayerListUpdate(tick.playerListEntries);
-        if (tick.playerListInfoEntries != null) onPlayerListInfoUpdate(tick.playerListInfoEntries);
         if (tick.chatMessages != null) onChatMessages(tick.chatMessages);
         if (tick.actionBarMessage != null) onActionBarMessage(tick.actionBarMessage);
         if (tick.title != null) onTitleSet(tick.title);
@@ -152,13 +149,6 @@ public class GTBEvents {
         if (gameState.equals(GameState.LOBBY)) lobbyPlayerList = playerListEntries;
         if (gameState.equals(GameState.SETUP) && setupPlayerList.isEmpty()) {
             setupPlayerList = playerListEntries;
-        }
-    }
-
-    private void onPlayerListInfoUpdate(List<Utils.PlayerInfo> playerListInfoEntries) {
-        if (gameState.equals(GameState.LOBBY)) lobbyPlayerInfoList = playerListInfoEntries;
-        if (gameState.equals(GameState.SETUP) && setupPlayerInfoList.isEmpty()) {
-            setupPlayerInfoList = playerListInfoEntries;
         }
     }
 
@@ -368,19 +358,14 @@ public class GTBEvents {
             if (playerListEntryHistory.size() > 0) {
                 lobbyPlayerList = playerListEntryHistory.get(0);
             }
-            if (playerListInfoEntryHistory.size() > 0) {
-                lobbyPlayerInfoList = playerListInfoEntryHistory.get(0);
-            }
         }
 
         if (newState.equals(GameState.ROUND_PRE)) {
             if (gameState.equals(GameState.SETUP) && !setupPlayerList.isEmpty()) {
                 if (playerListEntryHistory.get(0).size() < 3) {
-                    onGameStart(lobbyPlayerList, setupPlayerList, playerListEntryHistory.get(1),
-                               lobbyPlayerInfoList, setupPlayerInfoList, playerListInfoEntryHistory.get(1));
+                    onGameStart(lobbyPlayerList, setupPlayerList, playerListEntryHistory.get(1));
                 } else {
-                    onGameStart(lobbyPlayerList, setupPlayerList, playerListEntryHistory.get(0),
-                               lobbyPlayerInfoList, setupPlayerInfoList, playerListInfoEntryHistory.get(0));
+                    onGameStart(lobbyPlayerList, setupPlayerList, playerListEntryHistory.get(0));
                 }
             }
             currentTheme = "";
@@ -406,42 +391,18 @@ public class GTBEvents {
         gameState = newState;
     }
 
-    private InitialPlayerData parsePlayerData(String playerLine) {
-        String name = extractPlayerName(playerLine);
-        if (name == null) return null;
-
-        String rankColor = extractRankColor(playerLine);
-        String title = extractTitle(playerLine);
-        String emblem = extractEmblem(playerLine);
-        boolean isUser = isCurrentUser(name);
-
-        return new InitialPlayerData(name, rankColor, title, emblem, isUser);
-    }
-
-    private InitialPlayerData parsePlayerInfoData(Utils.PlayerInfo playerInfo) {
-        String name = playerInfo.name;
-        if (name == null) return null;
-
-        String rankColor = extractRankColor(playerInfo.prefix);
-        String title = extractTitle(playerInfo.prefix);
-        String emblem = extractEmblem(playerInfo.suffix);
-        boolean isUser = isCurrentUser(name);
-
-        return new InitialPlayerData(name, rankColor, title, emblem, isUser);
-    }
-
     private String extractPlayerName(String line) {
         return line.replaceAll("\\[.*?\\]", "").trim();
     }
 
     private String extractRankColor(String line) {
-        return line;
+        return line.trim();
     }
 
     public static String extractTitle(String line) {
         for (String title : validTitles) {
             if (line.contains(title)) {
-                return title;
+                return title.trim();
             }
         }
         return "";
@@ -459,7 +420,7 @@ public class GTBEvents {
     public static String extractEmblem(String line) {
         for (String emblem : validEmblems) {
             if (line.contains(emblem)) {
-                return line;
+                return line.trim();
                 // return emblem; 
                 // use prefix instead
             }
@@ -556,29 +517,105 @@ public class GTBEvents {
         return builderLineString.substring(1);
     }
 
-    @SuppressWarnings("SequencedCollectionMethodCanBeUsed")
-    private void onGameStart(List<String> lobbyList, List<String> setupList, List<String> finalList,
-                            List<Utils.PlayerInfo> lobbyInfoList, List<Utils.PlayerInfo> setupInfoList, List<Utils.PlayerInfo> finalInfoList) {
-        Set<InitialPlayerData> players = new HashSet<>();
-        
-        if (finalInfoList != null && !finalInfoList.isEmpty()) {
-            for (Utils.PlayerInfo playerInfo : finalInfoList) {
-                if (playerInfo.name.trim().isEmpty()) continue;
-                
-                InitialPlayerData playerData = parsePlayerInfoData(playerInfo);
-                if (playerData != null) {
-                    players.add(playerData);
+    private Map<String, Utils.PlayerInfo> getHypixelRankInfoMap() {
+        Map<String, Utils.PlayerInfo> hypixelRankInfoMap = new HashMap<>();
+
+        for (int i = 0; i < playerListInfoEntryHistory.size(); i++) {
+            List<Utils.PlayerInfo> playerInfoList = playerListInfoEntryHistory.get(i);
+            boolean isHypixelRankInfoList = playerInfoList
+                .stream()
+                .allMatch(playerInfo -> {
+                    String prefix = playerInfo.prefix;
+                    String suffix = playerInfo.suffix;
+                    return !Arrays.stream(validTitles).anyMatch(title -> prefix.contains(title)) && !Arrays.stream(validEmblems).anyMatch(emblem -> suffix.contains(emblem));
+                });
+
+            if (isHypixelRankInfoList) {
+                for (Utils.PlayerInfo playerInfo : playerInfoList) {
+                    // if exist, override the player info
+                    if (hypixelRankInfoMap.containsKey(playerInfo.name)) {
+                        Utils.PlayerInfo existingInfo = hypixelRankInfoMap.get(playerInfo.name);
+                        Utils.PlayerInfo updatedInfo = new Utils.PlayerInfo(
+                            playerInfo.name,
+                            playerInfo.prefix != null && !playerInfo.prefix.trim().isEmpty() ? playerInfo.prefix : existingInfo.prefix,
+                            playerInfo.suffix != null && !playerInfo.suffix.trim().isEmpty() ? playerInfo.suffix : existingInfo.suffix
+                        );
+                        hypixelRankInfoMap.put(playerInfo.name, updatedInfo);
+                    } else {
+                        hypixelRankInfoMap.put(playerInfo.name, playerInfo);
+                    }
                 }
             }
-        } else {
-            for (String playerEntry : finalList) {
-                String cleanEntry = EnumChatFormatting.getTextWithoutFormattingCodes(playerEntry);
-                if (cleanEntry.trim().isEmpty()) continue;
-                
-                InitialPlayerData playerData = parsePlayerData(cleanEntry);
-                if (playerData != null) {
-                    players.add(playerData);
+        }
+
+        return hypixelRankInfoMap;
+    }
+
+    private Map<String, Utils.PlayerInfo> getBuildBattleRankInfoMap() {
+        Map<String, Utils.PlayerInfo> buildBattleRankInfoMap = new HashMap<>();
+
+        for (int i = 0; i < playerListInfoEntryHistory.size(); i++) {
+            List<Utils.PlayerInfo> playerInfoList = playerListInfoEntryHistory.get(i);
+            boolean isBuildBattleRankInfoList = playerInfoList
+                .stream()
+                .anyMatch(playerInfo -> {
+                    String prefix = playerInfo.prefix;
+                    return Arrays.stream(validTitles).anyMatch(title -> prefix.contains(title));
+                });
+
+            if (isBuildBattleRankInfoList) {
+                for (Utils.PlayerInfo playerInfo : playerInfoList) {
+                    buildBattleRankInfoMap.put(playerInfo.name, playerInfo);
                 }
+            }
+        }
+
+        return buildBattleRankInfoMap;
+    }
+
+    private InitialPlayerData parsePlayerInfoData(String playerName, Map<String, Utils.PlayerInfo> hypixelRankInfoMap, Map<String, Utils.PlayerInfo> buildBattleRankInfoMap) {
+        if (playerName == null) return null;
+
+        playerName = EnumChatFormatting.getTextWithoutFormattingCodes(playerName).trim();
+        if (playerName.isEmpty()) return null;
+
+        Utils.PlayerInfo hypixelRankInfo = hypixelRankInfoMap.get(playerName);
+        Utils.PlayerInfo buildBattleRankInfo = buildBattleRankInfoMap.get(playerName);
+
+        String rankColor = "";
+        String title = "";
+        String emblem = "";
+
+        if (hypixelRankInfo != null) {
+            rankColor = extractRankColor(hypixelRankInfo.prefix);
+        }
+
+        if (buildBattleRankInfo != null) {
+            title = extractTitle(buildBattleRankInfo.prefix);
+            emblem = extractEmblem(buildBattleRankInfo.suffix);
+        }
+
+        return new InitialPlayerData(playerName, rankColor, title, emblem, isCurrentUser(playerName));
+    }
+
+    @SuppressWarnings("SequencedCollectionMethodCanBeUsed")
+    private void onGameStart(List<String> lobbyList, List<String> setupList, List<String> finalList) {
+        Set<InitialPlayerData> players = new HashSet<>();
+
+        Map<String, Utils.PlayerInfo> hypixelRankInfoMap = getHypixelRankInfoMap();
+        Map<String, Utils.PlayerInfo> buildBattleRankInfoMap = getBuildBattleRankInfoMap();
+
+        System.out.println("hypixelRankInfoMap: " + hypixelRankInfoMap);
+
+        for (String playerEntry : finalList) {
+            InitialPlayerData playerData = parsePlayerInfoData(
+                playerEntry,
+                hypixelRankInfoMap,
+                buildBattleRankInfoMap
+            );
+
+            if (playerData != null) {
+                players.add(playerData);
             }
         }
 
@@ -587,8 +624,6 @@ public class GTBEvents {
 
         lobbyPlayerList = new ArrayList<>();
         setupPlayerList = new ArrayList<>();
-        lobbyPlayerInfoList = new ArrayList<>();
-        setupPlayerInfoList = new ArrayList<>();
 
         if (prematureBuilder != null) {
             emit(new BuilderChangeEvent(null, prematureBuilder));
