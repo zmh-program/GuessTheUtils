@@ -101,7 +101,7 @@ public class GTBEvents {
 
     private final Utils.FixedSizeBuffer<List<String>> scoreboardLineHistory = new Utils.FixedSizeBuffer<>(3);
     private final Utils.FixedSizeBuffer<List<String>> playerListEntryHistory = new Utils.FixedSizeBuffer<>(3);
-    private final Utils.FixedSizeBuffer<List<Utils.PlayerInfo>> playerListInfoEntryHistory = new Utils.FixedSizeBuffer<>(5);
+    private final Utils.FixedSizeBuffer<List<Utils.PlayerInfo>> playerListInfoEntryHistory = new Utils.FixedSizeBuffer<>(100);
 
     private static final String[] validEmblems = new String[]{"≈", "α", "Ω", "$", "π", "ƒ"};
     private static final String[] validTitles = new String[]{"Rookie", "Untrained", "Amateur", "Prospect", "Apprentice",
@@ -591,7 +591,7 @@ public class GTBEvents {
         }
 
         if (buildBattleRankInfo != null) {
-            title = extractTitle(buildBattleRankInfo.prefix);
+            title = buildBattleRankInfo.prefix.trim();
             emblem = extractEmblem(buildBattleRankInfo.suffix);
         }
 
@@ -604,9 +604,6 @@ public class GTBEvents {
 
         Map<String, Utils.PlayerInfo> hypixelRankInfoMap = getHypixelRankInfoMap();
         Map<String, Utils.PlayerInfo> buildBattleRankInfoMap = getBuildBattleRankInfoMap();
-
-        System.out.println("hypixelRankInfoMap: " + hypixelRankInfoMap);
-
         for (String playerEntry : finalList) {
             InitialPlayerData playerData = parsePlayerInfoData(
                 playerEntry,

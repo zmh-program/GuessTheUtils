@@ -57,8 +57,8 @@ public class CustomScoreboard {
     }
 
     private static String getPlayerRank(GameTracker.Player player) {
-        if (player.prefix != null) {
-            String prefix = player.prefix.replace("§r", "").trim();
+        if (player.title != null) {
+            String prefix = player.title.replace("§r", "").trim();
             String extractTitle = GTBEvents.extractTitle(prefix);
             if (extractTitle != null && extractTitle.length() > 0) {
                 String replacement = "[" + String.valueOf(extractTitle.charAt(0)) + "]";
@@ -82,18 +82,22 @@ public class CustomScoreboard {
     }
 
     private static String getPlayerColorCode(GameTracker.Player player, GameTracker.Game game) {
-        if (player.leaverState == GameTracker.Player.LeaverState.LEAVER) {
-            return "§7"; // Gray for leavers
-        }
+        // if (player.leaverState == GameTracker.Player.LeaverState.LEAVER) {
+        //     return "§7"; // Gray for leavers
+        // }
         
-        if (player.equals(game.currentBuilder)) {
-            return "§b"; // Aqua for builder
-        }
+        // if (player.equals(game.currentBuilder)) {
+        //     return "§b"; // Aqua for builder
+        // }
         
-        if (player.isUser) {
-            return "§e"; // Yellow for user
-        }
+        // if (player.isUser) {
+        //     return "§e"; // Yellow for user
+        // }
         
+        if (player.rank != null && !player.rank.isEmpty()) {
+            return player.rank;
+        }
+
         return "§f"; // White default
     }
 
