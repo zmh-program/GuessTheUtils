@@ -261,27 +261,27 @@ public class Commands extends CommandBase {
         GameTracker.Player userPlayer = new GameTracker.Player(player.getName());
         userPlayer.isUser = true;
         userPlayer.points = new int[]{20, 3, 0};
-        userPlayer.rank = EnumChatFormatting.YELLOW;
+        userPlayer.rank = EnumChatFormatting.YELLOW.toString();
         GuessTheUtils.gameTracker.game.players.add(userPlayer);
         
-        GameTracker.Player builderPlayer = new GameTracker.Player("TestBuilder");
+        GameTracker.Player builderPlayer = new GameTracker.Player("Player4");
         builderPlayer.points = new int[]{12, 2, 0};
-        builderPlayer.rank = EnumChatFormatting.GREEN;
+        builderPlayer.rank = EnumChatFormatting.GREEN.toString();
         GuessTheUtils.gameTracker.game.currentBuilder = builderPlayer;
         GuessTheUtils.gameTracker.game.players.add(builderPlayer);
         
         GameTracker.Player player1 = new GameTracker.Player("Player1");
         player1.points = new int[]{6, 1, 0};
-        player1.rank = EnumChatFormatting.BLUE;
+        player1.rank = EnumChatFormatting.BLUE.toString();
         GuessTheUtils.gameTracker.game.players.add(player1);
         
         GameTracker.Player player2 = new GameTracker.Player("Player2");
         player2.points = new int[]{4, 1, 0};
-        player2.rank = EnumChatFormatting.RED;
+        player2.rank = EnumChatFormatting.RED.toString();
         player2.leaverState = GameTracker.Player.LeaverState.POTENTIAL_LEAVER;
         GuessTheUtils.gameTracker.game.players.add(player2);
         
-        GameTracker.Player leaver = new GameTracker.Player("Leaver");
+        GameTracker.Player leaver = new GameTracker.Player("Player5");
         leaver.points = new int[]{3, 0, 0};
         leaver.leaverState = GameTracker.Player.LeaverState.LEAVER;
         GuessTheUtils.gameTracker.game.players.add(leaver);
