@@ -2,18 +2,16 @@ package com.aembr.guesstheutils.modules;
 
 import com.aembr.guesstheutils.GTBEvents;
 import com.aembr.guesstheutils.Utils;
-import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents;
-import net.minecraft.client.MinecraftClient;
-import net.minecraft.text.Text;
-import net.minecraft.util.Formatting;
-import org.jetbrains.annotations.NotNull;
+import net.minecraft.client.Minecraft;
+import net.minecraft.util.EnumChatFormatting;
+import net.minecraft.util.IChatComponent;
 
 import java.util.*;
 
 public class GameTracker extends GTBEvents.Module {
     public static GTBEvents.GameState state = GTBEvents.GameState.NONE;
 
-    Game game;
+    public Game game;
     public CustomScoreboard scoreboard;
 
     public GameTracker(GTBEvents events) {
@@ -21,7 +19,6 @@ public class GameTracker extends GTBEvents.Module {
 
         scoreboard = new CustomScoreboard(this);
 
-        ClientTickEvents.START_CLIENT_TICK.register(this::onTick);
         events.subscribe(GTBEvents.GameStartEvent.class, this::onGameStart, this);
         events.subscribe(GTBEvents.StateChangeEvent.class, e -> {
             state = e.current();
@@ -46,7 +43,13 @@ public class GameTracker extends GTBEvents.Module {
         }, this);
 
         events.subscribe(GTBEvents.CorrectGuessEvent.class, e -> {
-            if (game != null) game.onCorrectGuess(e.players());
+            if (game != null) {
+                List<GTBEvents.FormattedName> formattedNames = new ArrayList<GTBEvents.FormattedName>();
+                for (String playerName : e.players()) {
+                    formattedNames.add(new GTBEvents.FormattedName(playerName));
+                }
+                game.onCorrectGuess(formattedNames);
+            }
         }, this);
 
         events.subscribe(GTBEvents.ThemeUpdateEvent.class, e -> {
@@ -80,6 +83,18 @@ public class GameTracker extends GTBEvents.Module {
         }, this);
     }
 
+    private void onTick(Minecraft client) {
+        if (game == null || !events.isInGtb()) return;
+        game.players.forEach(player -> player.inactiveTicks++);
+        CustomScoreboard.tickCounter++;
+    }
+
+    private static int getThemePointAward(String theme) {
+        return (theme.length() < 6) ? 1 : (theme.length() < 9) ? 2 : 3;
+    }
+
+
+
     private void onUserRejoin(GTBEvents.UserRejoinEvent userRejoinEvent) {
         if (game == null || game.leaveState == null || game.leaveRound == -1 || game.leaveBuilder == null) {
             Utils.sendMessage("Tracking is disabled for this game, as you weren't present at the start " +
@@ -91,61 +106,78 @@ public class GameTracker extends GTBEvents.Module {
     }
 
     private void onGameStart(GTBEvents.GameStartEvent event) {
-        Set<Player> players = new HashSet<>();
-        event.players().forEach(p ->
-                players.add(new Player(p.name(), p.rankColor(), p.title(), p.emblem(), p.isUser())));
+        Set<Player> players = new HashSet<Player>();
+        for (GTBEvents.InitialPlayerData p : event.players()) {
+            players.add(new Player(p.name(), p.rankColor(), p.title(), p.emblem(), p.isUser()));
+        }
         game = new Game(this, players);
     }
 
-    private void onTick(MinecraftClient client) {
-        if (game == null || !events.isInGtb()) return;
-        game.players.forEach(player -> player.inactiveTicks++);
-        CustomScoreboard.tickCounter++;
+    public void onTick() {
+        if (game != null) {
+            game.onTick();
+        }
     }
 
-    private static int getThemePointAward(String theme) {
-        return (theme.length() < 6) ? 1 : (theme.length() < 9) ? 2 : 3;
-    }
-
-    private void clearGame() {
+    public void clearGame() {
         game = null;
     }
 
-    private void clearGameWithError(String error) {
-        clearGame();
-        throw new RuntimeException(error);
+    public void clearGameWithError(String error) {
+        Utils.sendMessage("Error: " + error);
+        game = null;
     }
 
     @Override
-    public ErrorAction getErrorAction() {
-        return ErrorAction.LOG_AND_CONTINUE;
+    public GTBEvents.Module.ErrorAction getErrorAction() {
+        return GTBEvents.Module.ErrorAction.LOG_AND_CONTINUE;
     }
 
-    static class Player {
-        enum LeaverState { NORMAL, POTENTIAL_LEAVER, LEAVER }
-        String name;
-        Formatting rank;
-        Text title;
-        Text emblem;
-        int[] points;
-        int buildRound;
-        boolean isUser;
-        int scoreMismatchCounter = 0;
-        int inactiveTicks = 0;
-        LeaverState leaverState = LeaverState.NORMAL;
+    public static class Player {
+        public enum LeaverState { NORMAL, POTENTIAL_LEAVER, LEAVER }
+        public String name;
+        public String rank;
+        public String prefix;
+        public String title;
+        public String emblem;
+        public int[] points;
+        public int buildRound;
+        public boolean isUser;
+        public int scoreMismatchCounter = 0;
+        public int inactiveTicks = 0;
+        public LeaverState leaverState = LeaverState.NORMAL;
 
-        Player(String name, Formatting rank, Text title, Text emblem, boolean isUser) {
+        public Player(String name, String rankColor, String title, String emblem, boolean isUser) {
             this.name = name;
-            this.rank = rank;
+
+            this.rank = rankColor;
+            if (this.rank == null || this.rank.isEmpty()) this.rank = EnumChatFormatting.WHITE.toString();
+            this.prefix = rankColor;
             this.title = title;
             this.emblem = emblem;
             this.isUser = isUser;
             this.points = new int[]{0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
             this.buildRound = 0;
         }
+        
+        // Simplified constructor for testing
+        public Player(String name) {
+            this(name, "white", "", "", false);
+        }
 
         int getTotalPoints() {
-            return Arrays.stream(points).sum();
+            int sum = 0;
+            for (int point : points) {
+                sum += point;
+            }
+            return sum;
+        }
+
+        public int getCurrentRoundPoints(int currentRound) {
+            if (currentRound <= 0 || currentRound > points.length) {
+                return 0;
+            }
+            return points[currentRound - 1];
         }
 
         public int getInactiveTicks() {
@@ -169,25 +201,24 @@ public class GameTracker extends GTBEvents.Module {
         }
     }
 
-    static class Game {
+    public static class Game {
         GameTracker tracker;
-        Set<Player> players;
+        public Set<Player> players;
 
-        int currentRound = 0;
-        int totalRounds;
-        int skippedRounds = 0;
-        int potentialLeaverAmount = 0;
-        boolean userRoundSkipped = false;
+        public int currentRound = 0;
+        public int totalRounds;
+        public int skippedRounds = 0;
+        public int potentialLeaverAmount = 0;
+        public boolean userRoundSkipped = false;
 
-        String currentTheme = "";
-        String currentTimer = "";
-        Player currentBuilder = null;
-        int correctGuessesThisRound = 0;
+        public String currentTheme = "";
+        public String currentTimer = "";
+        public Player currentBuilder = null;
+        public int correctGuessesThisRound = 0;
         boolean oneSecondAlertReached = false;
 
         List<Utils.Pair<Player, Integer>> latestTrueScore;
 
-        // when the user leaves mid-game, we need to remember some stuff for when they join back
         GTBEvents.GameState leaveState;
         int leaveRound = -1;
         Player leaveBuilder;
@@ -196,6 +227,11 @@ public class GameTracker extends GTBEvents.Module {
             this.tracker = tracker;
             this.players = players;
             this.totalRounds = players.size();
+        }
+        
+        // Constructor for testing
+        public Game() {
+            this.players = new java.util.HashSet<>();
         }
 
         public void onBuilderChange(String builderName) {
@@ -216,8 +252,6 @@ public class GameTracker extends GTBEvents.Module {
             currentRound = current;
             oneSecondAlertReached = false;
 
-            // this check will only be true if the user left during the end of one round,
-            // and rejoined before the start of another. we just need to check if they haven't skipped any rounds
             if (leaveRound != -1) {
                 if (currentRound == leaveRound + 1) {
                     Utils.sendMessage("Tracking data valid!");
@@ -248,8 +282,11 @@ public class GameTracker extends GTBEvents.Module {
         public void onRoundEnd(boolean skipped) {
             boolean actuallySkipped = (currentBuilder.isUser && userRoundSkipped) || skipped;
             if (!actuallySkipped && !oneSecondAlertReached) {
-                players.stream().filter(p -> p.points[currentRound - 1] == 0)
-                        .forEach(p -> p.leaverState = Player.LeaverState.LEAVER);
+                for (Player p : players) {
+                    if (p.points[currentRound - 1] == 0) {
+                        p.leaverState = Player.LeaverState.LEAVER;
+                    }
+                }
             }
             userRoundSkipped = false;
         }
@@ -296,7 +333,6 @@ public class GameTracker extends GTBEvents.Module {
             for (Map.Entry<String, Integer> expected : scores.entrySet()) {
                 Player player = getPlayerFromName(expected.getKey());
                 if (player == null) {
-                    // there is a possibility for names to be cut off here, but it's the end of the game anyway
                     continue;
                 }
 
@@ -309,66 +345,83 @@ public class GameTracker extends GTBEvents.Module {
         }
 
         public void onTrueScoresUpdate(List<GTBEvents.TrueScore> scores) {
-            List<Utils.Pair<Player, Integer>> converted = new ArrayList<>();
+            List<Utils.Pair<Player, Integer>> converted = new ArrayList<Utils.Pair<Player, Integer>>();
             for (GTBEvents.TrueScore trueScore : scores) {
                 if (trueScore == null) continue;
-                Player player = getPlayerFromName(trueScore.fName().name());
+                Player player = getPlayerFromName(trueScore.getPlayer());
                 if (player == null) {
-                    tracker.clearGameWithError("Player " + trueScore.fName().name() + " not found in player list!");
+                    tracker.clearGameWithError("Player " + trueScore.getPlayer() + " not found in player list!");
                     return;
                 }
 
                 onActivity(player);
 
-                if (verifyPoints(player, trueScore.points())) {
+                if (verifyPoints(player, trueScore.getScore())) {
                     player.scoreMismatchCounter = 0;
                 } else {
                     if (player.buildRound == currentRound && player.points[currentRound - 1] == 0
                             && correctGuessesThisRound != 0) {
-                        currentBuilder.points[currentRound - 1] = trueScore.points() - player.getTotalPoints();
+                        currentBuilder.points[currentRound - 1] = trueScore.getScore() - player.getTotalPoints();
                     } else {
-                        // Sometimes the scoreboard is slow, so we want to wait a bit before we sound the alarm
-                        if (player.scoreMismatchCounter > 0) { // increase this to wait longer
+                        if (player.scoreMismatchCounter > 0) {
                             tracker.clearGameWithError("Score mismatch!");
                             return;
                         }
                         player.scoreMismatchCounter++;
                     }
                 }
-                converted.add(new Utils.Pair<>(player, trueScore.points()));
+                converted.add(new Utils.Pair<Player, Integer>(player, trueScore.getScore()));
             }
 
             latestTrueScore = converted;
 
-            List<Player> playersSortedByPoints = players.stream()
-                    .filter(p -> !p.leaverState.equals(Player.LeaverState.LEAVER))
-                    .sorted((p1, p2) -> Integer.compare(p2.getTotalPoints(), p1.getTotalPoints())).toList();
+            List<Player> playersSortedByPoints = new ArrayList<Player>();
+            for (Player p : players) {
+                if (!p.leaverState.equals(Player.LeaverState.LEAVER)) {
+                    playersSortedByPoints.add(p);
+                }
+            }
+            Collections.sort(playersSortedByPoints, new Comparator<Player>() {
+                @Override
+                public int compare(Player p1, Player p2) {
+                    return Integer.compare(p2.getTotalPoints(), p1.getTotalPoints());
+                }
+            });
 
-            List<Utils.Pair<Player, Integer>> topNames = new ArrayList<>();
+            List<Utils.Pair<Player, Integer>> topNames = new ArrayList<Utils.Pair<Player, Integer>>();
             for (int i = 0; i < Math.min(3, latestTrueScore.size()); i++) {
                 if (latestTrueScore.get(i) == null) continue;
                 topNames.add(latestTrueScore.get(i));
             }
 
             if (topNames.isEmpty()) return;
-            List<Player> guaranteedToAppearInScoreboard = new ArrayList<>();
-            Map<Integer, List<Player>> pointsMap = new HashMap<>();
+            List<Player> guaranteedToAppearInScoreboard = new ArrayList<Player>();
+            Map<Integer, List<Player>> pointsMap = new HashMap<Integer, List<Player>>();
             for (Player player : playersSortedByPoints) {
-                pointsMap.computeIfAbsent(player.getTotalPoints(), k -> new ArrayList<>()).add(player);
+                if (!pointsMap.containsKey(player.getTotalPoints())) {
+                    pointsMap.put(player.getTotalPoints(), new ArrayList<Player>());
+                }
+                pointsMap.get(player.getTotalPoints()).add(player);
             }
-            List<List<Player>> sortedGroupedPlayers = new ArrayList<>();
-            pointsMap.entrySet()
-                    .stream()
-                    .sorted(Map.Entry.<Integer, List<Player>>comparingByKey().reversed())
-                    .forEach(entry -> sortedGroupedPlayers.add(entry.getValue()));
 
-            for (List<Player> pointsGroup : sortedGroupedPlayers) {
+            List<Integer> sortedPoints = new ArrayList<Integer>(pointsMap.keySet());
+            Collections.sort(sortedPoints, Collections.reverseOrder());
+
+            for (Integer points : sortedPoints) {
+                List<Player> pointsGroup = pointsMap.get(points);
                 if (pointsGroup.size() > topNames.size() - guaranteedToAppearInScoreboard.size()) break;
                 guaranteedToAppearInScoreboard.addAll(pointsGroup);
             }
 
             for (Player player : guaranteedToAppearInScoreboard) {
-                if (topNames.stream().noneMatch(p -> p.a().equals(player))) {
+                boolean found = false;
+                for (Utils.Pair<Player, Integer> p : topNames) {
+                    if (p.a().equals(player)) {
+                        found = true;
+                        break;
+                    }
+                }
+                if (!found) {
                     player.leaverState = Player.LeaverState.LEAVER;
                 }
             }
@@ -427,7 +480,14 @@ public class GameTracker extends GTBEvents.Module {
             oneSecondAlertReached = true;
         }
 
-        @SuppressWarnings("BooleanMethodIsAlwaysInverted")
+        public void onTick() {
+            for (Player player : players) {
+                if (!player.isUser && !player.leaverState.equals(Player.LeaverState.LEAVER)) {
+                    player.inactiveTicks++;
+                }
+            }
+        }
+
         private boolean verifyPoints(Player player, Integer expectedPoints) {
             return player.getTotalPoints() == expectedPoints;
         }
@@ -449,34 +509,47 @@ public class GameTracker extends GTBEvents.Module {
         }
 
         private void updatePotentialLeavers() {
-            players.stream().filter(player -> player.leaverState.equals(Player.LeaverState.POTENTIAL_LEAVER))
-                    .forEach(player -> player.leaverState = Player.LeaverState.NORMAL);
+            for (Player player : players) {
+                if (player.leaverState.equals(Player.LeaverState.POTENTIAL_LEAVER)) {
+                    player.leaverState = Player.LeaverState.NORMAL;
+                }
+            }
 
-            //System.out.println("leaver amount is " + potentialLeaverAmount);
+            List<Player> candidatePlayers = new ArrayList<Player>();
+            for (Player p : players) {
+                if (p.buildRound <= 0 && !p.isUser && !Objects.equals(p, currentBuilder)) {
+                    candidatePlayers.add(p);
+                }
+            }
 
-            players.stream()
-                    //.peek(s -> System.out.println("Starting players: " + s.name))
-                    .filter(p -> p.buildRound <= 0)
-                    .filter(p -> !p.isUser)
-                    .filter(p -> !Objects.equals(p, currentBuilder))
-                    //.peek(s -> System.out.println("Filtered players: " + s.name))
-//                    .filter(p -> {
-//                        if (latestTrueScore == null) return true;
-//                        else return latestTrueScore.stream().noneMatch(score -> score.a().equals(p));
-//                    })
-                    .sorted(Comparator.comparing(Player::getLeaverState).reversed() // LEAVER first
-                            .thenComparing(Comparator.comparingInt(Player::getInactiveTicks).reversed()))
-                    //.peek(s -> System.out.println("Sorted by inactivity: " + s.name))
-                    .limit(potentialLeaverAmount)
-                    .filter(p -> !p.leaverState.equals(Player.LeaverState.LEAVER))
-                    .forEach(p -> {
-                        p.leaverState = Player.LeaverState.POTENTIAL_LEAVER;
-                        //System.out.println("Setting " + p.name + " to potential leaver!");
-                    });
+            Collections.sort(candidatePlayers, new Comparator<Player>() {
+                @Override
+                public int compare(Player p1, Player p2) {
+                    int leaverStateCompare = p2.getLeaverState().compareTo(p1.getLeaverState());
+                    if (leaverStateCompare != 0) return leaverStateCompare;
+                    return Integer.compare(p2.getInactiveTicks(), p1.getInactiveTicks());
+                }
+            });
+
+            for (int i = 0; i < Math.min(potentialLeaverAmount, candidatePlayers.size()); i++) {
+                Player p = candidatePlayers.get(i);
+                if (!p.leaverState.equals(Player.LeaverState.LEAVER)) {
+                    p.leaverState = Player.LeaverState.POTENTIAL_LEAVER;
+                }
+            }
         }
 
         private Player getPlayerFromName(String name) {
-            return players.stream().filter(p -> p.name.equals(name)).findAny().orElse(null);
+            for (Player p : players) {
+                if (p.name.equals(name)) {
+                    return p;
+                }
+            }
+            return null;
+        }
+
+        private int getThemePointAward(String theme) {
+            return (theme.length() < 6) ? 1 : (theme.length() < 9) ? 2 : 3;
         }
     }
 }

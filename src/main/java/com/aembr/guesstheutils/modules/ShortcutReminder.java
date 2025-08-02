@@ -4,14 +4,13 @@ import com.aembr.guesstheutils.GTBEvents;
 import com.aembr.guesstheutils.GuessTheUtils;
 import com.aembr.guesstheutils.Utils;
 import com.aembr.guesstheutils.config.GuessTheUtilsConfig;
-import net.fabricmc.loader.api.FabricLoader;
-import net.minecraft.text.MutableText;
-import net.minecraft.text.Text;
-import net.minecraft.util.Formatting;
+import net.minecraft.event.ClickEvent;
+import net.minecraft.util.ChatComponentText;
+import net.minecraft.util.EnumChatFormatting;
+import net.minecraft.util.IChatComponent;
 import org.yaml.snakeyaml.Yaml;
 
 import java.io.*;
-import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -19,13 +18,14 @@ import java.util.Map;
 
 public class ShortcutReminder extends GTBEvents.Module {
     public static final String SHORTCUTS_FILENAME = "guesstheutils-shortcuts.yml";
-    private Map<String, List<String>> shortcuts = new HashMap<>();
+    private Map<String, List<String>> shortcuts = new HashMap<String, List<String>>();
 
     String currentTheme = "";
-    List<Map.Entry<String, List<String>>> currentShortcuts = new ArrayList<>();
+    String lastTheme = "";
+    List<Map.Entry<String, List<String>>> currentShortcuts = new ArrayList<Map.Entry<String, List<String>>>();
 
-    Formatting shortcutColor = Formatting.GOLD;
-    Formatting themeColor = Formatting.GREEN;
+    EnumChatFormatting shortcutColor = EnumChatFormatting.GOLD;
+    EnumChatFormatting themeColor = EnumChatFormatting.GREEN;
 
 
     public ShortcutReminder(GTBEvents events) {
@@ -37,56 +37,74 @@ public class ShortcutReminder extends GTBEvents.Module {
     public void onThemeUpdate(GTBEvents.ThemeUpdateEvent event) {
         currentTheme = event.theme();
 
-        if (!GuessTheUtilsConfig.CONFIG.instance().enableShortcutReminderModule) return;
+        if (!GuessTheUtilsConfig.enableShortcutReminder) return;
 
         currentShortcuts = getShortcuts(currentTheme);
 
         if (currentShortcuts.isEmpty()) return;
 
-        MutableText reminderMessage = Text.literal("");
+        if (lastTheme.equals(currentTheme)) return;
+        lastTheme = currentTheme;
+
+        ChatComponentText reminderMessage = new ChatComponentText("");
         for (Map.Entry<String, List<String>> shortcut : currentShortcuts) {
             String shortcutKey = shortcut.getKey();
             List<String> themes = shortcut.getValue();
 
-            MutableText shortcutText = Text.literal(shortcutKey)
-                    .formatted(shortcutColor).formatted(Formatting.BOLD);
+            ChatComponentText shortcutText = new ChatComponentText(shortcutKey);
+            shortcutText.getChatStyle().setColor(shortcutColor).setBold(true);
 
-            reminderMessage.append(shortcutText)
-                    .append(Text.literal(" works for ").formatted(Formatting.GRAY));
+            reminderMessage.appendSibling(shortcutText);
+            
+            ChatComponentText worksForText = new ChatComponentText(" works for ");
+            worksForText.getChatStyle().setColor(EnumChatFormatting.GRAY);
+            reminderMessage.appendSibling(worksForText);
 
             for (int i = 0; i < themes.size(); i++) {
-                MutableText themeText = Text.literal(themes.get(i))
-                        .formatted(themeColor);
-
-                reminderMessage.append(themeText);
+                ChatComponentText themeText = new ChatComponentText(themes.get(i));
+                themeText.getChatStyle().setColor(themeColor);
+                reminderMessage.appendSibling(themeText);
 
                 if (i < themes.size() - 1) {
-                    reminderMessage.append(Text.literal(", ").formatted(Formatting.GRAY));
+                    ChatComponentText commaText = new ChatComponentText(", ");
+                    commaText.getChatStyle().setColor(EnumChatFormatting.GRAY);
+                    reminderMessage.appendSibling(commaText);
                 }
             }
 
-            reminderMessage.append(Text.literal(". ").formatted(Formatting.GRAY));
+            ChatComponentText periodText = new ChatComponentText(". ");
+            periodText.getChatStyle().setColor(EnumChatFormatting.GRAY);
+            reminderMessage.appendSibling(periodText);
         }
-        Utils.sendMessage(reminderMessage);
+        Utils.sendMessage(reminderMessage.getFormattedText());
     }
 
     public void reset() {
         currentTheme = "";
-        currentShortcuts = new ArrayList<>();
+        lastTheme = "";
+        currentShortcuts = new ArrayList<Map.Entry<String, List<String>>>();
     }
 
     public List<Map.Entry<String, List<String>>> getShortcuts(String theme) {
-        if (theme.isEmpty()) return new ArrayList<>();
-        return shortcuts.entrySet().stream()
-                .filter(e -> e.getValue().stream()
-                        .anyMatch(value -> value.equalsIgnoreCase(theme))
-                ).toList();
+        if (theme.isEmpty()) return new ArrayList<Map.Entry<String, List<String>>>();
+        
+        List<Map.Entry<String, List<String>>> result = new ArrayList<Map.Entry<String, List<String>>>();
+        for (Map.Entry<String, List<String>> entry : shortcuts.entrySet()) {
+            for (String value : entry.getValue()) {
+                if (value.equalsIgnoreCase(theme)) {
+                    result.add(entry);
+                    break;
+                }
+            }
+        }
+        return result;
     }
 
     public void init() {
-        // Get the config directory
-        Path configPath = FabricLoader.getInstance().getConfigDir();
-        File configFile = new File(configPath.toFile(), SHORTCUTS_FILENAME);
+        // Get the config directory - using Minecraft directory + config
+        File minecraftDir = new File(".");
+        File configDir = new File(minecraftDir, "config");
+        File configFile = new File(configDir, SHORTCUTS_FILENAME);
 
         // Check if the config file exists
         if (!configFile.exists()) {
@@ -107,8 +125,10 @@ public class ShortcutReminder extends GTBEvents.Module {
         configFile.getParentFile().mkdirs();
 
         // Copy the default config file from resources
-        try (InputStream inputStream = GuessTheUtils.class.getResourceAsStream("/" + SHORTCUTS_FILENAME);
-             FileOutputStream outputStream = new FileOutputStream(configFile)) {
+        try {
+            InputStream inputStream = GuessTheUtils.class.getResourceAsStream("/" + SHORTCUTS_FILENAME);
+            FileOutputStream outputStream = new FileOutputStream(configFile);
+            
             if (inputStream == null) {
                 throw new IOException("Default config file not found in resources");
             }
@@ -117,15 +137,22 @@ public class ShortcutReminder extends GTBEvents.Module {
             while ((bytesRead = inputStream.read(buffer)) != -1) {
                 outputStream.write(buffer, 0, bytesRead);
             }
+            
+            inputStream.close();
+            outputStream.close();
+        } catch (IOException e) {
+            throw e;
         }
     }
 
     private HashMap<String, List<String>> loadConfig(File configFile) {
         Yaml yaml = new Yaml();
-        HashMap<String, List<String>> config = new HashMap<>();
+        HashMap<String, List<String>> config = new HashMap<String, List<String>>();
 
-        try (FileReader reader = new FileReader(configFile)) {
-            config = yaml.load(reader);
+        try {
+            FileReader reader = new FileReader(configFile);
+            config = (HashMap<String, List<String>>) yaml.load(reader);
+            reader.close();
         } catch (IOException e) {
             e.printStackTrace();
         }

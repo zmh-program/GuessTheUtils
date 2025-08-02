@@ -1,0 +1,16 @@
+[
+{
+  "modid": "guesstheutils",
+  "name": "GuessTheUtils",
+  "description": "A quality of life mod for Guess The Build.",
+  "version": "${version}",
+  "mcversion": "${mcversion}",
+  "url": "https://github.com/aembur/GuessTheUtils",
+  "updateUrl": "",
+  "authorList": [ProgramZmh", "aembr (Yria)"],
+  "credits": "",
+  "logoFile": "",
+  "screenshots": [],
+  "dependencies": []
+}
+] 

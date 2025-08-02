@@ -1,0 +1,68 @@
+buildscript {
+    repositories {
+        jcenter()
+        maven {
+            name = "forge"
+            url = "http://files.minecraftforge.net/maven"
+        }
+    }
+    dependencies {
+        classpath 'net.minecraftforge.gradle:ForgeGradle:2.1-SNAPSHOT'
+    }
+}
+apply plugin: 'net.minecraftforge.gradle.forge'
+
+version = "0.9.5"
+group = "com.aembr.guesstheutils"
+archivesBaseName = "guesstheutils"
+
+minecraft {
+    version = "1.8.9-11.15.1.2318-1.8.9"
+    runDir = "run"
+    mappings = "stable_20"
+    clientRunArgs = [
+        "--username", System.getenv('MC_USERNAME') ?: "Player",
+        "--uuid", System.getenv('MC_UUID') ?: "",
+        "--accessToken", System.getenv('MC_TOKEN') ?: "",
+        "--userType", System.getenv('MC_USER_TYPE') ?: ""
+    ]
+}
+
+sourceCompatibility = targetCompatibility = "1.8"
+
+tasks.withType(JavaCompile) {
+    options.encoding = 'UTF-8'
+}
+
+tasks.withType(Test) {
+    systemProperty "file.encoding", "UTF-8"
+}
+
+configurations {
+    embed
+    compile.extendsFrom embed
+}
+
+dependencies {
+    embed 'org.yaml:snakeyaml:1.18'
+}
+
+jar {
+    from configurations.embed.collect { it.isDirectory() ? it : zipTree(it) }
+}
+
+processResources {
+    inputs.property "version", project.version
+    inputs.property "mcversion", project.minecraft.version
+    
+    filteringCharset = 'UTF-8'
+
+    from(sourceSets.main.resources.srcDirs) {
+        include 'mcmod.info'
+        expand 'version':project.version, 'mcversion':project.minecraft.version
+    }
+    
+    from(sourceSets.main.resources.srcDirs) {
+        exclude 'mcmod.info'
+    }
+} 

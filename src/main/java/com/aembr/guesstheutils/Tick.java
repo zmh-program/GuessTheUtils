@@ -1,112 +1,117 @@
 package com.aembr.guesstheutils;
 
-import com.google.common.reflect.TypeToken;
-import com.google.gson.*;
-import com.mojang.serialization.JsonOps;
-import net.minecraft.text.Text;
-import net.minecraft.text.TextCodecs;
-import org.jetbrains.annotations.NotNull;
+import com.google.gson.Gson;
+import com.google.gson.JsonObject;
 
-import java.lang.reflect.Field;
-import java.lang.reflect.Type;
 import java.util.ArrayList;
 import java.util.List;
 
 public class Tick {
-    public List<Text> scoreboardLines;
-    public List<Text> playerListEntries;
-    public List<Text> chatMessages;
-    public Text actionBarMessage;
-    public Text title;
-    public Text subtitle;
-    public Text screenTitle;
+    public List<String> scoreboardLines;
+    public List<String> playerListEntries;
+    public List<Utils.PlayerInfo> playerListInfoEntries;
+    public List<String> chatMessages;
+    public String actionBarMessage;
+    public String title;
+    public String subtitle;
+    public String screenTitle;
     public String error;
 
-    public Tick() {}
+    public Tick() {
+        com.aembr.guesstheutils.interceptor.ChatInterceptor.extractPendingMessages(this);
+    }
 
     public Tick(JsonObject json) {
         if (json.has("scoreboardLines")) {
-            scoreboardLines = deserializeList(json.get("scoreboardLines"));
+            scoreboardLines = new ArrayList<>();
+            json.get("scoreboardLines").getAsJsonArray().forEach(element -> 
+                scoreboardLines.add(element.getAsString()));
         }
-        if (json.has("playerListEntries")) {
-            playerListEntries = deserializeList(json.get("playerListEntries"));
+                if (json.has("playerListEntries")) {
+            playerListEntries = new ArrayList<>();
+            json.get("playerListEntries").getAsJsonArray().forEach(element ->
+                playerListEntries.add(element.getAsString()));
+        }
+        if (json.has("playerListInfoEntries")) {
+            playerListInfoEntries = new ArrayList<>();
+            json.get("playerListInfoEntries").getAsJsonArray().forEach(element -> {
+                JsonObject playerObj = element.getAsJsonObject();
+                String name = playerObj.get("name").getAsString();
+                String prefix = playerObj.has("prefix") ? playerObj.get("prefix").getAsString() : "";
+                String suffix = playerObj.has("suffix") ? playerObj.get("suffix").getAsString() : "";
+                playerListInfoEntries.add(new Utils.PlayerInfo(name, prefix, suffix));
+            });
         }
         if (json.has("chatMessages")) {
-            chatMessages = deserializeList(json.get("chatMessages"));
+            chatMessages = new ArrayList<>();
+            json.get("chatMessages").getAsJsonArray().forEach(element -> 
+                chatMessages.add(element.getAsString()));
         }
         if (json.has("actionBarMessage")) {
-            actionBarMessage = deserializeText(json.get("actionBarMessage").getAsString());
+            actionBarMessage = json.get("actionBarMessage").getAsString();
         }
         if (json.has("title")) {
-            title = deserializeText(json.get("title").getAsString());
+            title = json.get("title").getAsString();
         }
         if (json.has("subtitle")) {
-            subtitle = deserializeText(json.get("subtitle").getAsString());
+            subtitle = json.get("subtitle").getAsString();
         }
         if (json.has("screenTitle")) {
-            screenTitle = deserializeText(json.get("screenTitle").getAsString());
+            screenTitle = json.get("screenTitle").getAsString();
         }
-    }
-
-    private List<Text> deserializeList(JsonElement jsonElement) {
-        List<Text> textList = new ArrayList<>();
-        for (JsonElement element : jsonElement.getAsJsonArray()) {
-            String jsonString = element.getAsString();
-            textList.add(deserializeText(jsonString));
+        if (json.has("error")) {
+            error = json.get("error").getAsString();
         }
-        return textList;
-    }
-
-    private Text deserializeText(String jsonString) {
-        return TextCodecs.CODEC
-                .decode(JsonOps.INSTANCE, new Gson().fromJson(jsonString, JsonElement.class))
-                .getOrThrow()
-                .getFirst();
-    }
-
-    public static List<String> serializeList(List<Text> input) {
-        Gson gson = new Gson();
-        return input.stream().map(text ->
-                gson.toJson(TextCodecs.CODEC.encodeStart(JsonOps.INSTANCE, text).getOrThrow())).toList();
     }
 
     public SerializedTick serialize() {
-        Gson gson = new Gson();
-        return new SerializedTick(scoreboardLines == null ? null : serializeList(scoreboardLines),
-                playerListEntries == null ? null : serializeList(playerListEntries),
-                chatMessages == null ? null : serializeList(chatMessages),
-                actionBarMessage == null ? null : gson.toJson(TextCodecs.CODEC.encodeStart(JsonOps.INSTANCE, actionBarMessage).getOrThrow()),
-                title == null ? null : gson.toJson(TextCodecs.CODEC.encodeStart(JsonOps.INSTANCE, title).getOrThrow()),
-                subtitle == null ? null : gson.toJson(TextCodecs.CODEC.encodeStart(JsonOps.INSTANCE, subtitle).getOrThrow()),
-                screenTitle == null ? null : gson.toJson(TextCodecs.CODEC.encodeStart(JsonOps.INSTANCE, screenTitle).getOrThrow()),
-                error);
+                return new SerializedTick(scoreboardLines, playerListEntries, playerListInfoEntries, chatMessages,
+                                 actionBarMessage, title, subtitle, screenTitle, error);
     }
 
     public boolean isEmpty() {
-        Field[] fields = getClass().getDeclaredFields();
-        for (Field field : fields) {
-            try {
-                Object value = field.get(this);
-                if (value != null) {
-                    return false;
-                }
-            } catch (IllegalAccessException e) {
-                GuessTheUtils.LOGGER.error(e.toString());
-            }
-        }
-        return true;
+        return title == null && 
+               subtitle == null && 
+               actionBarMessage == null && 
+               screenTitle == null &&
+               (chatMessages == null || chatMessages.isEmpty()) &&
+               (scoreboardLines == null || scoreboardLines.isEmpty()) &&
+               (playerListEntries == null || playerListEntries.isEmpty()) &&
+               error == null;
     }
 
-    public record SerializedTick(List<String> scoreboardLines, List<String> playerListEntries,
-                                 List<String> chatMessages, String actionBarMessage, String title, String subtitle,
-                                 String screenTitle, String error) {
+    public static class SerializedTick {
+        public final List<String> scoreboardLines;
+        public final List<String> playerListEntries;
+        public final List<Utils.PlayerInfo> playerListInfoEntries;
+        public final List<String> chatMessages;
+        public final String actionBarMessage;
+        public final String title;
+        public final String subtitle;
+        public final String screenTitle;
+        public final String error;
+
+        public SerializedTick(List<String> scoreboardLines, List<String> playerListEntries,
+                             List<Utils.PlayerInfo> playerListInfoEntries, List<String> chatMessages, 
+                             String actionBarMessage, String title, String subtitle, String screenTitle, String error) {
+            this.scoreboardLines = scoreboardLines;
+            this.playerListEntries = playerListEntries;
+            this.playerListInfoEntries = playerListInfoEntries;
+            this.chatMessages = chatMessages;
+            this.actionBarMessage = actionBarMessage;
+            this.title = title;
+            this.subtitle = subtitle;
+            this.screenTitle = screenTitle;
+            this.error = error;
+        }
 
         @Override
-        public @NotNull String toString() {
+        public String toString() {
             return "SerializedTick{" +
                     "scoreboardLines=" + scoreboardLines +
-                    ", playerListEntries=" + playerListEntries +
-                    ", chatMessages=" + chatMessages +
+                                    ", playerListEntries=" + playerListEntries +
+                ", playerListInfoEntries=" + playerListInfoEntries +
+                ", chatMessages=" + chatMessages +
                     ", actionBarMessage='" + actionBarMessage + '\'' +
                     ", title='" + title + '\'' +
                     ", subtitle='" + subtitle + '\'' +
@@ -115,4 +120,4 @@ public class Tick {
                     '}';
         }
     }
-}
+} 

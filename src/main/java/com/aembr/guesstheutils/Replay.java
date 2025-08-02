@@ -1,111 +1,132 @@
 package com.aembr.guesstheutils;
 
 import com.google.gson.Gson;
-import com.google.gson.JsonArray;
+import com.google.gson.GsonBuilder;
 import com.google.gson.JsonObject;
-import com.google.gson.JsonParser;
-import net.fabricmc.loader.api.FabricLoader;
+import net.minecraft.client.Minecraft;
 
 import java.io.*;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.time.LocalDate;
-import java.util.*;
-import java.util.zip.GZIPOutputStream;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
+import java.util.ArrayList;
+import java.util.List;
 
 public class Replay {
-    public static final Path GAME_DIR = FabricLoader.getInstance().getGameDir();
-    public static final String REPLAYS_DIR_NAME = "guesstheutils-replays";
-
-    public static Path replayDir;
-    public static TickBuffer tickBuffer = new TickBuffer(3000);
-
+    private List<Tick> ticks = new ArrayList<>();
+    private String fileName;
+    private Gson gson;
+    
+    public Replay() {
+        this.gson = new GsonBuilder().setPrettyPrinting().create();
+    }
+    
     public void initialize() {
-        try {
-            replayDir = GAME_DIR.resolve(REPLAYS_DIR_NAME);
-            if (!Files.exists(replayDir)) {
-                Files.createDirectories(replayDir);
-            }
-        } catch (IOException e) {
-            throw new RuntimeException(e);
+        LocalDateTime now = LocalDateTime.now();
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd_HH-mm-ss");
+        this.fileName = "replay_" + now.format(formatter) + ".json";
+        GuessTheUtils.LOGGER.info("Replay system initialized: " + fileName);
+    }
+    
+        public void addTick(Tick tick) {
+        if (tick != null && !tick.isEmpty()) {
+            ticks.add(tick);
         }
     }
-
-    public void addTick(Tick tick) {
-        tickBuffer.add(tick);
-    }
-
+    
     public void save() {
-        assert GuessTheUtils.CLIENT.player != null;
-
-        String date = LocalDate.now().toString();
-
-        int counter = 1;
-        String filename;
-        Path replayFilePath;
-
-        do {
-            filename = date + "_" + counter + ".json.gz";
-            replayFilePath = replayDir.resolve(filename);
-            counter++;
-        } while (Files.exists(replayFilePath));
-
-        Gson gson = new Gson();
-        List<Tick.SerializedTick> buffer = tickBuffer.getBuffer().stream().toList();
-        String jsonString = gson.toJson(buffer);
-
-        try (GZIPOutputStream gzipOutputStream = new GZIPOutputStream(new FileOutputStream(replayFilePath.toFile()))) {
-            gzipOutputStream.write(jsonString.getBytes());
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        }
-
-        Utils.sendMessage("Replay " + filename + " saved.");
-    }
-
-    public static List<JsonObject> load(File filePath) {
-        try (FileReader reader = new FileReader(filePath)) {
-            return parseJson(reader);
-        } catch (IOException e) {
-            e.printStackTrace();
-            return new ArrayList<>();
-        }
-    }
-
-    public static List<JsonObject> load(InputStream inputStream) {
-        try (InputStreamReader reader = new InputStreamReader(inputStream)) {
-            return parseJson(reader);
-        } catch (IOException e) {
-            e.printStackTrace();
-            return new ArrayList<>();
-        }
-    }
-
-    public static List<JsonObject> parseJson(Reader reader) {
-        List<JsonObject> jsonObjectList = new ArrayList<>();
-        JsonArray jsonArray = JsonParser.parseReader(reader).getAsJsonArray();
-        jsonArray.forEach(el -> jsonObjectList.add(el.getAsJsonObject()));
-        return jsonObjectList;
-    }
-
-    public static class TickBuffer {
-        private final Deque<Tick.SerializedTick> buffer;
-        private final int maxSize;
-
-        public TickBuffer(int maxSize) {
-            this.buffer = new ArrayDeque<>(maxSize);
-            this.maxSize = maxSize;
-        }
-
-        public void add(Tick tick) {
-            buffer.addLast(tick.serialize());
-            if (buffer.size() > maxSize) {
-                buffer.removeFirst();
+        try {
+            File replayDir = new File(Minecraft.getMinecraft().mcDataDir, "guesstheutils/replays");
+            if (!replayDir.exists()) {
+                replayDir.mkdirs();
             }
-        }
-
-        public Deque<Tick.SerializedTick> getBuffer() {
-            return buffer;
+            
+            File replayFile = new File(replayDir, fileName);
+            
+            List<Tick.SerializedTick> serializedTicks = new ArrayList<>();
+            for (Tick tick : ticks) {
+                serializedTicks.add(tick.serialize());
+            }
+            
+            try (FileWriter writer = new FileWriter(replayFile)) {
+                gson.toJson(serializedTicks, writer);
+                GuessTheUtils.LOGGER.info("Replay saved: " + replayFile.getAbsolutePath());
+            }
+            
+        } catch (IOException e) {
+            GuessTheUtils.LOGGER.error("Failed to save replay", e);
         }
     }
-}
+    
+    public static Replay load(String fileName) {
+        try {
+            File replayDir = new File(Minecraft.getMinecraft().mcDataDir, "guesstheutils/replays");
+            File replayFile = new File(replayDir, fileName);
+            
+            if (!replayFile.exists()) {
+                GuessTheUtils.LOGGER.warn("Replay file not found: " + fileName);
+                return new Replay();
+            }
+            
+            try (FileReader reader = new FileReader(replayFile)) {
+                Gson gson = new Gson();
+                JsonObject[] jsonTicks = gson.fromJson(reader, JsonObject[].class);
+                
+                Replay replay = new Replay();
+                for (JsonObject jsonTick : jsonTicks) {
+                    replay.ticks.add(new Tick(jsonTick));
+                }
+                
+                GuessTheUtils.LOGGER.info("Replay loaded: " + fileName + " (" + replay.ticks.size() + " ticks)");
+                return replay;
+            }
+            
+        } catch (Exception e) {
+            GuessTheUtils.LOGGER.error("Failed to load replay: " + fileName, e);
+            return new Replay();
+        }
+    }
+    
+    public static List<JsonObject> load(InputStream stream) {
+        List<JsonObject> jsonObjects = new ArrayList<JsonObject>();
+        try {
+            if (stream == null) {
+                GuessTheUtils.LOGGER.warn("Replay stream is null");
+                return jsonObjects;
+            }
+            
+            try {
+                InputStreamReader reader = new InputStreamReader(stream);
+                Gson gson = new Gson();
+                JsonObject[] jsonTicks = gson.fromJson(reader, JsonObject[].class);
+                
+                if (jsonTicks != null) {
+                    for (JsonObject jsonTick : jsonTicks) {
+                        jsonObjects.add(jsonTick);
+                    }
+                }
+                
+                reader.close();
+                GuessTheUtils.LOGGER.info("Replay loaded from stream (" + jsonObjects.size() + " ticks)");
+            } catch (IOException e) {
+                GuessTheUtils.LOGGER.error("Failed to close reader", e);
+            }
+            
+        } catch (Exception e) {
+            GuessTheUtils.LOGGER.error("Failed to load replay from stream", e);
+        }
+        
+        return jsonObjects;
+    }
+    
+    public List<Tick> getTicks() {
+        return new ArrayList<>(ticks);
+    }
+    
+    public int size() {
+        return ticks.size();
+    }
+    
+    public void clear() {
+        ticks.clear();
+    }
+} 

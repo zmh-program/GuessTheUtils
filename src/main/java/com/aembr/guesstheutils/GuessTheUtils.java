@@ -1,89 +1,150 @@
 package com.aembr.guesstheutils;
 
 import com.aembr.guesstheutils.config.GuessTheUtilsConfig;
+import com.aembr.guesstheutils.hooks.HudHooks;
 import com.aembr.guesstheutils.modules.*;
-import net.fabricmc.api.ClientModInitializer;
-import net.fabricmc.fabric.api.client.command.v2.ClientCommandRegistrationCallback;
-import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents;
-import net.fabricmc.fabric.api.client.message.v1.ClientReceiveMessageEvents;
-//? if <1.21.6
-/*import net.fabricmc.fabric.api.client.rendering.v1.HudRenderCallback;*/
-import net.minecraft.client.MinecraftClient;
-import net.minecraft.client.gui.screen.Screen;
-import net.minecraft.text.MutableText;
-import net.minecraft.text.Text;
-import net.minecraft.util.Formatting;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import com.aembr.guesstheutils.proxy.CommonProxy;
+import net.minecraft.client.Minecraft;
+import net.minecraftforge.fml.common.Mod;
+import net.minecraftforge.fml.common.SidedProxy;
+import net.minecraftforge.fml.common.event.FMLInitializationEvent;
+import net.minecraftforge.fml.common.event.FMLPostInitializationEvent;
+import net.minecraftforge.fml.common.event.FMLPreInitializationEvent;
+import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
+import net.minecraftforge.fml.common.gameevent.TickEvent;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 import java.util.ArrayList;
 import java.util.List;
 
-public class GuessTheUtils implements ClientModInitializer {
-    public static final String MOD_ID = "guesstheutils";
-    public static final Logger LOGGER = LoggerFactory.getLogger(MOD_ID);
-    public static final MinecraftClient CLIENT = MinecraftClient.getInstance();
+import net.minecraft.client.gui.GuiScreen;
 
-    public static final MutableText prefix = Text.literal("[").formatted(Formatting.WHITE)
-            .append(Text.literal("GuessTheUtils").formatted(Formatting.GOLD))
-            .append(Text.literal("] ").formatted(Formatting.WHITE));
+@Mod(modid = GuessTheUtils.MOD_ID, name = GuessTheUtils.MOD_NAME, version = GuessTheUtils.VERSION, clientSideOnly = true)
+public class GuessTheUtils {
+    public static final String MOD_ID = "guesstheutils";
+    public static final String MOD_NAME = "GuessTheUtils";
+    public static final String VERSION = "0.9.5";
+    
+    public static final Logger LOGGER = LogManager.getLogger(MOD_ID);
+    
+    public static Minecraft getClient() {
+        return Minecraft.getMinecraft();
+    }
+
+    @SidedProxy(clientSide = "com.aembr.guesstheutils.proxy.ClientProxy", serverSide = "com.aembr.guesstheutils.proxy.CommonProxy")
+    public static CommonProxy proxy;
 
     public static final Replay replay = new Replay();
     public static GTBEvents events = new GTBEvents();
 
     public static GameTracker gameTracker = new GameTracker(events);
-    public static NameAutocomplete nameAutocomplete = new NameAutocomplete(events);
     public static ShortcutReminder shortcutReminder = new ShortcutReminder(events);
-    @SuppressWarnings("unused")
     public static BuilderNotification builderNotification = new BuilderNotification(events);
     public static ChatCooldownTimer chatCooldown = new ChatCooldownTimer(events);
 
     public static boolean testing = false;
     public static LiveE2ERunner liveE2ERunner;
+    public static boolean debugMode = false;
 
     private static Tick currentTick;
-    private List<Text> previousScoreboardLines = new ArrayList<>();
-    private List<Text> previousPlayerListEntries = new ArrayList<>();
-    private Text previousActionBarMessage = Text.empty();
-    private Text previousScreenTitle = Text.empty();
+    
+    public static Tick getCurrentTick() {
+        return currentTick;
+    }
+    private List<String> previousScoreboardLines = new ArrayList<String>();
+    private List<String> previousPlayerListEntries = new ArrayList<String>();
+    private String previousActionBarMessage = "";
+    private String previousScreenTitle = "";
 
-    public static boolean openConfig = false;
-
-    @Override
-    public void onInitializeClient() {
-        ClientCommandRegistrationCallback.EVENT.register(
-                (commandDispatcher,
-                 commandRegistryAccess) -> Commands.register(commandDispatcher));
-
-        ClientTickEvents.START_CLIENT_TICK.register(this::onStartTick);
-
-        ClientReceiveMessageEvents.GAME.register((message, overlay) -> {
-            if (overlay) onActionBarMessage(message);
-            else onChatMessage(message);
-        });
-        //? if <1.21.6 {
-        /*//noinspection deprecation
-        HudRenderCallback.EVENT.register((drawContext, renderTickCounter) -> {
-            chatCooldown.render(drawContext);
-            gameTracker.scoreboard.render(drawContext);
-        });
-        *///?}
-
-        replay.initialize();
-        shortcutReminder.init();
-        liveE2ERunner = new LiveE2ERunner(Replay.load(GuessTheUtils.class.getResourceAsStream("/assets/live_tests/TestBuggyLeaverDetection.json")));
-
-        GuessTheUtilsConfig.CONFIG.load();
+    @Mod.EventHandler
+    public void preInit(FMLPreInitializationEvent event) {
+        LOGGER.info("GuessTheUtils preInit");
+        
+        GuessTheUtilsConfig.init(event.getSuggestedConfigurationFile());
+        proxy.preInit();
     }
 
-    private void onStartTick(MinecraftClient client) {
-        if (openConfig) {
-            Screen configScreen = GuessTheUtilsConfig.createScreen(client.currentScreen);
-            client.setScreen(configScreen);
-            openConfig = false;
+    @Mod.EventHandler
+    public void init(FMLInitializationEvent event) {
+        LOGGER.info("GuessTheUtils init starting...");
+        proxy.init();
+        
+        try {
+            LOGGER.info("Initializing replay system...");
+            replay.initialize();
+            
+            LOGGER.info("Initializing shortcut reminder...");
+            shortcutReminder.init();
+            
+            LOGGER.info("Loading live E2E runner...");
+            java.io.InputStream testStream = GuessTheUtils.class.getResourceAsStream("/assets/live_tests/TestBuggyLeaverDetection.json");
+            if (testStream == null) {
+                LOGGER.warn("Test file not found, creating empty runner");
+                liveE2ERunner = new LiveE2ERunner(new java.util.ArrayList<com.google.gson.JsonObject>());
+            } else {
+                try {
+                    liveE2ERunner = new LiveE2ERunner(Replay.load(testStream));
+                    LOGGER.info("Live E2E runner loaded successfully");
+                } catch (Exception e) {
+                    LOGGER.error("Failed to load test file due to JSON error, creating empty runner", e);
+                    liveE2ERunner = new LiveE2ERunner(new java.util.ArrayList<com.google.gson.JsonObject>());
+                }
+            }
+            
+            LOGGER.info("Registering commands...");
+            net.minecraftforge.client.ClientCommandHandler.instance.registerCommand(new Commands());
+            
+            LOGGER.info("GuessTheUtils init completed successfully!");
+        } catch (Exception e) {
+            LOGGER.error("Error during GuessTheUtils initialization", e);
         }
+    }
 
-        if (client.player == null || events == null) return;
+    @Mod.EventHandler
+    public void postInit(FMLPostInitializationEvent event) {
+        LOGGER.info("GuessTheUtils postInit starting...");
+        proxy.postInit();
+        
+        // Register this mod instance for events
+        net.minecraftforge.common.MinecraftForge.EVENT_BUS.register(this);
+        LOGGER.info("Registered GuessTheUtils for events");
+        
+        // Register HUD hooks for rendering
+        net.minecraftforge.common.MinecraftForge.EVENT_BUS.register(new HudHooks());
+        LOGGER.info("Registered HudHooks for rendering events");
+        
+        // Register scoreboard interceptor for direct scoreboard modification
+        net.minecraftforge.common.MinecraftForge.EVENT_BUS.register(new com.aembr.guesstheutils.interceptor.ScoreboardInterceptor());
+        LOGGER.info("Registered ScoreboardInterceptor for scoreboard content modification");
+        
+        // Register original scoreboard capture for getting unmodified data
+        net.minecraftforge.common.MinecraftForge.EVENT_BUS.register(new com.aembr.guesstheutils.interceptor.OriginalScoreboardCapture());
+        LOGGER.info("Registered OriginalScoreboardCapture for capturing original scoreboard data");
+        
+        // Register chat interceptor for chat cooldown
+        net.minecraftforge.common.MinecraftForge.EVENT_BUS.register(new com.aembr.guesstheutils.interceptor.ChatInterceptor());
+        com.aembr.guesstheutils.interceptor.ChatInterceptor.init();
+        LOGGER.info("Registered ChatInterceptor for chat message interception");
+        
+        // Enable chat cooldown for testing (normally enabled by game events)
+        if (chatCooldown != null) {
+            chatCooldown.enable();
+            LOGGER.info("ChatCooldown enabled for testing");
+        }
+        
+        LOGGER.info("GuessTheUtils postInit completed!");
+    }
+
+    @SubscribeEvent
+    public void onClientTick(TickEvent.ClientTickEvent event) {
+        if (event.phase != TickEvent.Phase.START) return;
+        onStartTick();
+    }
+
+    private void onStartTick() {
+        Minecraft mc = Minecraft.getMinecraft();
+        if (mc.thePlayer == null || events == null) return;
         if (currentTick == null) currentTick = new Tick();
 
         if (testing) {
@@ -94,82 +155,42 @@ public class GuessTheUtils implements ClientModInitializer {
             replay.addTick(currentTick);
             try {
                 Tick tempTick = currentTick;
-                // Reset currentTick immediately. ConcurrentModificationException can be thrown if
-                // a new message arrives while we're processing, modifying the chatMessage list
                 currentTick = new Tick();
-
                 events.processTickUpdate(tempTick);
             } catch (Exception e) {
                 String stackTrace = Utils.getStackTraceAsString(e);
-
                 events = null;
                 Tick error = new Tick();
                 error.error = stackTrace;
                 replay.addTick(error);
-                Utils.sendMessage("Exception in GTBEvents: " + e.getMessage() + ". Saving details to replay file...");
-                Utils.sendMessage("Game restart required.");
+                Utils.sendMessage("Exception in GTBEvents: " + e.getMessage());
                 replay.save();
-            } finally {
-                currentTick = new Tick();
             }
         }
 
-        if (testing) return;
-
-        onScoreboardUpdate(Utils.getScoreboardLines(client));
-        onPlayerListUpdate(Utils.collectTabListEntries(client));
-        Text screenTitle = CLIENT.currentScreen == null ? Text.empty() : CLIENT.currentScreen.getTitle();
-        onScreenUpdate(screenTitle);
+        onScoreboardUpdate(com.aembr.guesstheutils.interceptor.ScoreboardInterceptor.getOriginalScoreboardLines());
+        onPlayerListUpdate(Utils.collectTabListEntries());
+        
+        gameTracker.onTick();
+        chatCooldown.onTick();
     }
 
-    private void onScreenUpdate(Text screenTitle) {
+    public void onScoreboardUpdate(List<String> lines) {
         if (currentTick == null) return;
-        if (previousScreenTitle.equals(screenTitle)) return;
-        previousScreenTitle = screenTitle;
-        currentTick.screenTitle = screenTitle;
+        currentTick.scoreboardLines = lines;
     }
 
-    private void onScoreboardUpdate(List<Text> scoreboardLines) {
+    public void onPlayerListUpdate(List<String> entries) {
         if (currentTick == null) return;
-        if (previousScoreboardLines.equals(scoreboardLines)) return;
-        previousScoreboardLines = scoreboardLines;
-        currentTick.scoreboardLines = scoreboardLines;
+        currentTick.playerListEntries = entries;
+        currentTick.playerListInfoEntries = Utils.collectPlayerInfos();
     }
 
-    private void onPlayerListUpdate(List<Text> playerListEntries) {
-        if (currentTick == null) return;
-        if (previousPlayerListEntries.equals(playerListEntries)) return;
-        previousPlayerListEntries = playerListEntries;
-        currentTick.playerListEntries = playerListEntries;
+    public static void onTitleSet(String title) {
+        // Title handling - placeholder for now
     }
 
-    private void onChatMessage(Text message) {
-        // We don't want guild, party, or direct messages to be processed, or end up in replays
-        String stripped = Formatting.strip(message.getString());
-        if (stripped == null
-                || stripped.startsWith("Guild > ")
-                || stripped.startsWith("Party > ")
-                || stripped.startsWith("From ")) return;
-
-        if (currentTick == null) return;
-        if (currentTick.chatMessages == null) currentTick.chatMessages = new ArrayList<>();
-        currentTick.chatMessages.add(message);
+    public static void onSubtitleSet(String subtitle) {
+        // Subtitle handling - placeholder for now
     }
-
-    private void onActionBarMessage(Text message) {
-        if (currentTick == null) return;
-        if (previousActionBarMessage.equals(message)) return;
-        previousActionBarMessage = message;
-        currentTick.actionBarMessage = message;
-    }
-
-    public static void onTitleSet(Text title) {
-        if (currentTick == null) return;
-        currentTick.title = title;
-    }
-
-    public static void onSubtitleSet(Text subtitle) {
-        if (currentTick == null) return;
-        currentTick.subtitle = subtitle;
-    }
-}
+} 

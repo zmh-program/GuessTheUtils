@@ -1,90 +1,131 @@
 package com.aembr.guesstheutils;
 
-import net.minecraft.text.Text;
-import net.minecraft.text.TextColor;
-import net.minecraft.util.Formatting;
-import org.apache.commons.lang3.NotImplementedException;
-import org.jetbrains.annotations.NotNull;
+import net.minecraft.client.Minecraft;
+import net.minecraft.scoreboard.Scoreboard;
+import net.minecraft.scoreboard.ScoreObjective;
+import net.minecraft.util.EnumChatFormatting;
+import com.aembr.guesstheutils.interceptor.OriginalScoreboardCapture;
 
 import java.util.*;
 import java.util.function.Consumer;
 
 public class GTBEvents {
     public interface BaseEvent {}
-    /// Emitted as soon as the setup phase is complete and all player info has been collected.
-    public record GameStartEvent(Set<InitialPlayerData> players) implements BaseEvent {}
-    /// Emitted when the current builder changes. Can be null if the builder has left.
-    public record BuilderChangeEvent(String previous, String current) implements BaseEvent {}
-    /// Emitted when the user becomes builder.
-    public record UserBuilderEvent() implements BaseEvent {}
-    /// Emitted once the builder has picked a theme.
-    public record RoundStartEvent(int currentRound, int totalRounds) implements BaseEvent {}
-    /// Emitted when one or more players guess correctly. Contains all players that guessed during the same tick.
-    public record CorrectGuessEvent(List<FormattedName> players) implements BaseEvent {}
-    /// Emitted when the building and guessing part of the round has concluded.
-    public record RoundEndEvent(boolean skipped) implements BaseEvent {}
-    /// Emitted when the builder leaves before picking a theme. Always followed by `BuilderChangeEvent`.
-    public record RoundSkipEvent() implements BaseEvent {}
-    /// Emitted when the theme hint updates or the theme is revealed.
-    public record ThemeUpdateEvent(String theme) implements BaseEvent {}
-    /// Emitted when the game is over and all scores are displayed.
-    public record GameEndEvent(Map<String, Integer> scores) implements BaseEvent {}
-    /// Emitted when the game leaverState changes. See `GameState` for all possible states.
-    public record StateChangeEvent(GameState previous, GameState current) implements BaseEvent {}
-    /// Emitted when the true scores, as seen on the vanilla scoreboard, have updated.
-    /// The first 3 elements are reserved for the top 3 players, and the 4th for the user (if not in top 3).
-    public record TrueScoresUpdateEvent(List<TrueScore> scores) implements BaseEvent {}
-    ///  Emitted when the user leaves a game that's in progress.
-    public record UserLeaveEvent() implements BaseEvent {}
-    /// Emitted when the user rejoins a game that's in progress.
-    public record UserRejoinEvent() implements BaseEvent {}
-    /// Emitted when a new tick update arrives.
-    public record TickUpdateEvent() implements BaseEvent {}
-    /// Emitted when a player sends any chat message.
-    public record PlayerChatEvent(String player, String message) implements BaseEvent {}
-    //public record PlayerChatEvent(PlayerChatMessage message) implements BaseEvent {}
-    /// Emitted when the 1-second remaining in round alert is received.
-    public record OneSecondAlertEvent() implements BaseEvent {}
-    /// Emitted when the timer updates.
-    public record TimerUpdateEvent(String timer) implements BaseEvent {}
-    /// Emitted when the user guesses correctly.
-    public record UserCorrectGuessEvent() implements BaseEvent {}
+    
+    public static class GameStartEvent implements BaseEvent {
+        private final Set<InitialPlayerData> players;
+        public GameStartEvent(Set<InitialPlayerData> players) { this.players = players; }
+        public Set<InitialPlayerData> players() { return players; }
+    }
+    
+    public static class BuilderChangeEvent implements BaseEvent {
+        private final String previous, current;
+        public BuilderChangeEvent(String previous, String current) { this.previous = previous; this.current = current; }
+        public String previous() { return previous; }
+        public String current() { return current; }
+    }
+    
+    public static class UserBuilderEvent implements BaseEvent {}
+    
+    public static class RoundStartEvent implements BaseEvent {
+        private final int currentRound, totalRounds;
+        public RoundStartEvent(int currentRound, int totalRounds) { this.currentRound = currentRound; this.totalRounds = totalRounds; }
+        public int currentRound() { return currentRound; }
+        public int totalRounds() { return totalRounds; }
+    }
+    
+    public static class CorrectGuessEvent implements BaseEvent {
+        private final List<String> players;
+        public CorrectGuessEvent(List<String> players) { this.players = players; }
+        public List<String> players() { return players; }
+    }
+    
+    public static class RoundEndEvent implements BaseEvent {
+        private final boolean skipped;
+        public RoundEndEvent(boolean skipped) { this.skipped = skipped; }
+        public boolean skipped() { return skipped; }
+    }
+    
+    public static class RoundSkipEvent implements BaseEvent {}
+    
+    public static class ThemeUpdateEvent implements BaseEvent {
+        private final String theme;
+        public ThemeUpdateEvent(String theme) { this.theme = theme; }
+        public String theme() { return theme; }
+    }
+    
+    public static class GameEndEvent implements BaseEvent {
+        private final Map<String, Integer> scores;
+        public GameEndEvent(Map<String, Integer> scores) { this.scores = scores; }
+        public Map<String, Integer> scores() { return scores; }
+    }
+    
+    public static class StateChangeEvent implements BaseEvent {
+        private final GameState previous, current;
+        public StateChangeEvent(GameState previous, GameState current) { this.previous = previous; this.current = current; }
+        public GameState previous() { return previous; }
+        public GameState current() { return current; }
+    }
+    
+    public static class TrueScoresUpdateEvent implements BaseEvent {
+        private final List<TrueScore> scores;
+        public TrueScoresUpdateEvent(List<TrueScore> scores) { this.scores = scores; }
+        public List<TrueScore> scores() { return scores; }
+    }
+    
+    public static class UserLeaveEvent implements BaseEvent {}
+    public static class UserRejoinEvent implements BaseEvent {}
+    public static class TickUpdateEvent implements BaseEvent {}
+    
+    public static class PlayerChatEvent implements BaseEvent {
+        private final String player, message;
+        public PlayerChatEvent(String player, String message) { this.player = player; this.message = message; }
+        public String player() { return player; }
+        public String message() { return message; }
+    }
+    
+    public static class OneSecondAlertEvent implements BaseEvent {}
+    
+    public static class TimerUpdateEvent implements BaseEvent {
+        private final String timer;
+        public TimerUpdateEvent(String timer) { this.timer = timer; }
+        public String timer() { return timer; }
+    }
+    
+    public static class UserCorrectGuessEvent implements BaseEvent {}
 
     private final Map<Consumer<?>, Module> modules = new HashMap<>();
     private final Map<Class<? extends BaseEvent>, List<Consumer<?>>> subscribers = new HashMap<>();
 
     public enum GameState { NONE, LOBBY, SETUP, ROUND_PRE, ROUND_BUILD, ROUND_END, POST_GAME }
 
-    private final Utils.FixedSizeBuffer<List<Text>> scoreboardLineHistory = new Utils.FixedSizeBuffer<>(3);
-    private final Utils.FixedSizeBuffer<List<Text>> playerListEntryHistory = new Utils.FixedSizeBuffer<>(3);
+    private final Utils.FixedSizeBuffer<List<String>> scoreboardLineHistory = new Utils.FixedSizeBuffer<>(3);
+    private final Utils.FixedSizeBuffer<List<String>> playerListEntryHistory = new Utils.FixedSizeBuffer<>(3);
+    private final Utils.FixedSizeBuffer<List<Utils.PlayerInfo>> playerListInfoEntryHistory = new Utils.FixedSizeBuffer<>(100);
 
-    private final String[] validEmblems = new String[]{"≈", "α", "Ω", "$", "π", "ƒ"};
-    private final String[] validTitles = new String[]{"Rookie", "Untrained", "Amateur", "Prospect", "Apprentice",
-            "Experienced", "Seasoned", "Trained", "Skilled", "Talented", "Professional", "Artisan", "Expert",
+    private static final String[] validEmblems = new String[]{"≈", "α", "Ω", "$", "π", "ƒ"};
+    private static final String[] validTitles = new String[]{"Rookie", "Untrained", "Amateur", "Prospect", "Apprentice",
+            "Experienced", "Seasoned", "Trained", "Skilled", "Talented", "Professional", "Pro", "Artisan", "Expert",
             "Master", "Legend", "Grandmaster", "Celestial", "Divine", "Ascended"};
-    private final String[] validLeaderboardTitles = new String[]{"#10", "#9", "#8", "#7", "#6", "#5", "#4", "#3", "#2",
+    private static final String[] validLeaderboardTitles = new String[]{"#10", "#9", "#8", "#7", "#6", "#5", "#4", "#3", "#2",
             "#1"};
-    private final String[] validRanks = new String[]{"[VIP]", "[VIP+]", "[MVP]", "[MVP+]", "[MVP++]", "[YOUTUBE]"};
+    private static final String[] validRanks = new String[]{"[VIP]", "[VIP+]", "[MVP]", "[MVP+]", "[MVP++]", "[YOUTUBE]"};
     private final String[] roundSkipMessages = new String[]{"The plot owner has left the game! Skipping...",
             "The plot owner is AFK! Skipping...", "The plot owner hasn't placed any blocks! Skipping..."};
 
     private boolean roundSkipped = false;
-
-    /// We only consider a true score entry valid if it remains the same for at least 2 ticks.
-    /// Random corruption that only lasts a tick is surprisingly common, as is slight de-sync between server and tracker.
     private final Utils.FixedSizeBuffer<List<TrueScore>> trueScoreHistory = new Utils.FixedSizeBuffer<>(2);
     private List<TrueScore> trueScores = null;
 
     private Tick currentTick;
     public GameState gameState = GameState.NONE;
 
-    private List<Text> lobbyPlayerList = new ArrayList<>();
-    private List<Text> setupPlayerList = new ArrayList<>();
+    private List<String> lobbyPlayerList = new ArrayList<>();
+    private List<String> setupPlayerList = new ArrayList<>();
     private String currentBuilder = "";
     private String currentTheme = "";
     private String currentTimer = "";
 
-    /// Sometimes the "Builder: name" message happens before we emit GameStartEvent, so we store it to emit after instead
     private String prematureBuilder;
 
     public void processTickUpdate(Tick tick) {
@@ -92,8 +133,9 @@ public class GTBEvents {
         emit(new TickUpdateEvent());
 
         if (tick.scoreboardLines != null) scoreboardLineHistory.add(tick.scoreboardLines);
-        if (tick.playerListEntries != null) playerListEntryHistory.add(tick.playerListEntries);
-
+                if (tick.playerListEntries != null) playerListEntryHistory.add(tick.playerListEntries);
+        if (tick.playerListInfoEntries != null) playerListInfoEntryHistory.add(tick.playerListInfoEntries);
+        
         if (tick.scoreboardLines != null) onScoreboardUpdate(tick.scoreboardLines);
         if (tick.playerListEntries != null) onPlayerListUpdate(tick.playerListEntries);
         if (tick.chatMessages != null) onChatMessages(tick.chatMessages);
@@ -103,17 +145,20 @@ public class GTBEvents {
         if (tick.screenTitle != null) onScreenTitle(tick.screenTitle);
     }
 
-    private void onPlayerListUpdate(List<Text> playerListEntries) {
+    private void onPlayerListUpdate(List<String> playerListEntries) {
         if (gameState.equals(GameState.LOBBY)) lobbyPlayerList = playerListEntries;
         if (gameState.equals(GameState.SETUP) && setupPlayerList.isEmpty()) {
-            //if (playerListEntries.stream().noneMatch(entry -> entry.getSiblings().isEmpty())) return;
-            if (playerListEntries.stream().filter(entry -> !entry.getSiblings().isEmpty()).count() != 1) return;
             setupPlayerList = playerListEntries;
         }
     }
 
-    private void onScoreboardUpdate(List<Text> scoreboardLines) {
-        List<String> stringLines = scoreboardLines.stream().map(line -> Formatting.strip(line.getString())).toList();
+    private String cleanUnicodeString(String input) {
+        if (input == null) return "";
+        return input.replaceAll("[^\\x20-\\x7E]", "");
+    }
+
+    private void onScoreboardUpdate(List<String> scoreboardLines) {
+        List<String> stringLines = scoreboardLines.stream().map(line -> EnumChatFormatting.getTextWithoutFormattingCodes(line)).collect(java.util.stream.Collectors.toList());
         GameState state = getStateFromScoreboard(stringLines);
 
         if (gameState.equals(GameState.LOBBY) && state == null) {
@@ -129,228 +174,83 @@ public class GTBEvents {
             changeState(state);
         }
 
-        // Extract timer
         Optional<String> timerLine = stringLines.stream()
-                .filter(line -> (line.startsWith("Starts In: ")
-                        || line.startsWith("Time: ")
-                        || line.startsWith("Next Round: ")))
+                .filter(line -> (line.trim().startsWith("Starts In: ")
+                        || line.trim().startsWith("Time: ")
+                        || line.trim().startsWith("Next Round: ")))
                 .reduce((first, second) -> second);
         if (timerLine.isPresent()) {
-            String[] timerLineParts = timerLine.get().split(": ", 2);
-            if (timerLineParts.length == 2
-                    && timerLineParts[1].matches("\\d{2}:\\d{2}")
-                    && !timerLineParts[1].equals(currentTimer)) {
-                currentTimer = timerLineParts[1];
-                emit(new TimerUpdateEvent(currentTimer));
+            String[] timerLineParts = Utils.stripFormatting(timerLine.get()).split(": ", 2);
+
+            if (timerLineParts.length == 2) {
+                String timeValue = timerLineParts[1].replaceAll("[^\\d:]", "");
+                if (timeValue.matches("\\d{1,2}:\\d{2}") && !timeValue.equals(currentTimer)) {
+                    currentTimer = timeValue;
+                    emit(new TimerUpdateEvent(currentTimer));
+                }
             }
         }
 
-        // Extract theme
+        // solve builder's name will not shown in the text when the builder is current user
+        for (int i = 0; i < stringLines.size() - 1; i++) {
+            String line = EnumChatFormatting.getTextWithoutFormattingCodes(stringLines.get(i)).trim();
+            if (line.startsWith("Builder:")) {
+                String currentBuilderName = cleanUnicodeString(EnumChatFormatting.getTextWithoutFormattingCodes(stringLines.get(i + 1))).trim();
+                if (currentBuilderName != null && !currentBuilderName.isEmpty() && !currentBuilderName.equals(currentBuilder)) {
+                    // if is the current user, trigger the builder change event
+                    if (isCurrentUser(currentBuilderName)) {
+                        if (gameState.equals(GameState.SETUP) || gameState.equals(GameState.LOBBY)) {
+                            prematureBuilder = currentBuilderName;
+                        } else {
+                            emit(new BuilderChangeEvent(currentBuilder, currentBuilderName));
+                            currentBuilder = currentBuilderName;
+                        }
+                    }
+                }
+            }
+        }
+
         if (gameState.equals(GameState.ROUND_BUILD)) {
             String theme = getThemeFromScoreboard(stringLines);
-            if (!theme.isEmpty() && !currentTheme.equals(theme)) {
-                emit(new ThemeUpdateEvent(theme));
+            if (theme != null && !theme.equals(currentTheme)) {
                 currentTheme = theme;
-            }
-        }
-
-        // Extract true scores
-        if (gameState.equals(GameState.ROUND_BUILD) || gameState.equals(GameState.ROUND_PRE) || gameState.equals(GameState.ROUND_END)) {
-            List<TrueScore> trueScoreEntries = getTrueScoresFromScoreboard(scoreboardLines);
-            //System.out.println("Got true scores from scoreboard: " + trueScoreEntries);
-            //System.out.println("True score history is " + trueScoreHistory.size());
-            if (trueScoreHistory.size() == 2) {
-                if (trueScoreEntries.equals(trueScoreHistory.get(0))
-                        && trueScoreEntries.equals(trueScoreHistory.get(1))
-                        && !Objects.equals(trueScoreEntries, trueScores)) {
-                    trueScores = trueScoreEntries;
-
-                    emit(new TrueScoresUpdateEvent(trueScores));
-                }
-            }
-            trueScoreHistory.add(trueScoreEntries);
-        }
-    }
-
-    @SuppressWarnings("SequencedCollectionMethodCanBeUsed")
-    private void onGameStart(List<Text> lobbyList, List<Text> setupList, List<Text> finalList) {
-//        System.out.println("lobby list: " + lobbyList);
-//        System.out.println("setup list: " + setupList);
-//        System.out.println("final list: " + finalList);
-
-        Set<InitialPlayerData> players = new HashSet<>();
-        for (Text playerEntry : finalList) {
-            String name = playerEntry.getSiblings().isEmpty() ?
-                    playerEntry.getString() : playerEntry.getSiblings().get(1).getLiteralString();
-
-            Text title = playerEntry.getSiblings().isEmpty() ?
-                    null : playerEntry.getSiblings().get(0).getSiblings().get(0);
-
-            Text emblem = playerEntry.getSiblings().isEmpty() ?
-                    null : Text.empty();
-
-            if (emblem != null && !playerEntry.getSiblings().get(2).getSiblings().isEmpty()) {
-                emblem = playerEntry.getSiblings().get(2).getSiblings()
-                        .get(playerEntry.getSiblings().get(2).getSiblings().size() - 1);
-                if (Formatting.strip(emblem.getString()).startsWith(" ")) {
-                    // white emblems have a space at the start and just don't have any formatting at all
-                    emblem = Text.literal(Formatting.strip(emblem.getString().substring(1)))
-                            .formatted(Formatting.WHITE);
-                }
-            }
-
-            Text lobbyEntry = lobbyList.stream().filter(
-                    entry -> Objects.equals(Formatting.strip(entry.getString()), name)).findFirst().orElse(null);
-            assert lobbyEntry != null : name + "'s lobbyEntry is null!";
-            TextColor styleColor = lobbyEntry.getStyle().getColor();
-            if (styleColor == null) {
-                continue;
-            }
-            Formatting rankColor = Formatting.byName(styleColor.getName());
-
-            Text setupEntry = setupList.stream().filter(
-                    entry -> Objects.equals(Formatting.strip(entry.getString()), name)).findFirst().orElse(null);
-
-            boolean isUser = setupEntry != null && !setupEntry.getStyle().isEmpty();
-
-            players.add(new InitialPlayerData(name, title, emblem, rankColor, isUser));
-        }
-
-        currentBuilder = null;
-        emit(new GameStartEvent(players));
-
-        lobbyPlayerList = new ArrayList<>();
-        setupPlayerList = new ArrayList<>();
-
-        if (prematureBuilder != null) {
-            emit(new BuilderChangeEvent(null, prematureBuilder));
-            currentBuilder = prematureBuilder;
-            prematureBuilder = null;
-        }
-    }
-
-    private void onGameEnd(List<Text> scoreboardLines) {
-        Map<String, Integer> actualScores = new HashMap<>();
-        scoreboardLines.stream().map(line -> Formatting.strip(line.getString()))
-                .filter(line -> line != null && !line.isBlank())
-                .map(line -> line.split("\\. ", 2))
-                .filter(parts -> parts.length > 1)
-                .map(parts -> parts[1].split(": ", 2))
-                .filter(parts -> parts.length > 1 && parts[0].length() < 16)
-                .forEach(parts -> {
-                    try { actualScores.put(parts[0], Integer.valueOf(parts[1])); }
-                    catch (NumberFormatException ignored) {} //yep, score can be malformed and cause a crash
-                });
-        emit(new GameEndEvent(actualScores));
-    }
-
-    private void onScreenTitle(Text screenTitle) {
-        if (!(gameState.equals(GameState.ROUND_PRE) || gameState.equals(GameState.ROUND_END))) return;
-        if (screenTitle.getString().equals("Select a theme to build!")) {
-            if (scoreboardLineHistory.size() == 0) return;
-            String builderName = getBuilderNameFromScoreboard(scoreboardLineHistory.get(0));
-            if (Objects.equals(currentBuilder, builderName)) return;
-            emit(new BuilderChangeEvent(currentBuilder, builderName));
-            emit(new UserBuilderEvent());
-            currentBuilder = builderName;
-        }
-    }
-
-    private String getPlayerNameFromMessage(String message) {
-        if (!message.contains(": ")) return null;
-        String[] nameParts = message.split(": ")[0].split(" ");
-        if (message.startsWith("[GUESSER CHAT]")) {
-            return nameParts[nameParts.length - 1];
-        } else {
-            // check if first part is a valid emblem
-            if (Arrays.stream(validEmblems).anyMatch(e -> e.equals(nameParts[0]))) {
-                return nameParts[nameParts.length - 1];
-            }
-            // if not, let's check if it's a valid title
-            if (Arrays.stream(validTitles).anyMatch(e -> e.equals(nameParts[0]))) {
-                return nameParts[nameParts.length - 1];
-            }
-            // if not, maybe there's a multi-word title (leaderboard)
-            if (Arrays.stream(validLeaderboardTitles)
-                    .anyMatch(e -> e.equals(nameParts[0]) && nameParts[1].equals("Builder"))) {
-                return nameParts[nameParts.length - 1];
-            }
-            // if not, let's check if it's a valid rank (for when and titles don't appear at end of round)
-            if (Arrays.stream(validRanks).anyMatch(e -> e.equals(nameParts[0]))) {
-                return nameParts[nameParts.length - 1];
-            }
-            // if they don't even have a rank, then there should only be one name part - their name
-            // however, we have to manually exclude a few possibilities
-            if (nameParts.length == 1 && !nameParts[0].equals("Builder") && !nameParts[0].equals("Round")) {
-                return nameParts[0];
-            }
-        }
-        return null;
-    }
-
-    // TODO: implement and use this instead of `getPlayerNameFromMessage`
-    private PlayerChatMessage parsePlayerChatMessage(Text message) {
-        throw new NotImplementedException();
-    }
-
-    private void onSubtitleSet(Text subtitle) {
-        if (gameState.equals(GameState.ROUND_BUILD)
-                && Objects.equals(Formatting.strip(subtitle.getString()), "1 second remaining!")) {
-            emit(new OneSecondAlertEvent());
-        }
-    }
-
-    private void onTitleSet(Text title) {
-    }
-
-    private void onActionBarMessage(Text actionBarMessage) {
-        String strMessage = Formatting.strip(actionBarMessage.getString());
-        if (strMessage == null || strMessage.isEmpty()) return;
-
-        if (strMessage.startsWith("The theme is ") && gameState.equals(GameState.ROUND_BUILD)) {
-            String theme = strMessage.replace("The theme is ", "");
-            if (!currentTheme.equals(theme)) {
-                emit(new ThemeUpdateEvent(theme));
-                currentTheme = theme;
+                emit(new ThemeUpdateEvent(currentTheme));
             }
         }
     }
 
-    private void onChatMessages(List<Text> chatMessages) {
-        List<FormattedName> correctGuessers = new ArrayList<>();
-        for (Text message : chatMessages) {
-            String strMessage = Formatting.strip(message.getString());
+    private void onChatMessages(List<String> chatMessages) {
+        List<String> correctGuessers = new ArrayList<>();
+        for (String messageString : chatMessages) {
+            String strMessage = EnumChatFormatting.getTextWithoutFormattingCodes(messageString);
             if (strMessage == null || strMessage.isEmpty()) continue;
 
             if (gameState.equals(GameState.ROUND_PRE) && strMessage.startsWith("Round: ") && strMessage.contains("/")) {
                 String[] currentOverTotal = strMessage.replace("Round: ", "").split("/");
-                if (!currentOverTotal[0].matches("\\d{1,2}") && !currentOverTotal[1].matches("\\d{1,2}")) {
-                    return;
+                if (currentOverTotal[0].matches("\\d{1,2}") && currentOverTotal[1].matches("\\d{1,2}")) {
+                    int current = Integer.parseInt(currentOverTotal[0]);
+                    int total = Integer.parseInt(currentOverTotal[1]);
+                    emit(new RoundStartEvent(current, total));
+                    changeState(GameState.ROUND_BUILD);
                 }
-
-                int current = Integer.parseInt(currentOverTotal[0]);
-                int total = Integer.parseInt(currentOverTotal[1]);
-                emit(new RoundStartEvent(current, total));
-                changeState(GameState.ROUND_BUILD);
             }
 
             if (strMessage.startsWith("Builder: ")) {
                 String builderName = strMessage.replace("Builder: ", "");
-                if (Objects.equals(currentBuilder, builderName)) return;
-
-                if (gameState.equals(GameState.ROUND_PRE) || gameState.equals(GameState.ROUND_END)) {
-                    emit(new BuilderChangeEvent(currentBuilder, builderName));
-                    currentBuilder = builderName;
-                } else if (gameState.equals(GameState.SETUP)) {
-                    prematureBuilder = builderName;
+                if (!Objects.equals(currentBuilder, builderName)) {
+                    if (gameState.equals(GameState.ROUND_PRE) || gameState.equals(GameState.ROUND_END)) {
+                        emit(new BuilderChangeEvent(currentBuilder, builderName));
+                        currentBuilder = builderName;
+                    } else if (gameState.equals(GameState.SETUP)) {
+                        prematureBuilder = builderName;
+                    }
                 }
             }
 
             if (gameState.equals(GameState.ROUND_BUILD) && !strMessage.contains(":")
                     && strMessage.endsWith(" correctly guessed the theme!")) {
                 String name = strMessage.replace(" correctly guessed the theme!", "");
-                Formatting rank = Formatting.byName(Objects.requireNonNull(message.getSiblings().get(0).getStyle().getColor()).getName());
-                correctGuessers.add(new FormattedName(name, rank));
+                correctGuessers.add(name);
             }
 
             if (gameState.equals(GameState.ROUND_BUILD) && strMessage.startsWith("+") && strMessage.endsWith("(Correct Guess)")) {
@@ -402,70 +302,63 @@ public class GTBEvents {
         if (!correctGuessers.isEmpty()) emit(new CorrectGuessEvent(correctGuessers));
     }
 
-    private String getBuilderNameFromScoreboard(List<Text> scoreboardLines) {
-        List<String> strLines = scoreboardLines.stream().map(line -> Formatting.strip(line.getString())).toList();
-        int builderLine = strLines.indexOf("Builder:");
-        if (builderLine == -1 || strLines.size() <= builderLine + 1) return "";
+    private void onActionBarMessage(String actionBarMessage) {
+        String strMessage = EnumChatFormatting.getTextWithoutFormattingCodes(actionBarMessage);
+        if (strMessage == null || strMessage.isEmpty()) return;
 
-        String builderLineString = strLines.get(builderLine + 1);
-        if (!builderLineString.startsWith(" ")) return "";
-
-        return builderLineString.substring(1);
-    }
-
-    private String getThemeFromScoreboard(List<String> scoreboardLines) {
-        int themeLine = scoreboardLines.indexOf("Theme:");
-        if (themeLine == -1 || scoreboardLines.size() <= themeLine + 1) return "";
-
-        String themeLineString = scoreboardLines.get(themeLine + 1);
-        if (!themeLineString.startsWith(" ")) return "";
-        if (themeLineString.isBlank()) return "";
-        if (themeLineString.equals(" ???")) return "";
-        return themeLineString.substring(1);
-    }
-
-    @SuppressWarnings("SequencedCollectionMethodCanBeUsed")
-    public GameState getStateFromScoreboard(List<String> scoreboardLines) {
-        if (scoreboardLines.isEmpty()) return null;
-        if (!scoreboardLines.get(0).equals("GUESS THE BUILD")) return GameState.NONE;
-        if (scoreboardLines.size() == 1) return GameState.NONE;
-        if (scoreboardLines.contains("Mode: Guess The Build")) return GameState.LOBBY;
-        if (scoreboardLines.stream().anyMatch(line -> line.startsWith("1. "))) return GameState.POST_GAME;
-        if (scoreboardLines.stream().anyMatch(line -> line.startsWith("Starts In: 00:"))) return GameState.ROUND_PRE;
-        if (scoreboardLines.stream().anyMatch(line -> line.startsWith("Next Round: 00:0"))) return GameState.ROUND_END;
-        if (scoreboardLines.stream()
-                // technically, it's possible for a player named "Time" to be on the scoreboard with 0 points
-                .anyMatch(line -> line.startsWith("Time: 0") && line.length() > 7)) return GameState.ROUND_BUILD;
-        return null;
-    }
-
-    public List<TrueScore> getTrueScoresFromScoreboard(List<Text> scoreboardLines) {
-        List<TrueScore> trueScores = new ArrayList<>();
-        List<String> stringLines = scoreboardLines.stream().map(line -> Formatting.strip(line.getString())).toList();
-
-        for (int i = 0; i < stringLines.size(); i++) {
-            String[] parts = stringLines.get(i).split(": ");
-            if (parts.length != 2) continue;
-            if (!parts[0].contains(" ") && parts[1].matches("\\d{1,2}")) {
-                Text line = scoreboardLines.get(i);
-                Formatting rank = Formatting.byName(Objects.requireNonNull(
-                        line.getSiblings().get(0).getSiblings().get(0).getStyle().getColor()).getName());
-                trueScores.add(new TrueScore(new FormattedName(parts[0], rank), Integer.parseInt(parts[1])));
+        if (strMessage.startsWith("The theme is ") && gameState.equals(GameState.ROUND_BUILD)) {
+            String theme = strMessage.replace("The theme is ", "");
+            if (!currentTheme.equals(theme)) {
+                emit(new ThemeUpdateEvent(theme));
+                currentTheme = theme;
             }
         }
+    }
 
-        return trueScores;
+    public String getCurrentThemeStruct() {
+        String[] segments = currentTheme.split(" ");
+        String result = "";
+        for (String segment : segments) {
+            if (result.isEmpty()) {
+                result += segment.length();
+            } else {
+                result += "-" + segment.length();
+            }
+        }
+        return result;
+    }
+
+    private void onTitleSet(String title) {
+    }
+
+    private void onSubtitleSet(String subtitle) {
+        if (gameState.equals(GameState.ROUND_BUILD)
+                && Objects.equals(EnumChatFormatting.getTextWithoutFormattingCodes(subtitle), "1 second remaining!")) {
+            emit(new OneSecondAlertEvent());
+        }
+    }
+
+    private void onScreenTitle(String screenTitle) {
+        if (!(gameState.equals(GameState.ROUND_PRE) || gameState.equals(GameState.ROUND_END))) return;
+        if (screenTitle.equals("Select a theme to build!")) {
+            if (scoreboardLineHistory.size() == 0) return;
+            String builderName = getBuilderNameFromScoreboard(scoreboardLineHistory.get(0));
+            if (Objects.equals(currentBuilder, builderName)) return;
+            emit(new BuilderChangeEvent(currentBuilder, builderName));
+            emit(new UserBuilderEvent());
+            currentBuilder = builderName;
+        }
     }
 
     public void changeState(GameState newState) {
         if (gameState == newState) return;
 
+        GuessTheUtils.LOGGER.info("Change state from " + gameState + " to " + newState);
         if (newState.equals(GameState.LOBBY)) {
             if (playerListEntryHistory.size() > 0) {
                 lobbyPlayerList = playerListEntryHistory.get(0);
             }
         }
-
 
         if (newState.equals(GameState.ROUND_PRE)) {
             if (gameState.equals(GameState.SETUP) && !setupPlayerList.isEmpty()) {
@@ -498,201 +391,380 @@ public class GTBEvents {
         gameState = newState;
     }
 
-    public boolean isInGtb() {
-        return gameState.equals(GameState.ROUND_BUILD)
-                || gameState.equals(GameState.ROUND_PRE)
-                || gameState.equals(GameState.ROUND_END);
+    private String extractPlayerName(String line) {
+        return line.replaceAll("\\[.*?\\]", "").trim();
     }
 
-    public <T extends BaseEvent> void subscribe(Class<T> eventClass, Consumer<T> consumer, Module module) {
-        subscribers.computeIfAbsent(eventClass, k -> new ArrayList<>()).add(consumer);
-        modules.put(consumer, module);
+    private String extractRankColor(String line) {
+        return line.trim();
+    }
+
+    public static String extractTitle(String line) {
+        for (String title : validTitles) {
+            if (line.contains(title)) {
+                return title.trim();
+            }
+        }
+        return "";
+    }
+
+    public boolean isBoldTitle(String line) {
+        // get the index of line in validTitles
+        int index = Arrays.asList(validTitles).indexOf(line);
+        if (index == -1) return false;
+
+        // if the title is equal or greater than the index of Legend, return isBold
+        return index >= Arrays.asList(validTitles).indexOf("Legend");
+    }
+
+    public static String extractEmblem(String line) {
+        for (String emblem : validEmblems) {
+            if (line.contains(emblem)) {
+                return line.trim();
+                // return emblem; 
+                // use prefix instead
+            }
+        }
+        return "";
+    }
+
+    private boolean isCurrentUser(String name) {
+                Minecraft mc = Minecraft.getMinecraft();
+        return mc.thePlayer != null && mc.thePlayer.getName().equals(name);
+    }
+
+    private void onBuilderChange(String newBuilder) {
+        if (gameState.equals(GameState.NONE) || gameState.equals(GameState.LOBBY)) {
+            prematureBuilder = newBuilder;
+            return;
+        }
+
+        String previousBuilder = currentBuilder;
+        currentBuilder = newBuilder;
+        emit(new BuilderChangeEvent(previousBuilder, newBuilder));
+
+        if (isCurrentUser(newBuilder)) {
+            emit(new UserBuilderEvent());
+        }
+    }
+
+    private void onCorrectGuess(List<String> players) {
+        emit(new CorrectGuessEvent(players));
+
+        boolean userGuessed = players.stream().anyMatch(this::isCurrentUser);
+        if (userGuessed) {
+            emit(new UserCorrectGuessEvent());
+        }
+    }
+
+    public GameState getStateFromScoreboard(List<String> scoreboardLines) {
+        if (scoreboardLines.isEmpty()) return null;
+
+        if (scoreboardLines.contains("Mode: Guess The Build") || isInLobby()) return GameState.LOBBY;
+        if (scoreboardLines.stream().anyMatch(line -> line.startsWith("1. "))) return GameState.POST_GAME;
+        if (scoreboardLines.stream().anyMatch(line -> line.startsWith("Starts In: 00:"))) return GameState.ROUND_PRE;
+        if (scoreboardLines.stream().anyMatch(line -> line.startsWith("Next Round: 00:0"))) return GameState.ROUND_END;
+        if (scoreboardLines.stream()
+                .anyMatch(line -> line.startsWith("Time: 0") && line.length() > 7)) return GameState.ROUND_BUILD;
+        return null;
+    }
+
+    private String getThemeFromScoreboard(List<String> scoreboardLines) {
+        int themeLine = scoreboardLines.indexOf("Theme:");
+        if (themeLine == -1 || scoreboardLines.size() <= themeLine + 1) return "";
+
+        String themeLineString = scoreboardLines.get(themeLine + 1);
+        if (!themeLineString.startsWith(" ")) return "";
+        if (themeLineString.trim().isEmpty()) return "";
+        if (themeLineString.equals(" ???")) return "";
+        return themeLineString.substring(1);
+    }
+
+    private String getPlayerNameFromMessage(String message) {
+        if (!message.contains(": ")) return null;
+        String[] nameParts = message.split(": ")[0].split(" ");
+        if (message.startsWith("[GUESSER CHAT]")) {
+            return nameParts[nameParts.length - 1];
+        } else {
+            if (Arrays.stream(validEmblems).anyMatch(e -> e.equals(nameParts[0]))) {
+                return nameParts[nameParts.length - 1];
+            }
+            if (Arrays.stream(validTitles).anyMatch(e -> e.equals(nameParts[0]))) {
+                return nameParts[nameParts.length - 1];
+            }
+            if (Arrays.stream(validLeaderboardTitles)
+                    .anyMatch(e -> e.equals(nameParts[0]) && nameParts[1].equals("Builder"))) {
+                return nameParts[nameParts.length - 1];
+            }
+            if (Arrays.stream(validRanks).anyMatch(e -> e.equals(nameParts[0]))) {
+                return nameParts[nameParts.length - 1];
+            }
+            if (nameParts.length == 1 && !nameParts[0].equals("Builder") && !nameParts[0].equals("Round")) {
+                return nameParts[0];
+            }
+        }
+        return null;
+    }
+
+    private String getBuilderNameFromScoreboard(List<String> scoreboardLines) {
+        List<String> strLines = scoreboardLines.stream().map(line -> EnumChatFormatting.getTextWithoutFormattingCodes(line)).collect(java.util.stream.Collectors.toList());
+        int builderLine = strLines.indexOf("Builder:");
+        if (builderLine == -1 || strLines.size() <= builderLine + 1) return "";
+
+        String builderLineString = strLines.get(builderLine + 1);
+        if (!builderLineString.startsWith(" ")) return "";
+
+        return builderLineString.substring(1);
+    }
+
+    private Map<String, Utils.PlayerInfo> getHypixelRankInfoMap() {
+        Map<String, Utils.PlayerInfo> hypixelRankInfoMap = new HashMap<>();
+
+        for (int i = 0; i < playerListInfoEntryHistory.size(); i++) {
+            List<Utils.PlayerInfo> playerInfoList = playerListInfoEntryHistory.get(i);
+            boolean isHypixelRankInfoList = playerInfoList
+                .stream()
+                .allMatch(playerInfo -> {
+                    String prefix = playerInfo.prefix;
+                    String suffix = playerInfo.suffix;
+                    return !Arrays.stream(validTitles).anyMatch(title -> prefix.contains(title)) && !Arrays.stream(validEmblems).anyMatch(emblem -> suffix.contains(emblem));
+                });
+
+            if (isHypixelRankInfoList) {
+                for (Utils.PlayerInfo playerInfo : playerInfoList) {
+                    // if exist, override the player info
+                    if (hypixelRankInfoMap.containsKey(playerInfo.name)) {
+                        Utils.PlayerInfo existingInfo = hypixelRankInfoMap.get(playerInfo.name);
+                        Utils.PlayerInfo updatedInfo = new Utils.PlayerInfo(
+                            playerInfo.name,
+                            playerInfo.prefix != null && !playerInfo.prefix.trim().isEmpty() ? playerInfo.prefix : existingInfo.prefix,
+                            playerInfo.suffix != null && !playerInfo.suffix.trim().isEmpty() ? playerInfo.suffix : existingInfo.suffix
+                        );
+                        hypixelRankInfoMap.put(playerInfo.name, updatedInfo);
+                    } else {
+                        hypixelRankInfoMap.put(playerInfo.name, playerInfo);
+                    }
+                }
+            }
+        }
+
+        return hypixelRankInfoMap;
+    }
+
+    private Map<String, Utils.PlayerInfo> getBuildBattleRankInfoMap() {
+        Map<String, Utils.PlayerInfo> buildBattleRankInfoMap = new HashMap<>();
+
+        for (int i = 0; i < playerListInfoEntryHistory.size(); i++) {
+            List<Utils.PlayerInfo> playerInfoList = playerListInfoEntryHistory.get(i);
+            boolean isBuildBattleRankInfoList = playerInfoList
+                .stream()
+                .anyMatch(playerInfo -> {
+                    String prefix = playerInfo.prefix;
+                    return Arrays.stream(validTitles).anyMatch(title -> prefix.contains(title));
+                });
+
+            if (isBuildBattleRankInfoList) {
+                for (Utils.PlayerInfo playerInfo : playerInfoList) {
+                    buildBattleRankInfoMap.put(playerInfo.name, playerInfo);
+                }
+            }
+        }
+
+        return buildBattleRankInfoMap;
+    }
+
+    private InitialPlayerData parsePlayerInfoData(String playerName, Map<String, Utils.PlayerInfo> hypixelRankInfoMap, Map<String, Utils.PlayerInfo> buildBattleRankInfoMap) {
+        if (playerName == null) return null;
+
+        playerName = EnumChatFormatting.getTextWithoutFormattingCodes(playerName).trim();
+        if (playerName.isEmpty()) return null;
+
+        Utils.PlayerInfo hypixelRankInfo = hypixelRankInfoMap.get(playerName);
+        Utils.PlayerInfo buildBattleRankInfo = buildBattleRankInfoMap.get(playerName);
+
+        String rankColor = "";
+        String title = "";
+        String emblem = "";
+
+        if (hypixelRankInfo != null) {
+            rankColor = extractRankColor(hypixelRankInfo.prefix);
+        }
+
+        if (buildBattleRankInfo != null) {
+            title = buildBattleRankInfo.prefix.trim();
+            emblem = extractEmblem(buildBattleRankInfo.suffix);
+        }
+
+        return new InitialPlayerData(playerName, rankColor, title, emblem, isCurrentUser(playerName));
+    }
+
+    @SuppressWarnings("SequencedCollectionMethodCanBeUsed")
+    private void onGameStart(List<String> lobbyList, List<String> setupList, List<String> finalList) {
+        Set<InitialPlayerData> players = new HashSet<>();
+
+        Map<String, Utils.PlayerInfo> hypixelRankInfoMap = getHypixelRankInfoMap();
+        Map<String, Utils.PlayerInfo> buildBattleRankInfoMap = getBuildBattleRankInfoMap();
+        for (String playerEntry : finalList) {
+            InitialPlayerData playerData = parsePlayerInfoData(
+                playerEntry,
+                hypixelRankInfoMap,
+                buildBattleRankInfoMap
+            );
+
+            if (playerData != null) {
+                players.add(playerData);
+            }
+        }
+
+        currentBuilder = null;
+        emit(new GameStartEvent(players));
+
+        lobbyPlayerList = new ArrayList<>();
+        setupPlayerList = new ArrayList<>();
+
+        if (prematureBuilder != null) {
+            emit(new BuilderChangeEvent(null, prematureBuilder));
+            currentBuilder = prematureBuilder;
+            prematureBuilder = null;
+        }
+    }
+
+    private void onGameEnd(List<String> scoreboardLines) {
+        Map<String, Integer> actualScores = new HashMap<>();
+        scoreboardLines.stream().map(line -> EnumChatFormatting.getTextWithoutFormattingCodes(line))
+                .filter(line -> line != null && !line.trim().isEmpty())
+                .map(line -> line.split("\\. ", 2))
+                .filter(parts -> parts.length > 1)
+                .map(parts -> parts[1].split(": ", 2))
+                .filter(parts -> parts.length > 1 && parts[0].length() < 16)
+                .forEach(parts -> {
+                    try { actualScores.put(parts[0], Integer.valueOf(parts[1])); }
+                    catch (NumberFormatException ignored) {}
+                });
+        emit(new GameEndEvent(actualScores));
     }
 
     @SuppressWarnings("unchecked")
-    public <T extends BaseEvent> void emit(T event) {
+    public <T extends BaseEvent> void subscribe(Class<T> eventClass, Consumer<T> consumer, Module module) {
+        modules.put(consumer, module);
+        subscribers.computeIfAbsent(eventClass, k -> new ArrayList<>()).add(consumer);
+    }
+
+    @SuppressWarnings("unchecked")
+    private void emit(BaseEvent event) {
         List<Consumer<?>> eventSubscribers = subscribers.get(event.getClass());
         if (eventSubscribers != null) {
-            for (Consumer<?> consumer : eventSubscribers) {
+            for (Consumer<?> subscriber : eventSubscribers) {
                 try {
-                    ((Consumer<T>) consumer).accept(event);
+                    ((Consumer<BaseEvent>) subscriber).accept(event);
                 } catch (Exception e) {
-                    handleException(e, consumer);
+                    GuessTheUtils.LOGGER.error("Error in event subscriber", e);
                 }
             }
         }
     }
 
-    private void handleException(Exception e, Consumer<?> consumer) {
-        System.out.println("Exception occurred in subscriber: " + consumer);
-        GuessTheUtils.LOGGER.error("Exception occurred in subscriber: {}", consumer);
-
-        Module module = modules.get(consumer);
-
-        if (module != null) {
-            String moduleName = module.getClass().getSimpleName();
-            Module.ErrorAction action = module.getErrorAction();
-            String stackTrace = Utils.getStackTraceAsString(e);
-
-            if (GuessTheUtils.CLIENT != null && GuessTheUtils.CLIENT.player != null) {
-                Utils.sendMessage("Exception in module " + moduleName + ": " + e.getMessage() + ". Saving details to replay file...");
-
-                Tick error = new Tick();
-                error.error = stackTrace;
-                GuessTheUtils.replay.addTick(error);
-                GuessTheUtils.replay.save();
-            } else {
-                throw new RuntimeException();
-            }
-
-            switch (action) {
-                case STOP:
-                    GuessTheUtils.LOGGER.error("Stopping module: {}", moduleName);
-                    unsubscribeModule(module);
-                    Utils.sendMessage("Stopped " + moduleName + ".");
-                    break;
-                case RESTART:
-                    GuessTheUtils.LOGGER.error("Restarting module: {}", moduleName);
-                    unsubscribeModule(module);
-                    createNewModuleInstance(module.getClass());
-                    Utils.sendMessage("Restarted " + moduleName + ".");
-                    break;
-                case LOG_AND_CONTINUE:
-                    GuessTheUtils.LOGGER.error("Logging error and continuing for module: {}", moduleName);
-                    break;
-            }
-        }
-    }
-
-    private void unsubscribeModule(Module module) {
-        List<Consumer<?>> toRemove = new ArrayList<>();
-        for (Map.Entry<Consumer<?>, Module> entry : modules.entrySet()) {
-            if (entry.getValue() == module) {
-                toRemove.add(entry.getKey());
-            }
-        }
-        for (Consumer<?> consumer : toRemove) {
-            modules.remove(consumer);
-            subscribers.values().forEach(list -> list.remove(consumer));
-        }
-    }
-
-    @SuppressWarnings("UnusedReturnValue")
-    private Module createNewModuleInstance(Class<? extends Module> moduleClass) {
-        try {
-            return moduleClass.getDeclaredConstructor(GTBEvents.class).newInstance(this);
-        } catch (Exception e) {
-            e.printStackTrace();
-            return null; // Handle this case appropriately
-        }
-    }
-
-    public record InitialPlayerData(String name, Text title, Text emblem, Formatting rankColor, boolean isUser) {
-        @Override
-        public boolean equals(Object o) {
-            if (o == null || getClass() != o.getClass()) return false;
-            InitialPlayerData that = (InitialPlayerData) o;
-            return isUser == that.isUser && Objects.equals(title, that.title) && Objects.equals(name, that.name)
-                    && Objects.equals(emblem, that.emblem) && rankColor == that.rankColor;
-        }
-
-        @Override
-        public int hashCode() {
-            return Objects.hash(name, title, emblem, rankColor, isUser);
-        }
-
-        @Override
-        public @NotNull String toString() {
-            return "InitialPlayerData{" + "name='" + name + '\'' + ", title=" + title + ", emblem=" + emblem +
-                    ", rankColor=" + rankColor + ", isUser=" + isUser + '}';
-        }
-    }
-
-    public record PlayerChatMessage(String name, Text title, Text emblem, Text rank, String message) {
-        @Override
-        public boolean equals(Object o) {
-            if (o == null || getClass() != o.getClass()) return false;
-            PlayerChatMessage that = (PlayerChatMessage) o;
-            return Objects.equals(rank, that.rank) && Objects.equals(title, that.title) && Objects.equals(name, that.name) && Objects.equals(emblem, that.emblem) && Objects.equals(message, that.message);
-        }
-
-        @Override
-        public int hashCode() {
-            return Objects.hash(name, title, emblem, rank, message);
-        }
-
-        @Override
-        public @NotNull String toString() {
-            return "PlayerChatMessage{" +
-                    "name='" + name + '\'' +
-                    ", title=" + title +
-                    ", emblem=" + emblem +
-                    ", rank=" + rank +
-                    ", message='" + message + '\'' +
-                    '}';
-        }
-    }
-
-    public static class Module {
+    public static abstract class Module {
         public enum ErrorAction {
             STOP,
             RESTART,
             LOG_AND_CONTINUE
         }
 
-        protected final GTBEvents events;
+        protected GTBEvents events;
 
         public Module(GTBEvents events) {
             this.events = events;
         }
 
-        // Default error action is DISABLE
         public ErrorAction getErrorAction() {
             return ErrorAction.STOP;
         }
     }
 
-    public record TrueScore(FormattedName fName, int points) {
-        @Override
-        public boolean equals(Object o) {
-            if (o == null || getClass() != o.getClass()) return false;
-            TrueScore trueScore = (TrueScore) o;
-            return points == trueScore.points && Objects.equals(fName, trueScore.fName);
+    public static class InitialPlayerData {
+        private final String name;
+        private final String rankColor;
+        private final String title;
+        private final String emblem;
+        private final boolean isUser;
+
+        public InitialPlayerData(String name, String rankColor, String title, String emblem, boolean isUser) {
+            this.name = name;
+            this.rankColor = rankColor;
+            this.title = title;
+            this.emblem = emblem;
+            this.isUser = isUser;
         }
 
-        @Override
-        public int hashCode() {
-            return Objects.hash(fName, points);
+        public String name() { return name; }
+        public String rankColor() { return rankColor; }
+        public String title() { return title; }
+        public String emblem() { return emblem; }
+        public boolean isUser() { return isUser; }
+    }
+
+    public static class TrueScore {
+        private final String player;
+        private final int score;
+
+        public TrueScore(String player, int score) {
+            this.player = player;
+            this.score = score;
         }
 
-        @Override
-        public @NotNull String toString() {
-            return "TrueScore{" +
-                    "fName=" + fName +
-                    ", points=" + points +
-                    '}';
+        public String getPlayer() { return player; }
+        public int getScore() { return score; }
+    }
+
+    public static class FormattedName {
+        private final String name;
+
+        public FormattedName(String name) {
+            this.name = name;
+        }
+
+        public String name() { return name; }
+    }
+
+    public boolean isInGtb() {
+        try {
+            Minecraft mc = Minecraft.getMinecraft();
+            if (mc.theWorld == null) {
+                return false;
+            }
+
+            if (GuessTheUtils.debugMode) {
+                return true;
+            }
+            
+            Scoreboard scoreboard = mc.theWorld.getScoreboard();
+            if (scoreboard == null) {
+                return false;
+            }
+            
+            // Check sidebar scoreboard (slot 1)
+            ScoreObjective sidebarObjective = scoreboard.getObjectiveInDisplaySlot(1);
+            if (sidebarObjective != null) {
+                String displayName = sidebarObjective.getDisplayName();
+                if (displayName != null) {
+                    // Remove color codes before checking the text content
+                    String cleanDisplayName = EnumChatFormatting.getTextWithoutFormattingCodes(displayName);
+                    return cleanDisplayName.toLowerCase().contains("guess the build");
+                }
+            }
+            
+            return false;
+        } catch (Exception e) {
+            return false;
         }
     }
 
-    public record FormattedName(String name, Formatting rankColor) {
-        @Override
-        public boolean equals(Object o) {
-            if (o == null || getClass() != o.getClass()) return false;
-            FormattedName that = (FormattedName) o;
-            return Objects.equals(name, that.name) && rankColor == that.rankColor;
-        }
+    public boolean isInLobby() {
+        if (!isInGtb()) return false;
 
-        @Override
-        public int hashCode() {
-            return Objects.hash(name, rankColor);
-        }
-
-        @Override
-        public @NotNull String toString() {
-            return "FormattedName{" +
-                    "name='" + name + '\'' +
-                    ", rankColor=" + rankColor +
-                    '}';
-        }
+        // Check if the scoreboard objective is "PreScoreboard"
+        String originalObjective = OriginalScoreboardCapture.getOriginalScoreboardObjective();
+        return originalObjective != null && originalObjective.trim().equals("PreScoreboard");
     }
 }

@@ -35,8 +35,22 @@ set APP_HOME=%DIRNAME%
 @rem Resolve any "." and ".." in APP_HOME to make it shorter.
 for %%i in ("%APP_HOME%") do set APP_HOME=%%~fi
 
+@rem Load .env file if it exists
+if exist "%APP_HOME%\.env" (
+    for /f "usebackq tokens=1,2 delims==" %%a in ("%APP_HOME%\.env") do (
+        if not "%%a"=="" if not "%%a:~0,1%%"=="#" (
+            set "%%a=%%b"
+        )
+    )
+)
+
 @rem Add default JVM options here. You can also use JAVA_OPTS and GRADLE_OPTS to pass JVM options to this script.
-set DEFAULT_JVM_OPTS="-Xmx64m" "-Xms64m"
+set DEFAULT_JVM_OPTS=
+
+@rem Force Java 8 for Forge 1.8.9 compatibility - Auto-detect OpenLogic Java 8
+if exist "C:\Program Files\OpenLogic\jdk-8.0.432.06-hotspot\bin\java.exe" (
+    set "JAVA_HOME=C:\Program Files\OpenLogic\jdk-8.0.432.06-hotspot"
+)
 
 @rem Find java.exe
 if defined JAVA_HOME goto findJavaFromJavaHome

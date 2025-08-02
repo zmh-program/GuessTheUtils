@@ -6,7 +6,6 @@
   "yacl3.config.guesstheutils:config.category.modules.group.chat_cooldown": "Chat Cooldown",
   "yacl3.config.guesstheutils:config.category.modules.group.builder_notification": "Building Notification",
   "yacl3.config.guesstheutils:config.category.modules.group.disallowed_item_hider": "Disallowed Item Hider",
-  "yacl3.config.guesstheutils:config.category.modules.group.name_autocomplete": "Name Tab Autocomplete",
 
   "yacl3.config.guesstheutils:config.enableCustomScoreboardModule": "Enable Custom Scoreboard",
   "yacl3.config.guesstheutils:config.customScoreboardShowPlaces": "Show Places",
@@ -38,7 +37,5 @@
 
   "yacl3.config.guesstheutils:config.enableBuilderNotificationModule": "Enable Builder Notifications",
 
-  "yacl3.config.guesstheutils:config.enableDisallowedItemHiderModule": "Hide Disallowed Items From Creative Menu",
-
-  "yacl3.config.guesstheutils:config.enableNameAutocompleteModule": "Add Player Names to Tab Autocomplete"
+  "yacl3.config.guesstheutils:config.enableDisallowedItemHiderModule": "Hide Disallowed Items From Creative Menu"
 }

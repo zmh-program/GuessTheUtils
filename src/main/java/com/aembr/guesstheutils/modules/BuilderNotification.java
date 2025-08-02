@@ -3,7 +3,7 @@ package com.aembr.guesstheutils.modules;
 import com.aembr.guesstheutils.GTBEvents;
 import com.aembr.guesstheutils.GuessTheUtils;
 import com.aembr.guesstheutils.config.GuessTheUtilsConfig;
-import net.minecraft.client.MinecraftClient;
+import net.minecraft.client.Minecraft;
 
 import java.awt.*;
 import java.io.BufferedReader;
@@ -19,14 +19,14 @@ public class BuilderNotification extends GTBEvents.Module {
     }
 
     private void onUserBuilder(GTBEvents.UserBuilderEvent event) {
-        if (!MinecraftClient.getInstance().isWindowFocused() && GuessTheUtilsConfig.CONFIG.instance().enableBuilderNotificationModule) {
+        if (!Minecraft.getMinecraft().inGameHasFocus && GuessTheUtilsConfig.enableBuilderNotification) {
             NotificationUtil.sendNotification("Guess the Build", "Come back! It is your turn to build!");
         }
     }
 
     @Override
-    public ErrorAction getErrorAction() {
-        return ErrorAction.RESTART;
+    public GTBEvents.Module.ErrorAction getErrorAction() {
+        return GTBEvents.Module.ErrorAction.RESTART;
     }
 
     public static class NotificationUtil {
